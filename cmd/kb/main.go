@@ -342,7 +342,7 @@ func serveCmd() *cobra.Command {
 				return fmt.Errorf("index: %w", err)
 			}
 
-			srv, err := server.New(k, token)
+			srv, err := server.New(k, k, token)
 			if err != nil {
 				return fmt.Errorf("create server: %w", err)
 			}

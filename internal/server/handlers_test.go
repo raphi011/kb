@@ -32,6 +32,7 @@ func (m *mockKB) ActivityDays(y, mo int) (map[int]bool, error)     { return map[
 func (m *mockKB) NotesByDate(date string) ([]index.Note, error)    { return nil, nil }
 func (m *mockKB) ReadFile(path string) ([]byte, error)             { return []byte("# Test\n\nBody."), nil }
 func (m *mockKB) Render(src []byte) (markdown.RenderResult, error) { return markdown.Render(src, nil) }
+func (m *mockKB) ReIndex() error                                   { return nil }
 
 func newTestServer(t *testing.T) *Server {
 	t.Helper()
@@ -45,7 +46,7 @@ func newTestServer(t *testing.T) *Server {
 			{Name: "golang", NoteCount: 1},
 		},
 	}
-	srv, err := New(store, "test-token")
+	srv, err := New(store, store, "test-token")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,7 +167,7 @@ func TestNewServerRejectsEmptyToken(t *testing.T) {
 		notes: []index.Note{{Path: "a.md", Title: "A", Tags: []string{}}},
 		tags:  []index.Tag{},
 	}
-	_, err := New(store, "")
+	_, err := New(store, store, "")
 	if err == nil {
 		t.Error("New() should reject empty token")
 	}

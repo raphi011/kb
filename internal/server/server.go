@@ -35,17 +35,23 @@ type Store interface {
 	Render(src []byte) (markdown.RenderResult, error)
 }
 
+// ReIndexer refreshes the git HEAD and re-indexes changed notes.
+type ReIndexer interface {
+	ReIndex() error
+}
+
 type Server struct {
 	mux         *http.ServeMux
 	handler     http.Handler
 	store       Store
+	reindexer   ReIndexer
 	token       string
 	cache       atomic.Pointer[noteCache]
 	chromaDark  []byte
 	chromaLight []byte
 }
 
-func New(store Store, token string) (*Server, error) {
+func New(store Store, reindexer ReIndexer, token string) (*Server, error) {
 	if token == "" {
 		return nil, fmt.Errorf("token must not be empty")
 	}
@@ -64,6 +70,7 @@ func New(store Store, token string) (*Server, error) {
 	s := &Server{
 		mux:         http.NewServeMux(),
 		store:       store,
+		reindexer:   reindexer,
 		token:       token,
 		chromaDark:  dark,
 		chromaLight: light,
