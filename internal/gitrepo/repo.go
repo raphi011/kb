@@ -3,6 +3,7 @@ package gitrepo
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -92,8 +93,11 @@ func (r *Repo) CommitHashes(n int) ([]string, error) {
 	var hashes []string
 	for i := 0; i < n; i++ {
 		c, err := iter.Next()
-		if err != nil {
+		if err == io.EOF {
 			break
+		}
+		if err != nil {
+			return hashes, fmt.Errorf("iterate commits: %w", err)
 		}
 		hashes = append(hashes, c.Hash.String())
 	}
@@ -162,7 +166,8 @@ func (r *Repo) GitLog() (map[string]FileTimestamps, error) {
 	err = iter.ForEach(func(c *object.Commit) error {
 		stats, err := c.Stats()
 		if err != nil {
-			return nil // skip commits with stat errors
+			slog.Debug("skip commit stats", "hash", c.Hash.String()[:8], "error", err)
+			return nil
 		}
 		for _, stat := range stats {
 			if !strings.HasSuffix(stat.Name, ".md") {
