@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -287,7 +288,11 @@ func editCmd() *cobra.Command {
 			fzf.Stderr = os.Stderr
 			out, err := fzf.Output()
 			if err != nil {
-				return nil // user cancelled
+				var exitErr *exec.ExitError
+				if errors.As(err, &exitErr) && exitErr.ExitCode() == 130 {
+					return nil // user cancelled with Ctrl-C/Esc
+				}
+				return fmt.Errorf("fzf: %w", err)
 			}
 
 			path := strings.Split(strings.TrimSpace(string(out)), "\t")[0]
@@ -296,8 +301,14 @@ func editCmd() *cobra.Command {
 				editor = "vim"
 			}
 
-			cwd, _ := os.Getwd()
-			repoRoot, _ := findRepoRoot(cwd)
+			cwd, err := os.Getwd()
+			if err != nil {
+				return fmt.Errorf("getwd: %w", err)
+			}
+			repoRoot, err := findRepoRoot(cwd)
+			if err != nil {
+				return fmt.Errorf("find repo root: %w", err)
+			}
 			editorCmd := exec.Command(editor, filepath.Join(repoRoot, path))
 			editorCmd.Stdin = os.Stdin
 			editorCmd.Stdout = os.Stdout
@@ -352,6 +363,7 @@ func serveCmd() *cobra.Command {
 // fzfSelect pipes notes through fzf and prints the selected path to stdout.
 func fzfSelect(notes []index.Note) error {
 	if _, err := exec.LookPath("fzf"); err != nil {
+		fmt.Fprintf(os.Stderr, "fzf not found, falling back to plain output\n")
 		for _, n := range notes {
 			fmt.Printf("%s\t%s\n", n.Path, n.Title)
 		}
@@ -372,7 +384,11 @@ func fzfSelect(notes []index.Note) error {
 	fzf.Stderr = os.Stderr
 	out, err := fzf.Output()
 	if err != nil {
-		return nil // user cancelled
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) && exitErr.ExitCode() == 130 {
+			return nil // user cancelled with Ctrl-C/Esc
+		}
+		return fmt.Errorf("fzf: %w", err)
 	}
 
 	path := strings.Split(strings.TrimSpace(string(out)), "\t")[0]
