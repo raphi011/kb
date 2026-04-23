@@ -94,6 +94,9 @@ func buildTree(notes []index.Note, activePath string) []*views.FileNode {
 
 	for _, n := range notes {
 		parts := strings.Split(n.Path, "/")
+		if len(parts) > 0 && strings.HasPrefix(parts[0], ".") {
+			continue
+		}
 		cur := root
 		for i, part := range parts {
 			isLast := i == len(parts)-1

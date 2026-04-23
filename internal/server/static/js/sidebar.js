@@ -1,27 +1,17 @@
-import { esc, fuzzyMatch } from './utils.js';
+import { esc } from './utils.js';
 
 const manifest = window.__ZK_MANIFEST || [];
 let selectedTags = [];
 let selectedDate = null;
-let searchQuery = '';
 
-let filterInput, filtersEl, sidebarInner, sidebar;
+let filtersEl, sidebarInner, sidebar;
 
 export function initSidebar() {
-  filterInput = document.getElementById('sidebar-filter');
   filtersEl = document.getElementById('active-filters');
   sidebarInner = document.getElementById('sidebar-inner');
   sidebar = document.getElementById('sidebar');
 
-  if (!filterInput || !sidebarInner) return;
-
-  filterInput.addEventListener('input', () => {
-    searchQuery = filterInput.value;
-    if (searchQuery.trim() && selectedDate) {
-      clearDate(true);
-    }
-    render();
-  });
+  if (!sidebarInner) return;
 
   // Event delegation for tag and filter-chip clicks.
   document.addEventListener('click', (e) => {
@@ -101,7 +91,7 @@ function clearDate(notify) {
 }
 
 function restoreSidebar() {
-  if (selectedTags.length > 0 || searchQuery.trim()) {
+  if (selectedTags.length > 0) {
     render();
   } else {
     // No other filters — re-fetch the tree from the server since the
@@ -125,31 +115,21 @@ function removeTag(tag) {
 
 function render() {
   renderFilters();
-  const query = searchQuery.trim().toLowerCase();
   const hasTags = selectedTags.length > 0;
 
-  if (!query && !hasTags) {
-    sidebar.querySelectorAll('.server-tree').forEach(el => el.style.display = '');
+  if (!hasTags) {
+    for (const el of sidebarInner.children) {
+      if (!el.classList.contains('client-results')) el.style.display = '';
+    }
     sidebarInner.querySelectorAll('.client-results').forEach(el => el.remove());
     return;
   }
 
-  sidebar.querySelectorAll('.server-tree').forEach(el => el.style.display = 'none');
+  for (const el of sidebarInner.children) {
+    if (!el.classList.contains('client-results')) el.style.display = 'none';
+  }
 
-  let results = manifest;
-  if (hasTags) {
-    results = results.filter(n => selectedTags.every(t => n.tags.includes(t)));
-  }
-  if (query) {
-    const scored = [];
-    for (const n of results) {
-      const haystack = n.title + ' ' + n.tags.join(' ') + ' ' + n.path;
-      const m = fuzzyMatch(query, haystack);
-      if (m) scored.push({ note: n, score: m.score });
-    }
-    scored.sort((a, b) => b.score - a.score);
-    results = scored.map(s => s.note);
-  }
+  let results = manifest.filter(n => selectedTags.every(t => n.tags.includes(t)));
 
   sidebarInner.querySelectorAll('.client-results').forEach(el => el.remove());
 
@@ -165,9 +145,6 @@ function render() {
          hx-target="#content-col"
          hx-push-url="true">
         <div class="result-title">${esc(n.title || n.path)}</div>
-        ${n.tags.length ? `<div class="tag-pills">${n.tags.map(t =>
-          `<span class="tag-pill">${esc(t)}</span>`
-        ).join('')}</div>` : ''}
       </a>
     `).join('');
   }

@@ -1,9 +1,6 @@
 import { setDateFilter, clearDateFilter, getSelectedDate } from './sidebar.js';
 
 export function initCalendar() {
-  const cal = document.getElementById('calendar');
-  if (!cal) return;
-
   // Restore selection from URL on initial load.
   const urlDate = new URLSearchParams(location.search).get('date');
   if (urlDate) {
@@ -11,8 +8,9 @@ export function initCalendar() {
     highlightDay(urlDate);
   }
 
-  cal.addEventListener('click', (e) => {
-    const dayEl = e.target.closest('.cal-day-active');
+  // Delegate on document so it survives OOB TOC panel swaps.
+  document.addEventListener('click', (e) => {
+    const dayEl = e.target.closest('#calendar .cal-day-active');
     if (!dayEl) return;
 
     const date = dayEl.dataset.date;

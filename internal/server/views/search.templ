@@ -10,14 +10,6 @@ templ SearchResults(notes []index.Note) {
 			<li>
 				@ContentLink("result-item", "/notes/" + note.Path) {
 					<div class="result-title">{ note.Title }</div>
-					<div class="result-meta">{ note.Modified.Format("2006-01-02") }</div>
-					if len(note.Tags) > 0 {
-						<div class="tag-pills">
-							for _, tag := range note.Tags {
-								<span class="tag-pill">{ tag }</span>
-							}
-						</div>
-					}
 				}
 			</li>
 		}

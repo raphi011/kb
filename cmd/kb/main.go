@@ -56,10 +56,13 @@ func openKB(repoPath string) (*kb.KB, error) {
 		if err != nil {
 			return nil, err
 		}
-		repoPath, err = findRepoRoot(cwd)
-		if err != nil {
-			return nil, err
-		}
+		repoPath, _ = findRepoRoot(cwd)
+	}
+	if repoPath == "" {
+		repoPath = os.Getenv("KB_REPO")
+	}
+	if repoPath == "" {
+		return nil, fmt.Errorf("not a git repository and KB_REPO not set")
 	}
 	dbPath := filepath.Join(repoPath, ".kb.db")
 	return kb.Open(repoPath, dbPath)
@@ -283,7 +286,7 @@ func editCmd() *cobra.Command {
 				fmt.Fprintf(&input, "%s\t%s\n", n.Path, n.Title)
 			}
 
-			fzf := exec.Command("fzf", "--delimiter=\t", "--with-nth=2", "--preview=kb cat {1}")
+			fzf := exec.Command("fzf", "--delimiter=\t", "--with-nth=2", "--preview="+fzfPreview())
 			fzf.Stdin = strings.NewReader(input.String())
 			fzf.Stderr = os.Stderr
 			out, err := fzf.Output()
@@ -360,6 +363,13 @@ func serveCmd() *cobra.Command {
 	return cmd
 }
 
+func fzfPreview() string {
+	if _, err := exec.LookPath("bat"); err == nil {
+		return "kb cat {1} | bat --style=plain --color=always --language=md"
+	}
+	return "kb cat {1}"
+}
+
 // fzfSelect pipes notes through fzf and prints the selected path to stdout.
 func fzfSelect(notes []index.Note) error {
 	if _, err := exec.LookPath("fzf"); err != nil {
@@ -378,7 +388,7 @@ func fzfSelect(notes []index.Note) error {
 	fzf := exec.Command("fzf",
 		"--delimiter=\t",
 		"--with-nth=2..",
-		"--preview=kb cat {1}",
+		"--preview="+fzfPreview(),
 	)
 	fzf.Stdin = strings.NewReader(input.String())
 	fzf.Stderr = os.Stderr

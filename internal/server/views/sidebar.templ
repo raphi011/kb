@@ -7,7 +7,7 @@ import (
 templ TreeNode(node *FileNode) {
 	if node.IsDir {
 		<details open?={ node.IsOpen }>
-			<summary class="tree-folder"><span class="tree-chevron">&#9656;</span>{ node.Name }</summary>
+			<summary class="tree-folder">{ node.Name }</summary>
 			<div class="tree-children">
 				for _, child := range node.Children {
 					@TreeNode(child)
@@ -23,13 +23,12 @@ templ TreeNode(node *FileNode) {
 			hx-push-url="true"
 			data-path={ node.Path }
 		>
-			<span class="tree-file-dot"></span>{ node.Name }
+			{ node.Name }
 		</a>
 	}
 }
 
 templ Tree(nodes []*FileNode) {
-	<div class="sidebar-section-label">Notes</div>
 	for _, node := range nodes {
 		@TreeNode(node)
 	}
@@ -52,9 +51,6 @@ templ TagList(tags []index.Tag) {
 }
 
 templ Sidebar(nodes []*FileNode, tags []index.Tag) {
-	<div id="sidebar-search">
-		<input type="text" id="sidebar-filter" placeholder="Filter notes..." autocomplete="off"/>
-	</div>
 	<div id="active-filters"></div>
 	<div id="sidebar-inner">
 		if len(nodes) > 0 {

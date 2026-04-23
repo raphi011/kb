@@ -16,16 +16,20 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 			@Calendar(calYear, calMonth, activeDays, 0)
 			<div class="resize-handle-v" data-resize-target="next"></div>
 		}
+		<div id="toc-header"><span>On this page</span></div>
 		if len(headings) > 0 {
-			<div id="toc-header"><span>On this page</span></div>
 			<div id="toc-inner">
 				for _, h := range headings {
 					<a class={ "toc-item", templ.KV("h3", h.Level == 3) } href={ templ.SafeURL("#" + h.ID) }>{ h.Text }</a>
 				}
 			</div>
+		} else {
+			<div id="toc-inner">
+				<span class="toc-empty">No headings</span>
+			</div>
 		}
+		<div class="resize-handle-v" data-resize-target="next"></div>
 		if len(outgoing) > 0 {
-			<div class="resize-handle-v" data-resize-target="next"></div>
 			<details class="toc-links-section" open aria-label="Outgoing links">
 				<summary class="toc-links-label">Links <span class="tl-count">{ lenStr(outgoing) }</span></summary>
 				<div class="toc-links-body">
@@ -52,9 +56,13 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 					}
 				</div>
 			</details>
+		} else {
+			<div class="toc-links-section toc-links-empty">
+				<span class="toc-links-label">Links <span class="tl-count">0</span></span>
+			</div>
 		}
+		<div class="resize-handle-v" data-resize-target="next"></div>
 		if len(backlinks) > 0 {
-			<div class="resize-handle-v" data-resize-target="next"></div>
 			<details class="toc-links-section" open aria-label="Backlinks">
 				<summary class="toc-links-label">Backlinks <span class="tl-count">{ lenStr(backlinks) }</span></summary>
 				<div class="toc-links-body">
@@ -65,6 +73,10 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 					}
 				</div>
 			</details>
+		} else {
+			<div class="toc-links-section toc-links-empty">
+				<span class="toc-links-label">Backlinks <span class="tl-count">0</span></span>
+			</div>
 		}
 	</aside>
 }

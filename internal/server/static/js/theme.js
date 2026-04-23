@@ -13,5 +13,6 @@ export function initTheme() {
   toggle.addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme');
     apply(current === 'dark' ? 'light' : 'dark');
+    toggle.blur();
   });
 }
