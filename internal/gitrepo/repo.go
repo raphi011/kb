@@ -197,6 +197,3 @@ func (r *Repo) RefreshHead() error {
 	return nil
 }
 
-func (r *Repo) GitRepo() *git.Repository {
-	return r.repo
-}
