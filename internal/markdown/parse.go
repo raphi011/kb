@@ -65,7 +65,7 @@ func ParseMarkdown(content string) *MarkdownDoc {
 	doc.Headings = w.headings
 	doc.Tags = collectTags(doc.Frontmatter, w.textContent.String())
 	doc.Lead = extractLead(doc.Body)
-	doc.WordCount = countWords(doc.Body)
+	doc.WordCount = countWords(w.textContent.String())
 
 	return doc
 }

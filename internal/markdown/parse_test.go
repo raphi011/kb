@@ -108,6 +108,15 @@ func TestParseMarkdown_WordCount(t *testing.T) {
 	}
 }
 
+func TestParseMarkdown_WordCountExcludesMarkdown(t *testing.T) {
+	content := "# Title\n\nHello world.\n\n```go\nfunc main() {}\n```\n"
+	doc := ParseMarkdown(content)
+	// "Title", "Hello", "world." should count — code block should not
+	if doc.WordCount != 3 {
+		t.Errorf("WordCount = %d, want 3", doc.WordCount)
+	}
+}
+
 func TestParseMarkdown_Headings(t *testing.T) {
 	doc := ParseMarkdown("# Title\n\n## Section A\n\nContent A.\n\n### Subsection\n\nSub content.\n\n## Section B\n\nContent B.")
 	if len(doc.Headings) != 3 {
