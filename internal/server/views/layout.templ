@@ -60,7 +60,7 @@ templ Layout(p LayoutParams) {
 		<link rel="stylesheet" href="/static/style.css"/>
 		<link rel="stylesheet" href="/static/chroma.css"/>
 		<script>
-			(function(){var d=document.documentElement,s=d.style;var t=localStorage.getItem('zk-theme');d.setAttribute('data-theme',t||(window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'));var sw=localStorage.getItem('zk-sidebar-width');if(sw)s.setProperty('--sidebar-width',sw+'px');var tw=localStorage.getItem('zk-toc-panel-width');if(tw)s.setProperty('--toc-width',tw+'px');if(localStorage.getItem('zk-zen')==='1')document.body.classList.add('zen')})();
+			(function(){var d=document.documentElement,s=d.style;var t=localStorage.getItem('zk-theme');d.setAttribute('data-theme',t||(window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'));var sw=localStorage.getItem('zk-sidebar-width');if(sw)s.setProperty('--sidebar-width',sw+'px');var tw=localStorage.getItem('zk-toc-panel-width');if(tw)s.setProperty('--toc-width',tw+'px');if(localStorage.getItem('zk-zen')==='1')document.addEventListener('DOMContentLoaded',function(){document.body.classList.add('zen')})})();
 		</script>
 	</head>
 	<body hx-indicator="#nav-loader">
