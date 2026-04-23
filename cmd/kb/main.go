@@ -1,9 +1,16 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/exec"
+	"os/signal"
+	"path/filepath"
+	"strings"
 
+	"github.com/raphi011/kb/internal/index"
+	"github.com/raphi011/kb/internal/kb"
 	"github.com/spf13/cobra"
 )
 
@@ -13,8 +20,359 @@ func main() {
 		Short: "Git-backed markdown knowledge base",
 	}
 
+	root.AddCommand(indexCmd())
+	root.AddCommand(searchCmd())
+	root.AddCommand(listCmd())
+	root.AddCommand(tagsCmd())
+	root.AddCommand(linksCmd())
+	root.AddCommand(backlinksCmd())
+	root.AddCommand(catCmd())
+	root.AddCommand(editCmd())
+	root.AddCommand(serveCmd())
+
 	if err := root.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func findRepoRoot(dir string) (string, error) {
+	for {
+		if _, err := os.Stat(filepath.Join(dir, ".git")); err == nil {
+			return dir, nil
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", fmt.Errorf("not a git repository (or any parent)")
+		}
+		dir = parent
+	}
+}
+
+func openKB(repoPath string) (*kb.KB, error) {
+	if repoPath == "" {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
+		repoPath, err = findRepoRoot(cwd)
+		if err != nil {
+			return nil, err
+		}
+	}
+	dbPath := filepath.Join(repoPath, ".kb.db")
+	return kb.Open(repoPath, dbPath)
+}
+
+func indexCmd() *cobra.Command {
+	var full bool
+	cmd := &cobra.Command{
+		Use:   "index [path]",
+		Short: "Index repository (full on first run, incremental after)",
+		Args:  cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var repoPath string
+			if len(args) > 0 {
+				repoPath = args[0]
+			}
+			k, err := openKB(repoPath)
+			if err != nil {
+				return err
+			}
+			defer k.Close()
+			return k.Index(full)
+		},
+	}
+	cmd.Flags().BoolVar(&full, "full", false, "Force full reindex")
+	return cmd
+}
+
+func searchCmd() *cobra.Command {
+	var (
+		tags        string
+		limit       int
+		interactive bool
+	)
+	cmd := &cobra.Command{
+		Use:   "search <query>",
+		Short: "Full-text search notes",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			k, err := openKB("")
+			if err != nil {
+				return err
+			}
+			defer k.Close()
+
+			var tagFilter []string
+			if tags != "" {
+				tagFilter = strings.Split(tags, ",")
+			}
+
+			results, err := k.Search(strings.Join(args, " "), tagFilter)
+			if err != nil {
+				return err
+			}
+
+			if interactive {
+				return fzfSelect(results)
+			}
+
+			for i, n := range results {
+				if i >= limit {
+					break
+				}
+				fmt.Printf("%s\t%s\t%s\n", n.Path, n.Title, strings.Join(n.Tags, ","))
+			}
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&tags, "tags", "", "Filter by tags (comma-separated)")
+	cmd.Flags().IntVar(&limit, "limit", 20, "Max results")
+	cmd.Flags().BoolVarP(&interactive, "interactive", "i", false, "Use fzf for selection")
+	return cmd
+}
+
+func listCmd() *cobra.Command {
+	var interactive bool
+	cmd := &cobra.Command{
+		Use:   "list",
+		Short: "List all notes",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			k, err := openKB("")
+			if err != nil {
+				return err
+			}
+			defer k.Close()
+
+			notes, err := k.AllNotes()
+			if err != nil {
+				return err
+			}
+
+			if interactive {
+				return fzfSelect(notes)
+			}
+
+			for _, n := range notes {
+				fmt.Printf("%s\t%s\n", n.Path, n.Title)
+			}
+			return nil
+		},
+	}
+	cmd.Flags().BoolVarP(&interactive, "interactive", "i", false, "Use fzf for selection")
+	return cmd
+}
+
+func tagsCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "tags",
+		Short: "List all tags with note counts",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			k, err := openKB("")
+			if err != nil {
+				return err
+			}
+			defer k.Close()
+
+			tags, err := k.AllTags()
+			if err != nil {
+				return err
+			}
+			for _, t := range tags {
+				fmt.Printf("%s\t%d\n", t.Name, t.NoteCount)
+			}
+			return nil
+		},
+	}
+}
+
+func linksCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "links <path>",
+		Short: "Show outgoing links from a note",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			k, err := openKB("")
+			if err != nil {
+				return err
+			}
+			defer k.Close()
+
+			links, err := k.OutgoingLinks(args[0])
+			if err != nil {
+				return err
+			}
+			for _, l := range links {
+				kind := "internal"
+				if l.External {
+					kind = "external"
+				}
+				fmt.Printf("[%s] %s → %s\n", kind, l.Title, l.TargetPath)
+			}
+			return nil
+		},
+	}
+}
+
+func backlinksCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "backlinks <path>",
+		Short: "Show notes that link to this path",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			k, err := openKB("")
+			if err != nil {
+				return err
+			}
+			defer k.Close()
+
+			links, err := k.Backlinks(args[0])
+			if err != nil {
+				return err
+			}
+			for _, l := range links {
+				fmt.Printf("%s (%s)\n", l.SourcePath, l.SourceTitle)
+			}
+			return nil
+		},
+	}
+}
+
+func catCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "cat <path>",
+		Short: "Print raw markdown of a note",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			k, err := openKB("")
+			if err != nil {
+				return err
+			}
+			defer k.Close()
+
+			content, err := k.ReadFile(args[0])
+			if err != nil {
+				return err
+			}
+			fmt.Print(string(content))
+			return nil
+		},
+	}
+}
+
+func editCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "edit",
+		Short: "Select a note with fzf and open in $EDITOR",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			k, err := openKB("")
+			if err != nil {
+				return err
+			}
+			defer k.Close()
+
+			notes, err := k.AllNotes()
+			if err != nil {
+				return err
+			}
+
+			var input strings.Builder
+			for _, n := range notes {
+				fmt.Fprintf(&input, "%s\t%s\n", n.Path, n.Title)
+			}
+
+			fzf := exec.Command("fzf", "--delimiter=\t", "--with-nth=2", "--preview=kb cat {1}")
+			fzf.Stdin = strings.NewReader(input.String())
+			fzf.Stderr = os.Stderr
+			out, err := fzf.Output()
+			if err != nil {
+				return nil // user cancelled
+			}
+
+			path := strings.Split(strings.TrimSpace(string(out)), "\t")[0]
+			editor := os.Getenv("EDITOR")
+			if editor == "" {
+				editor = "vim"
+			}
+
+			cwd, _ := os.Getwd()
+			repoRoot, _ := findRepoRoot(cwd)
+			editorCmd := exec.Command(editor, filepath.Join(repoRoot, path))
+			editorCmd.Stdin = os.Stdin
+			editorCmd.Stdout = os.Stdout
+			editorCmd.Stderr = os.Stderr
+			return editorCmd.Run()
+		},
+	}
+}
+
+func serveCmd() *cobra.Command {
+	var (
+		addr  string
+		repo  string
+		token string
+	)
+	cmd := &cobra.Command{
+		Use:   "serve",
+		Short: "Start web server + git remote",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if token == "" {
+				return fmt.Errorf("--token is required")
+			}
+
+			k, err := openKB(repo)
+			if err != nil {
+				return err
+			}
+			defer k.Close()
+
+			if err := k.Index(false); err != nil {
+				return fmt.Errorf("index: %w", err)
+			}
+
+			// Server will be wired in Task 8
+			ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+			defer cancel()
+
+			fmt.Printf("Listening on %s\n", addr)
+			fmt.Println("Server not yet implemented — waiting for interrupt")
+			<-ctx.Done()
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&addr, "addr", ":8080", "Listen address")
+	cmd.Flags().StringVar(&repo, "repo", "", "Repository path (default: current dir)")
+	cmd.Flags().StringVar(&token, "token", "", "Auth token (required)")
+	return cmd
+}
+
+// fzfSelect pipes notes through fzf and prints the selected path to stdout.
+func fzfSelect(notes []index.Note) error {
+	if _, err := exec.LookPath("fzf"); err != nil {
+		for _, n := range notes {
+			fmt.Printf("%s\t%s\n", n.Path, n.Title)
+		}
+		return nil
+	}
+
+	var input strings.Builder
+	for _, n := range notes {
+		fmt.Fprintf(&input, "%s\t%s\t%s\n", n.Path, n.Title, strings.Join(n.Tags, ","))
+	}
+
+	fzf := exec.Command("fzf",
+		"--delimiter=\t",
+		"--with-nth=2..",
+		"--preview=kb cat {1}",
+	)
+	fzf.Stdin = strings.NewReader(input.String())
+	fzf.Stderr = os.Stderr
+	out, err := fzf.Output()
+	if err != nil {
+		return nil // user cancelled
+	}
+
+	path := strings.Split(strings.TrimSpace(string(out)), "\t")[0]
+	fmt.Println(path)
+	return nil
 }
