@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -329,10 +330,20 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleCalendar(w http.ResponseWriter, r *http.Request) {
 	year, month := time.Now().Year(), int(time.Now().Month())
 	if v := r.URL.Query().Get("year"); v != "" {
-		fmt.Sscan(v, &year)
+		y, err := strconv.Atoi(v)
+		if err != nil {
+			http.Error(w, "invalid year parameter", http.StatusBadRequest)
+			return
+		}
+		year = y
 	}
 	if v := r.URL.Query().Get("month"); v != "" {
-		fmt.Sscan(v, &month)
+		m, err := strconv.Atoi(v)
+		if err != nil {
+			http.Error(w, "invalid month parameter", http.StatusBadRequest)
+			return
+		}
+		month = m
 	}
 
 	days, err := s.store.ActivityDays(year, month)

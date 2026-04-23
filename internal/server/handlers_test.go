@@ -150,6 +150,17 @@ func TestGitBasicAuthInvalid(t *testing.T) {
 	}
 }
 
+func TestCalendarInvalidParams(t *testing.T) {
+	srv := newTestServer(t)
+	req := httptest.NewRequest("GET", "/calendar?year=abc&month=xyz", nil)
+	req.Header.Set("Authorization", "Bearer test-token")
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("invalid calendar params status = %d, want 400", w.Code)
+	}
+}
+
 func TestNewServerRejectsEmptyToken(t *testing.T) {
 	store := &mockKB{
 		notes: []index.Note{{Path: "a.md", Title: "A", Tags: []string{}}},
