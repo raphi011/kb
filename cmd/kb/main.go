@@ -11,6 +11,7 @@ import (
 
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/kb"
+	"github.com/raphi011/kb/internal/server"
 	"github.com/spf13/cobra"
 )
 
@@ -330,14 +331,16 @@ func serveCmd() *cobra.Command {
 				return fmt.Errorf("index: %w", err)
 			}
 
-			// Server will be wired in Task 8
+			srv, err := server.New(k, token)
+			if err != nil {
+				return fmt.Errorf("create server: %w", err)
+			}
+
 			ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 			defer cancel()
 
 			fmt.Printf("Listening on %s\n", addr)
-			fmt.Println("Server not yet implemented — waiting for interrupt")
-			<-ctx.Done()
-			return nil
+			return srv.ListenAndServe(ctx, addr)
 		},
 	}
 	cmd.Flags().StringVar(&addr, "addr", ":8080", "Listen address")
