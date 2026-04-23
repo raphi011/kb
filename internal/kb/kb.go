@@ -31,10 +31,6 @@ func (kb *KB) Close() error {
 	return kb.idx.Close()
 }
 
-func (kb *KB) Repo() *gitrepo.Repo {
-	return kb.repo
-}
-
 // Index runs full or incremental indexing.
 // If force is true, always does a full reindex.
 func (kb *KB) Index(force bool) error {
@@ -64,16 +60,18 @@ func (kb *KB) fullIndex(headSHA string) error {
 		return fmt.Errorf("git log: %w", err)
 	}
 
-	var count int
+	var count, skipped int
 	err = kb.repo.WalkFiles(func(path string) error {
 		content, err := kb.repo.ReadBlob(path)
 		if err != nil {
 			slog.Warn("skip file", "path", path, "error", err)
+			skipped++
 			return nil
 		}
 
 		if err := kb.indexFile(path, content, timestamps); err != nil {
 			slog.Warn("index file failed", "path", path, "error", err)
+			skipped++
 			return nil
 		}
 		count++
@@ -83,11 +81,15 @@ func (kb *KB) fullIndex(headSHA string) error {
 		return fmt.Errorf("walk files: %w", err)
 	}
 
+	if skipped > 0 && count == 0 {
+		return fmt.Errorf("all %d files failed to index — not updating head_commit", skipped)
+	}
+
 	if err := kb.idx.SetMeta("head_commit", headSHA); err != nil {
 		return fmt.Errorf("set head commit: %w", err)
 	}
 
-	slog.Info("full index complete", "notes", count)
+	slog.Info("full index complete", "notes", count, "skipped", skipped)
 	return nil
 }
 
@@ -111,15 +113,23 @@ func (kb *KB) incrementalIndex(oldSHA, newSHA string) error {
 		}
 	}
 
+	var skipped int
 	for _, path := range append(diff.Added, diff.Modified...) {
 		content, err := kb.repo.ReadBlob(path)
 		if err != nil {
 			slog.Warn("skip file", "path", path, "error", err)
+			skipped++
 			continue
 		}
 		if err := kb.indexFile(path, content, timestamps); err != nil {
 			slog.Warn("index file failed", "path", path, "error", err)
+			skipped++
 		}
+	}
+
+	total := len(diff.Added) + len(diff.Modified)
+	if skipped > 0 && skipped == total {
+		return fmt.Errorf("all %d files failed to index — not updating head_commit", skipped)
 	}
 
 	if err := kb.idx.SetMeta("head_commit", newSHA); err != nil {
@@ -129,7 +139,8 @@ func (kb *KB) incrementalIndex(oldSHA, newSHA string) error {
 	slog.Info("incremental index complete",
 		"added", len(diff.Added),
 		"modified", len(diff.Modified),
-		"deleted", len(diff.Deleted))
+		"deleted", len(diff.Deleted),
+		"skipped", skipped)
 	return nil
 }
 
