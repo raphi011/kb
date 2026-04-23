@@ -3,6 +3,7 @@ package markdown
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"strings"
 
 	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
@@ -13,7 +14,7 @@ import (
 	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer"
-	"github.com/yuin/goldmark/renderer/html"
+	gmhtml "github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/text"
 	"github.com/yuin/goldmark/util"
 	"go.abhg.dev/goldmark/wikilink"
@@ -72,7 +73,7 @@ func newRenderer(lookup map[string]string, hc *headingCollector) goldmark.Markdo
 			),
 		),
 		goldmark.WithRendererOptions(
-			html.WithUnsafe(),
+			gmhtml.WithUnsafe(),
 			renderer.WithNodeRenderers(
 				util.Prioritized(&mermaidNodeRenderer{}, 100),
 				util.Prioritized(&externalLinkRenderer{}, 50),
@@ -188,7 +189,7 @@ func (r *mermaidNodeRenderer) render(w util.BufWriter, _ []byte, node ast.Node, 
 		return ast.WalkContinue, nil
 	}
 	mn := node.(*mermaidNode)
-	_, _ = fmt.Fprintf(w, "<pre class=\"mermaid\">%s</pre>\n", mn.content)
+	_, _ = fmt.Fprintf(w, "<pre class=\"mermaid\">%s</pre>\n", html.EscapeString(string(mn.content)))
 	return ast.WalkContinue, nil
 }
 

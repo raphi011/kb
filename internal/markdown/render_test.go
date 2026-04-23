@@ -76,3 +76,17 @@ func TestRender_SyntaxHighlighting(t *testing.T) {
 		t.Errorf("syntax highlighting missing chroma classes: %s", result.HTML)
 	}
 }
+
+func TestRender_MermaidXSS(t *testing.T) {
+	src := "```mermaid\n</pre><script>alert(1)</script><pre>\n```\n"
+	result, err := Render([]byte(src), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(result.HTML, "<script>") {
+		t.Errorf("mermaid content not escaped — XSS possible: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, "&lt;script&gt;") {
+		t.Errorf("mermaid content should be HTML-escaped: %s", result.HTML)
+	}
+}
