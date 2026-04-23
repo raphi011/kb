@@ -69,7 +69,9 @@ func New(store Store, token string) (*Server, error) {
 		chromaLight: light,
 	}
 	s.cache.Store(cache)
-	s.registerRoutes()
+	if err := s.registerRoutes(); err != nil {
+		return nil, err
+	}
 	s.handler = s.authMiddleware(s.mux)
 	return s, nil
 }
@@ -86,8 +88,11 @@ func buildChromaCSS(styleName string) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (s *Server) registerRoutes() {
-	staticSub, _ := fs.Sub(staticFS, "static")
+func (s *Server) registerRoutes() error {
+	staticSub, err := fs.Sub(staticFS, "static")
+	if err != nil {
+		return fmt.Errorf("static fs: %w", err)
+	}
 	s.mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticSub))))
 	s.mux.HandleFunc("GET /static/chroma.css", s.handleChromaCSS)
 	s.mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
@@ -101,6 +106,7 @@ func (s *Server) registerRoutes() {
 	s.mux.HandleFunc("GET /git/info/refs", s.handleGitInfoRefs)
 	s.mux.HandleFunc("POST /git/git-upload-pack", s.handleGitUploadPack)
 	s.mux.HandleFunc("POST /git/git-receive-pack", s.handleGitReceivePack)
+	return nil
 }
 
 func (s *Server) handleChromaCSS(w http.ResponseWriter, r *http.Request) {
