@@ -1,6 +1,7 @@
 package index
 
 import (
+	"errors"
 	"testing"
 	"time"
 )
@@ -64,12 +65,9 @@ func TestDeleteNote(t *testing.T) {
 	if err := db.DeleteNote("x.md"); err != nil {
 		t.Fatal(err)
 	}
-	got, err := db.NoteByPath("x.md")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if got != nil {
-		t.Error("note should be deleted")
+	_, err := db.NoteByPath("x.md")
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("NoteByPath after delete: got err=%v, want ErrNotFound", err)
 	}
 	tags, err := db.AllTags()
 	if err != nil {
@@ -138,6 +136,14 @@ func TestBacklinks(t *testing.T) {
 	}
 	if backlinks[0].SourcePath != "a.md" {
 		t.Errorf("backlink source = %q, want %q", backlinks[0].SourcePath, "a.md")
+	}
+}
+
+func TestNoteByPath_NotFound(t *testing.T) {
+	db := testDB(t)
+	_, err := db.NoteByPath("nonexistent.md")
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("NoteByPath for missing note: got err=%v, want ErrNotFound", err)
 	}
 }
 

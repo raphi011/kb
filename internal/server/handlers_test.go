@@ -24,7 +24,7 @@ func (m *mockKB) NoteByPath(path string) (*index.Note, error) {
 			return &m.notes[i], nil
 		}
 	}
-	return nil, nil
+	return nil, index.ErrNotFound
 }
 func (m *mockKB) OutgoingLinks(path string) ([]index.Link, error)  { return nil, nil }
 func (m *mockKB) Backlinks(path string) ([]index.Link, error)      { return nil, nil }

@@ -3,12 +3,15 @@ package index
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"time"
 
 	_ "modernc.org/sqlite"
 )
+
+var ErrNotFound = errors.New("not found")
 
 type Note struct {
 	Path      string
@@ -160,7 +163,7 @@ func (d *DB) NoteByPath(path string) (*Note, error) {
 
 	n, err := scanNote(row)
 	if err == sql.ErrNoRows {
-		return nil, nil
+		return nil, ErrNotFound
 	}
 	if err != nil {
 		return nil, err
