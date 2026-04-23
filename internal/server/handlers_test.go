@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-git/go-git/v5/storage"
+	"github.com/go-git/go-git/v5/storage/memory"
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
 )
@@ -33,6 +35,7 @@ func (m *mockKB) NotesByDate(date string) ([]index.Note, error)    { return nil,
 func (m *mockKB) ReadFile(path string) ([]byte, error)             { return []byte("# Test\n\nBody."), nil }
 func (m *mockKB) Render(src []byte) (markdown.RenderResult, error) { return markdown.Render(src, nil) }
 func (m *mockKB) ReIndex() error                                   { return nil }
+func (m *mockKB) Storer() storage.Storer                          { return memory.NewStorage() }
 
 func newTestServer(t *testing.T) *Server {
 	t.Helper()

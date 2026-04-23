@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/go-git/go-git/v5/storage"
 	"github.com/raphi011/kb/internal/gitrepo"
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
@@ -247,6 +248,11 @@ func (kb *KB) ReIndex() error {
 		return err
 	}
 	return kb.Index(false)
+}
+
+// Storer returns the git repository's storer for the Smart HTTP transport.
+func (kb *KB) Storer() storage.Storer {
+	return kb.repo.Storer()
 }
 
 // Render renders markdown bytes to HTML using the wiki-link lookup from the index.

@@ -10,6 +10,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/storage"
 )
 
 type FileTimestamps struct {
@@ -195,5 +196,10 @@ func (r *Repo) RefreshHead() error {
 	}
 	r.head = head
 	return nil
+}
+
+// Storer returns the underlying storage for use with go-git's server transport.
+func (r *Repo) Storer() storage.Storer {
+	return r.repo.Storer
 }
 
