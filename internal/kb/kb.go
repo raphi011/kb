@@ -57,7 +57,7 @@ func (kb *KB) Index(force bool) error {
 }
 
 func (kb *KB) fullIndex(headSHA string) error {
-	slog.Info("running full index", "head", headSHA[:8])
+	slog.Info("running full index", "head", shortSHA(headSHA))
 
 	timestamps, err := kb.repo.GitLog()
 	if err != nil {
@@ -92,7 +92,7 @@ func (kb *KB) fullIndex(headSHA string) error {
 }
 
 func (kb *KB) incrementalIndex(oldSHA, newSHA string) error {
-	slog.Info("running incremental index", "from", oldSHA[:8], "to", newSHA[:8])
+	slog.Info("running incremental index", "from", shortSHA(oldSHA), "to", shortSHA(newSHA))
 
 	diff, err := kb.repo.Diff(oldSHA)
 	if err != nil {
@@ -222,6 +222,13 @@ func (kb *KB) NotesByDate(date string) ([]index.Note, error) {
 
 func (kb *KB) ReadFile(path string) ([]byte, error) {
 	return kb.repo.ReadBlob(path)
+}
+
+func shortSHA(s string) string {
+	if len(s) <= 8 {
+		return s
+	}
+	return s[:8]
 }
 
 func (kb *KB) ReIndex() error {
