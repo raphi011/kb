@@ -3,6 +3,7 @@ package server
 import (
 	"crypto/hmac"
 	"crypto/sha256"
+	"crypto/subtle"
 	"encoding/hex"
 	"net/http"
 	"strings"
@@ -21,7 +22,7 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 
 		if strings.HasPrefix(path, "/git/") {
 			_, pass, ok := r.BasicAuth()
-			if ok && pass == s.token {
+			if ok && subtle.ConstantTimeCompare([]byte(pass), []byte(s.token)) == 1 {
 				next.ServeHTTP(w, r)
 				return
 			}
@@ -31,7 +32,7 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 		}
 
 		if auth := r.Header.Get("Authorization"); strings.HasPrefix(auth, "Bearer ") {
-			if strings.TrimPrefix(auth, "Bearer ") == s.token {
+			if subtle.ConstantTimeCompare([]byte(strings.TrimPrefix(auth, "Bearer ")), []byte(s.token)) == 1 {
 				next.ServeHTTP(w, r)
 				return
 			}

@@ -127,3 +127,25 @@ func TestBearerAuthInvalid(t *testing.T) {
 		t.Errorf("invalid bearer status = %d, want 401", w.Code)
 	}
 }
+
+func TestGitBasicAuth(t *testing.T) {
+	srv := newTestServer(t)
+	req := httptest.NewRequest("GET", "/git/info/refs", nil)
+	req.SetBasicAuth("", "test-token")
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code == http.StatusUnauthorized {
+		t.Errorf("valid git basic auth returned 401")
+	}
+}
+
+func TestGitBasicAuthInvalid(t *testing.T) {
+	srv := newTestServer(t)
+	req := httptest.NewRequest("GET", "/git/info/refs", nil)
+	req.SetBasicAuth("", "wrong-token")
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("invalid git basic auth status = %d, want 401", w.Code)
+	}
+}

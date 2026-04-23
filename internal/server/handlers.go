@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/subtle"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -25,7 +26,7 @@ func (s *Server) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleLoginSubmit(w http.ResponseWriter, r *http.Request) {
 	token := r.FormValue("token")
-	if token != s.token {
+	if subtle.ConstantTimeCompare([]byte(token), []byte(s.token)) != 1 {
 		http.Redirect(w, r, "/login", http.StatusFound)
 		return
 	}
