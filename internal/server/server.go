@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"sync/atomic"
 	"time"
 
 	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
@@ -39,7 +40,7 @@ type Server struct {
 	handler     http.Handler
 	store       Store
 	token       string
-	cache       *noteCache
+	cache       atomic.Pointer[noteCache]
 	chromaDark  []byte
 	chromaLight []byte
 }
@@ -61,10 +62,10 @@ func New(store Store, token string) (*Server, error) {
 		mux:         http.NewServeMux(),
 		store:       store,
 		token:       token,
-		cache:       cache,
 		chromaDark:  dark,
 		chromaLight: light,
 	}
+	s.cache.Store(cache)
 	s.registerRoutes()
 	s.handler = s.authMiddleware(s.mux)
 	return s, nil
@@ -151,6 +152,10 @@ func (s *Server) RefreshCache() error {
 	if err != nil {
 		return err
 	}
-	s.cache = cache
+	s.cache.Store(cache)
 	return nil
+}
+
+func (s *Server) noteCache() *noteCache {
+	return s.cache.Load()
 }

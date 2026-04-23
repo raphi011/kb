@@ -59,9 +59,10 @@ func (s *Server) calendarData() (int, int, map[int]bool) {
 
 // renderFullPage renders a complete page layout with sidebar, TOC, and calendar.
 func (s *Server) renderFullPage(w http.ResponseWriter, r *http.Request, p views.LayoutParams) {
+	cache := s.noteCache()
 	calYear, calMonth, activeDays := s.calendarData()
-	p.Tags = s.cache.tags
-	p.ManifestJSON = s.cache.manifestJSON
+	p.Tags = cache.tags
+	p.ManifestJSON = cache.manifestJSON
 	p.CalendarYear = calYear
 	p.CalendarMonth = calMonth
 	p.ActiveDays = activeDays
@@ -69,14 +70,15 @@ func (s *Server) renderFullPage(w http.ResponseWriter, r *http.Request, p views.
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	if note := s.cache.notesByPath["index.md"]; note != nil {
+	cache := s.noteCache()
+	if note := cache.notesByPath["index.md"]; note != nil {
 		s.renderNote(w, r, note)
 		return
 	}
 
 	seen := map[string]bool{}
 	var entries []views.FolderEntry
-	for _, n := range s.cache.notes {
+	for _, n := range cache.notes {
 		parts := strings.SplitN(n.Path, "/", 2)
 		if len(parts) == 1 {
 			entries = append(entries, views.FolderEntry{Name: parts[0], Path: n.Path, Title: n.Title})
@@ -103,7 +105,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 	s.renderFullPage(w, r, views.LayoutParams{
 		Title:      "Knowledge Base",
-		Tree:       buildTree(s.cache.notes, ""),
+		Tree:       buildTree(cache.notes, ""),
 		ContentCol: contentCol,
 	})
 }
@@ -120,7 +122,8 @@ func (s *Server) handleNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	note := s.cache.notesByPath[notePath]
+	cache := s.noteCache()
+	note := cache.notesByPath[notePath]
 	if note == nil {
 		http.NotFound(w, r)
 		return
@@ -171,7 +174,7 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 
 	s.renderFullPage(w, r, views.LayoutParams{
 		Title:         note.Title,
-		Tree:          buildTree(s.cache.notes, note.Path),
+		Tree:          buildTree(s.noteCache().notes, note.Path),
 		ContentCol:    views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, result.Headings),
 		Headings:      result.Headings,
 		OutgoingLinks: outLinks,
@@ -180,7 +183,8 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 }
 
 func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath string) {
-	if note := s.cache.notesByPath[folderPath+"/index.md"]; note != nil {
+	cache := s.noteCache()
+	if note := cache.notesByPath[folderPath+"/index.md"]; note != nil {
 		s.renderNote(w, r, note)
 		return
 	}
@@ -188,7 +192,7 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 	prefix := folderPath + "/"
 	seen := map[string]bool{}
 	var entries []views.FolderEntry
-	for _, n := range s.cache.notes {
+	for _, n := range cache.notes {
 		if !strings.HasPrefix(n.Path, prefix) {
 			continue
 		}
@@ -226,7 +230,7 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 
 	s.renderFullPage(w, r, views.LayoutParams{
 		Title:      folderName,
-		Tree:       buildTree(s.cache.notes, ""),
+		Tree:       buildTree(cache.notes, ""),
 		ContentCol: contentCol,
 	})
 }
@@ -258,7 +262,7 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if q == "" && tagsParam == "" {
-		notes := s.cache.notes
+		notes := s.noteCache().notes
 		if folder != "" {
 			prefix := folder + "/"
 			filtered := make([]index.Note, 0)
@@ -324,7 +328,7 @@ func (s *Server) handleCalendar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleTags(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, s.cache.tags)
+	writeJSON(w, s.noteCache().tags)
 }
 
 // renderTOCForPage renders the TOC panel as an OOB swap for HTMX requests.
