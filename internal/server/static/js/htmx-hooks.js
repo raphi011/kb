@@ -3,6 +3,23 @@ import { initResize } from './resize.js';
 import { recordVisit } from './history.js';
 
 export function initHTMXHooks() {
+  // Intercept clicks on internal links inside rendered markdown content
+  // and upgrade them to HTMX navigations to avoid full page reloads.
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('#content-area a[href]');
+    if (!a) return;
+
+    const href = a.getAttribute('href');
+    // Only intercept internal /notes/ links (not external, anchor-only, or other paths)
+    if (!href || !href.startsWith('/notes/')) return;
+    // Skip if already an HTMX-managed link
+    if (a.hasAttribute('hx-get')) return;
+
+    e.preventDefault();
+    htmx.ajax('GET', href, { target: '#content-col', swap: 'innerHTML' });
+    history.pushState({}, '', href);
+  });
+
   // Use afterSettle so OOB swaps (#toc-panel) are complete before re-init.
   document.body.addEventListener('htmx:afterSettle', (e) => {
     if (e.detail.target.id !== 'content-col') return;

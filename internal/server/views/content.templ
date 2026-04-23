@@ -7,7 +7,7 @@ import (
 
 templ Breadcrumb(segments []BreadcrumbSegment, currentTitle string) {
 	<nav id="breadcrumb">
-		<a class="bc-seg" href="/">~</a>
+		<a class="bc-seg" href="/" hx-get="/" hx-target="#content-col" hx-push-url="true">~</a>
 		for _, seg := range segments {
 			<span class="bc-sep">/</span>
 			@ContentLink("bc-seg", "/notes/" + seg.FolderPath + "/") {
@@ -35,7 +35,7 @@ templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, hea
 				Created: { note.Created.Format("2006-01-02") } · Modified: { note.Modified.Format("2006-01-02") } · { intStr(note.WordCount) } words
 			</span>
 			for _, tag := range note.Tags {
-				<a class="meta-tag" href={ templ.SafeURL("/?tags=" + tag) }>{ tag }</a>
+				<a class="meta-tag" href={ templ.SafeURL("/search?tags=" + tag) } hx-get={ "/search?tags=" + tag } hx-target="#content-col" hx-push-url="true">{ tag }</a>
 			}
 		</div>
 		<hr class="article-divider"/>

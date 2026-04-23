@@ -242,7 +242,7 @@ a { text-decoration: none; color: inherit; }
 
 /* ── Zen mode ─────────────────────────────────────────────── */
 
-body.zen {
+html.zen, body.zen {
   --sidebar-width: 0px !important;
   --toc-width: 0px !important;
 
@@ -1459,7 +1459,7 @@ a.backlink-card, .backlink-card {
     #mob-menu-btn { display: flex; align-items: center; }
     #cmd-trigger { min-width: 0; flex: 1; font-size: 12px; }
   }
-  #zen-toggle { display: none; }
+  #topbar #zen-toggle { display: none; }
 
   #sidebar {
     position: fixed;

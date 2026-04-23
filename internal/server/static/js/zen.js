@@ -4,6 +4,7 @@ export function initZen() {
 
   function toggle() {
     const active = document.body.classList.toggle('zen');
+    document.documentElement.classList.toggle('zen', active);
     localStorage.setItem('zk-zen', active ? '1' : '0');
   }
 
