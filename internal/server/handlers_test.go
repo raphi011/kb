@@ -149,3 +149,14 @@ func TestGitBasicAuthInvalid(t *testing.T) {
 		t.Errorf("invalid git basic auth status = %d, want 401", w.Code)
 	}
 }
+
+func TestNewServerRejectsEmptyToken(t *testing.T) {
+	store := &mockKB{
+		notes: []index.Note{{Path: "a.md", Title: "A", Tags: []string{}}},
+		tags:  []index.Tag{},
+	}
+	_, err := New(store, "")
+	if err == nil {
+		t.Error("New() should reject empty token")
+	}
+}

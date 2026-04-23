@@ -46,6 +46,9 @@ type Server struct {
 }
 
 func New(store Store, token string) (*Server, error) {
+	if token == "" {
+		return nil, fmt.Errorf("token must not be empty")
+	}
 	dark, err := buildChromaCSS("dracula")
 	if err != nil {
 		return nil, fmt.Errorf("chroma dark css: %w", err)
