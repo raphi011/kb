@@ -20,7 +20,6 @@ type Note struct {
 	Modified  time.Time
 	Metadata  map[string]any
 	Tags      []string
-	Snippet   string // populated by search only
 }
 
 type Tag struct {

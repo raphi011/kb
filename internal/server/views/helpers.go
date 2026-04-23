@@ -2,7 +2,6 @@ package views
 
 import (
 	"fmt"
-	"html"
 	"strings"
 )
 
@@ -23,9 +22,3 @@ func backlinkDir(path string) string {
 	return ""
 }
 
-func safeSnippet(s string) string {
-	safe := html.EscapeString(s)
-	safe = strings.ReplaceAll(safe, "\u27EAMARK_START\u27EB", "<mark>")
-	safe = strings.ReplaceAll(safe, "\u27EAMARK_END\u27EB", "</mark>")
-	return safe
-}

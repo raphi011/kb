@@ -28,7 +28,7 @@ type LayoutParams struct {
 	ActiveDays    map[int]bool
 }
 
-// FileNode mirrors server.FileNode for use in templates.
+// FileNode represents a file or directory in the sidebar tree.
 type FileNode struct {
 	Name     string
 	Path     string
@@ -38,13 +38,13 @@ type FileNode struct {
 	Children []*FileNode
 }
 
-// BreadcrumbSegment mirrors server.BreadcrumbSegment for use in templates.
+// BreadcrumbSegment represents one segment of a breadcrumb path.
 type BreadcrumbSegment struct {
 	Name       string
 	FolderPath string
 }
 
-// FolderEntry mirrors server.FolderEntry for use in templates.
+// FolderEntry represents a file or subdirectory in a folder listing.
 type FolderEntry struct {
 	Name  string `json:"name"`
 	Path  string `json:"path"`
