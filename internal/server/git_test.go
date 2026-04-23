@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/raphi011/kb/internal/kb"
 )
@@ -165,5 +166,80 @@ func TestE2EGitClone(t *testing.T) {
 	}
 	if string(data) != "# Hello\n\nWorld.\n" {
 		t.Errorf("cloned file content = %q, want %q", string(data), "# Hello\n\nWorld.\n")
+	}
+}
+
+func TestE2EGitPushTriggersReindex(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git CLI not in PATH")
+	}
+
+	const token = "test-token"
+
+	bareDir := newBareRepoWithNote(t, "hello.md", "# Hello\n\nWorld.\n")
+
+	dbPath := filepath.Join(t.TempDir(), "index.db")
+	k, err := kb.Open(bareDir, dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer k.Close()
+	if err := k.Index(false); err != nil {
+		t.Fatal(err)
+	}
+
+	srv, err := New(k, k, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ts := httptest.NewServer(srv)
+	defer ts.Close()
+
+	// Clone
+	cloneDir := filepath.Join(t.TempDir(), "clone")
+	cloneURL := cloneURLWithCreds(ts.URL, token)
+
+	gitEnv := append(os.Environ(),
+		"GIT_TERMINAL_PROMPT=0",
+		"GIT_AUTHOR_NAME=test",
+		"GIT_AUTHOR_EMAIL=test@test.com",
+		"GIT_COMMITTER_NAME=test",
+		"GIT_COMMITTER_EMAIL=test@test.com",
+	)
+
+	run := func(dir string, args ...string) {
+		t.Helper()
+		cmd := exec.Command(args[0], args[1:]...)
+		cmd.Dir = dir
+		cmd.Env = gitEnv
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("%v failed: %v\n%s", args, err, out)
+		}
+	}
+
+	run("", "git", "clone", cloneURL, cloneDir)
+
+	// Create a new note, commit, and push
+	if err := os.WriteFile(filepath.Join(cloneDir, "new-note.md"), []byte("# New Note\n\nFresh content.\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	run(cloneDir, "git", "add", "new-note.md")
+	run(cloneDir, "git", "commit", "-m", "add new note")
+	run(cloneDir, "git", "push")
+
+	// Poll for the reindex to complete (async goroutine)
+	var found bool
+	for i := 0; i < 50; i++ {
+		time.Sleep(100 * time.Millisecond)
+		cache := srv.noteCache()
+		if cache.notesByPath["new-note.md"] != nil {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("new-note.md not found in cache after push — reindex did not run")
 	}
 }
