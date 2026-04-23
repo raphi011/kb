@@ -4,7 +4,7 @@ import (
 	"crypto/subtle"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"sort"
 	"strings"
@@ -50,7 +50,7 @@ func (s *Server) calendarData() (int, int, map[int]bool) {
 	year, month := currentYearMonth()
 	days, err := s.store.ActivityDays(year, month)
 	if err != nil {
-		log.Printf("calendar activity days: %v", err)
+		slog.Error("calendar activity days", "error", err)
 	}
 	if days == nil {
 		days = map[int]bool{}
@@ -67,7 +67,9 @@ func (s *Server) renderFullPage(w http.ResponseWriter, r *http.Request, p views.
 	p.CalendarYear = calYear
 	p.CalendarMonth = calMonth
 	p.ActiveDays = activeDays
-	views.Layout(p).Render(r.Context(), w)
+	if err := views.Layout(p).Render(r.Context(), w); err != nil {
+		slog.Error("render component", "error", err)
+	}
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
@@ -99,7 +101,9 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if isHTMX(r) {
-		contentCol.Render(r.Context(), w)
+		if err := contentCol.Render(r.Context(), w); err != nil {
+			slog.Error("render component", "error", err)
+		}
 		s.renderTOCForPage(w, r, nil, nil, nil)
 		return
 	}
@@ -136,7 +140,8 @@ func (s *Server) handleNote(w http.ResponseWriter, r *http.Request) {
 func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.Note) {
 	raw, err := s.store.ReadFile(note.Path)
 	if err != nil {
-		http.Error(w, "read failed: "+err.Error(), http.StatusInternalServerError)
+		slog.Error("read note", "path", note.Path, "error", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -151,24 +156,27 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 
 	result, err := s.store.Render(raw)
 	if err != nil {
-		http.Error(w, "render failed: "+err.Error(), http.StatusInternalServerError)
+		slog.Error("render note", "path", note.Path, "error", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	outLinks, err := s.store.OutgoingLinks(note.Path)
 	if err != nil {
-		log.Printf("outgoing links for %s: %v", note.Path, err)
+		slog.Error("outgoing links", "path", note.Path, "error", err)
 	}
 	backlinks, err := s.store.Backlinks(note.Path)
 	if err != nil {
-		log.Printf("backlinks for %s: %v", note.Path, err)
+		slog.Error("backlinks", "path", note.Path, "error", err)
 	}
 	breadcrumbs := buildBreadcrumbs(note.Path)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if isHTMX(r) {
-		views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, result.Headings).Render(r.Context(), w)
+		if err := views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, result.Headings).Render(r.Context(), w); err != nil {
+			slog.Error("render component", "error", err)
+		}
 		s.renderTOCForPage(w, r, result.Headings, outLinks, backlinks)
 		return
 	}
@@ -224,7 +232,9 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 	contentCol := views.FolderContentCol(breadcrumbs, folderName, entries)
 
 	if isHTMX(r) {
-		contentCol.Render(r.Context(), w)
+		if err := contentCol.Render(r.Context(), w); err != nil {
+			slog.Error("render component", "error", err)
+		}
 		s.renderTOCForPage(w, r, nil, nil, nil)
 		return
 	}
@@ -247,7 +257,8 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	if date != "" {
 		notes, err := s.store.NotesByDate(date)
 		if err != nil {
-			http.Error(w, "search failed: "+err.Error(), http.StatusInternalServerError)
+			slog.Error("search by date", "date", date, "error", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
 			return
 		}
 		if wantsJSON(r) {
@@ -255,9 +266,13 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if len(notes) == 0 {
-			views.SearchEmpty().Render(r.Context(), w)
+			if err := views.SearchEmpty().Render(r.Context(), w); err != nil {
+				slog.Error("render component", "error", err)
+			}
 		} else {
-			views.SearchResults(notes).Render(r.Context(), w)
+			if err := views.SearchResults(notes).Render(r.Context(), w); err != nil {
+				slog.Error("render component", "error", err)
+			}
 		}
 		return
 	}
@@ -278,7 +293,9 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, notes)
 			return
 		}
-		views.Tree(buildTree(notes, "")).Render(r.Context(), w)
+		if err := views.Tree(buildTree(notes, "")).Render(r.Context(), w); err != nil {
+			slog.Error("render component", "error", err)
+		}
 		return
 	}
 
@@ -288,7 +305,8 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	}
 	notes, err := s.store.Search(q, tagFilter)
 	if err != nil {
-		http.Error(w, "search failed: "+err.Error(), http.StatusInternalServerError)
+		slog.Error("search", "query", q, "tags", tagFilter, "error", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -298,9 +316,13 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(notes) == 0 {
-		views.SearchEmpty().Render(r.Context(), w)
+		if err := views.SearchEmpty().Render(r.Context(), w); err != nil {
+			slog.Error("render component", "error", err)
+		}
 	} else {
-		views.SearchResults(notes).Render(r.Context(), w)
+		if err := views.SearchResults(notes).Render(r.Context(), w); err != nil {
+			slog.Error("render component", "error", err)
+		}
 	}
 }
 
@@ -315,7 +337,8 @@ func (s *Server) handleCalendar(w http.ResponseWriter, r *http.Request) {
 
 	days, err := s.store.ActivityDays(year, month)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("activity days", "year", year, "month", month, "error", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -325,7 +348,9 @@ func (s *Server) handleCalendar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	views.Calendar(year, month, days, 0).Render(r.Context(), w)
+	if err := views.Calendar(year, month, days, 0).Render(r.Context(), w); err != nil {
+		slog.Error("render component", "error", err)
+	}
 }
 
 func (s *Server) handleTags(w http.ResponseWriter, r *http.Request) {
@@ -335,12 +360,16 @@ func (s *Server) handleTags(w http.ResponseWriter, r *http.Request) {
 // renderTOCForPage renders the TOC panel as an OOB swap for HTMX requests.
 func (s *Server) renderTOCForPage(w http.ResponseWriter, r *http.Request, headings []markdown.Heading, outLinks []index.Link, backlinks []index.Link) {
 	calYear, calMonth, activeDays := s.calendarData()
-	views.TOCPanel(headings, outLinks, backlinks, true, calYear, calMonth, activeDays).Render(r.Context(), w)
+	if err := views.TOCPanel(headings, outLinks, backlinks, true, calYear, calMonth, activeDays).Render(r.Context(), w); err != nil {
+		slog.Error("render component", "error", err)
+	}
 }
 
 func writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(v)
+	if err := json.NewEncoder(w).Encode(v); err != nil {
+		slog.Error("write JSON response", "error", err)
+	}
 }
 
 func sortEntries(entries []views.FolderEntry) {
