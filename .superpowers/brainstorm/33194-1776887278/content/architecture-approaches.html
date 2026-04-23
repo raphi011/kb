@@ -1,0 +1,60 @@
+<h2>Architecture Approaches</h2>
+<p class="subtitle">How to structure the core library, CLI, and server</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Layered Library</h3>
+      <p>Core logic in <code>pkg/</code> packages: <code>repo</code> (go-git wrapper), <code>index</code> (SQLite indexer), <code>search</code> (FTS queries), <code>markdown</code> (parser/renderer). CLI and server are thin consumers.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Clean separation — CLI and server share identical logic</li>
+          <li>Testable in isolation (no HTTP, no CLI glue)</li>
+          <li>Future agent just imports the same packages</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Requires disciplined API boundaries upfront</li>
+          <li>More packages to wire together initially</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Service-Oriented</h3>
+      <p>Single <code>internal/kb</code> service struct that wraps git + index. CLI and server both call methods on this service. All state flows through one type.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Simple to start — one struct, one package</li>
+          <li>Easy to understand the full API surface</li>
+          <li>Natural concurrency boundary (mutex on write ops)</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Service struct may grow large over time</li>
+          <li>Harder to test subsets in isolation</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Hybrid (Recommended)</h3>
+      <p>Focused internal packages (<code>gitrepo</code>, <code>index</code>, <code>markdown</code>) composed by a thin <code>kb.KB</code> service. Packages are independently testable, but the service provides the unified API for CLI and server.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Best of A and B — clean packages + simple entry point</li>
+          <li>Each package has one job, service wires them together</li>
+          <li>Grows naturally — split the service only when needed</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Slightly more structure than B upfront</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>
