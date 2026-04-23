@@ -37,16 +37,20 @@ func buildNoteCache(store Store) (*noteCache, error) {
 		byPath[n.Path] = &notes[i]
 	}
 
+	manifest, err := buildManifestJSON(notes)
+	if err != nil {
+		return nil, err
+	}
 	return &noteCache{
 		notes:        notes,
 		tags:         tags,
-		manifestJSON: buildManifestJSON(notes),
+		manifestJSON: manifest,
 		lookup:       lookup,
 		notesByPath:  byPath,
 	}, nil
 }
 
-func buildManifestJSON(notes []index.Note) string {
+func buildManifestJSON(notes []index.Note) (string, error) {
 	type entry struct {
 		Title string   `json:"title"`
 		Path  string   `json:"path"`
@@ -61,8 +65,11 @@ func buildManifestJSON(notes []index.Note) string {
 		}
 		entries[i] = entry{Title: n.Title, Path: n.Path, Tags: tags, Mod: n.Modified.Unix()}
 	}
-	b, _ := json.Marshal(entries)
-	return string(b)
+	b, err := json.Marshal(entries)
+	if err != nil {
+		return "", fmt.Errorf("marshal manifest: %w", err)
+	}
+	return string(b), nil
 }
 
 func buildBreadcrumbs(notePath string) []views.BreadcrumbSegment {
