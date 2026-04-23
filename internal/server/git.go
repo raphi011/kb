@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/go-git/go-git/v5/plumbing/format/pktline"
 	"github.com/go-git/go-git/v5/plumbing/protocol/packp"
 	"github.com/go-git/go-git/v5/plumbing/storer"
 	"github.com/go-git/go-git/v5/plumbing/transport"
@@ -75,7 +76,8 @@ func (s *Server) handleGitInfoRefs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	adv.Prefix = [][]byte{
-		[]byte("# service=" + service + "\n"),
+		[]byte("# service=" + service),
+		pktline.Flush,
 	}
 
 	w.Header().Set("Content-Type", "application/x-"+service+"-advertisement")

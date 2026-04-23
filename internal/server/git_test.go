@@ -3,7 +3,13 @@ package server
 import (
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"testing"
+
+	"github.com/raphi011/kb/internal/kb"
 )
 
 func TestGitInfoRefs_MissingService(t *testing.T) {
@@ -63,5 +69,101 @@ func TestGitInfoRefs_ReceivePack(t *testing.T) {
 	}
 	if ct := w.Header().Get("Content-Type"); ct != "application/x-git-receive-pack-advertisement" {
 		t.Errorf("Content-Type = %q, want application/x-git-receive-pack-advertisement", ct)
+	}
+}
+
+// newBareRepoWithNote creates a temporary bare git repo containing a single
+// committed .md file. It returns the path to the bare repo. The caller does
+// not need to clean up — t.TempDir() handles that.
+func newBareRepoWithNote(t *testing.T, filename, content string) string {
+	t.Helper()
+
+	// Create a normal repo, commit a file, then clone it as bare.
+	workDir := t.TempDir()
+
+	run := func(dir string, args ...string) {
+		t.Helper()
+		cmd := exec.Command(args[0], args[1:]...)
+		cmd.Dir = dir
+		cmd.Env = append(os.Environ(),
+			"GIT_AUTHOR_NAME=test",
+			"GIT_AUTHOR_EMAIL=test@test.com",
+			"GIT_COMMITTER_NAME=test",
+			"GIT_COMMITTER_EMAIL=test@test.com",
+		)
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			t.Fatalf("%v failed: %v\n%s", args, err, out)
+		}
+	}
+
+	run(workDir, "git", "init")
+	run(workDir, "git", "checkout", "-b", "main")
+
+	if err := os.WriteFile(filepath.Join(workDir, filename), []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	run(workDir, "git", "add", filename)
+	run(workDir, "git", "commit", "-m", "initial commit")
+
+	bareDir := t.TempDir()
+	run(bareDir, "git", "clone", "--bare", workDir, bareDir)
+
+	return bareDir
+}
+
+// cloneURLWithCreds builds a clone URL with embedded Basic auth credentials.
+// The httptest server URL is e.g. "http://127.0.0.1:12345" and we need
+// "http://:test-token@127.0.0.1:12345/git".
+func cloneURLWithCreds(tsURL, token string) string {
+	u, _ := url.Parse(tsURL)
+	u.User = url.UserPassword("", token)
+	u.Path = "/git"
+	return u.String()
+}
+
+func TestE2EGitClone(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git CLI not in PATH")
+	}
+
+	const token = "test-token"
+
+	bareDir := newBareRepoWithNote(t, "hello.md", "# Hello\n\nWorld.\n")
+
+	dbPath := filepath.Join(t.TempDir(), "index.db")
+	k, err := kb.Open(bareDir, dbPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer k.Close()
+	if err := k.Index(false); err != nil {
+		t.Fatal(err)
+	}
+
+	srv, err := New(k, k, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ts := httptest.NewServer(srv)
+	defer ts.Close()
+
+	cloneDir := filepath.Join(t.TempDir(), "clone")
+	cloneURL := cloneURLWithCreds(ts.URL, token)
+
+	cmd := exec.Command("git", "clone", cloneURL, cloneDir)
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("git clone failed: %v\n%s", err, out)
+	}
+
+	data, err := os.ReadFile(filepath.Join(cloneDir, "hello.md"))
+	if err != nil {
+		t.Fatalf("cloned file not found: %v", err)
+	}
+	if string(data) != "# Hello\n\nWorld.\n" {
+		t.Errorf("cloned file content = %q, want %q", string(data), "# Hello\n\nWorld.\n")
 	}
 }
