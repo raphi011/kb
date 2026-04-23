@@ -1,0 +1,34 @@
+package views
+
+import (
+	"github.com/raphi011/kb/internal/index"
+)
+
+templ SearchResults(notes []index.Note) {
+	<ul class="search-results" role="list">
+		for _, note := range notes {
+			<li>
+				@ContentLink("result-item", "/notes/" + note.Path) {
+					<div class="result-title">{ note.Title }</div>
+					<div class="result-meta">{ note.Modified.Format("2006-01-02") }</div>
+					if note.Snippet != "" {
+						<div class="result-snippet">
+							@templ.Raw(safeSnippet(note.Snippet))
+						</div>
+					}
+					if len(note.Tags) > 0 {
+						<div class="tag-pills">
+							for _, tag := range note.Tags {
+								<span class="tag-pill">{ tag }</span>
+							}
+						</div>
+					}
+				}
+			</li>
+		}
+	</ul>
+}
+
+templ SearchEmpty() {
+	<div class="sidebar-empty">No results</div>
+}

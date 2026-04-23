@@ -3,12 +3,15 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/raphi011/kb/internal/index"
+	"github.com/raphi011/kb/internal/markdown"
+	"github.com/raphi011/kb/internal/server/views"
 )
 
 func (s *Server) handleLoginPage(w http.ResponseWriter, r *http.Request) {
@@ -37,6 +40,34 @@ func (s *Server) handleLoginSubmit(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
+func currentYearMonth() (int, int) {
+	now := time.Now()
+	return now.Year(), int(now.Month())
+}
+
+func (s *Server) calendarData() (int, int, map[int]bool) {
+	year, month := currentYearMonth()
+	days, err := s.store.ActivityDays(year, month)
+	if err != nil {
+		log.Printf("calendar activity days: %v", err)
+	}
+	if days == nil {
+		days = map[int]bool{}
+	}
+	return year, month, days
+}
+
+// renderFullPage renders a complete page layout with sidebar, TOC, and calendar.
+func (s *Server) renderFullPage(w http.ResponseWriter, r *http.Request, p views.LayoutParams) {
+	calYear, calMonth, activeDays := s.calendarData()
+	p.Tags = s.cache.tags
+	p.ManifestJSON = s.cache.manifestJSON
+	p.CalendarYear = calYear
+	p.CalendarMonth = calMonth
+	p.ActiveDays = activeDays
+	views.Layout(p).Render(r.Context(), w)
+}
+
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	if note := s.cache.notesByPath["index.md"]; note != nil {
 		s.renderNote(w, r, note)
@@ -44,14 +75,14 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	}
 
 	seen := map[string]bool{}
-	var entries []FolderEntry
+	var entries []views.FolderEntry
 	for _, n := range s.cache.notes {
 		parts := strings.SplitN(n.Path, "/", 2)
 		if len(parts) == 1 {
-			entries = append(entries, FolderEntry{Name: parts[0], Path: n.Path, Title: n.Title})
+			entries = append(entries, views.FolderEntry{Name: parts[0], Path: n.Path, Title: n.Title})
 		} else if !seen[parts[0]] {
 			seen[parts[0]] = true
-			entries = append(entries, FolderEntry{Name: parts[0], Path: parts[0], IsDir: true})
+			entries = append(entries, views.FolderEntry{Name: parts[0], Path: parts[0], IsDir: true})
 		}
 	}
 	sortEntries(entries)
@@ -61,16 +92,20 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	contentCol := views.FolderContentCol(nil, "Knowledge Base", entries)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, "<h1>Knowledge Base</h1><ul>")
-	for _, e := range entries {
-		if e.IsDir {
-			fmt.Fprintf(w, `<li><a href="/notes/%s/">%s/</a></li>`, e.Path, e.Name)
-		} else {
-			fmt.Fprintf(w, `<li><a href="/notes/%s">%s</a></li>`, e.Path, e.Title)
-		}
+
+	if isHTMX(r) {
+		contentCol.Render(r.Context(), w)
+		s.renderTOCForPage(w, r, nil, nil, nil)
+		return
 	}
-	fmt.Fprint(w, "</ul>")
+
+	s.renderFullPage(w, r, views.LayoutParams{
+		Title:      "Knowledge Base",
+		Tree:       buildTree(s.cache.notes, ""),
+		ContentCol: contentCol,
+	})
 }
 
 func (s *Server) handleNote(w http.ResponseWriter, r *http.Request) {
@@ -116,17 +151,32 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 		return
 	}
 
+	outLinks, err := s.store.OutgoingLinks(note.Path)
+	if err != nil {
+		log.Printf("outgoing links for %s: %v", note.Path, err)
+	}
+	backlinks, err := s.store.Backlinks(note.Path)
+	if err != nil {
+		log.Printf("backlinks for %s: %v", note.Path, err)
+	}
+	breadcrumbs := buildBreadcrumbs(note.Path)
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if isHTMX(r) {
-		fmt.Fprintf(w, `<article>%s</article>`, result.HTML)
+		views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, result.Headings).Render(r.Context(), w)
+		s.renderTOCForPage(w, r, result.Headings, outLinks, backlinks)
 		return
 	}
 
-	fmt.Fprintf(w, `<!DOCTYPE html><html><head><title>%s</title></head><body>`, note.Title)
-	fmt.Fprintf(w, `<h1>%s</h1>`, note.Title)
-	fmt.Fprintf(w, `<article>%s</article>`, result.HTML)
-	fmt.Fprint(w, `</body></html>`)
+	s.renderFullPage(w, r, views.LayoutParams{
+		Title:         note.Title,
+		Tree:          buildTree(s.cache.notes, note.Path),
+		ContentCol:    views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, result.Headings),
+		Headings:      result.Headings,
+		OutgoingLinks: outLinks,
+		Backlinks:     backlinks,
+	})
 }
 
 func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath string) {
@@ -137,7 +187,7 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 
 	prefix := folderPath + "/"
 	seen := map[string]bool{}
-	var entries []FolderEntry
+	var entries []views.FolderEntry
 	for _, n := range s.cache.notes {
 		if !strings.HasPrefix(n.Path, prefix) {
 			continue
@@ -145,10 +195,10 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 		rest := strings.TrimPrefix(n.Path, prefix)
 		parts := strings.SplitN(rest, "/", 2)
 		if len(parts) == 1 {
-			entries = append(entries, FolderEntry{Name: parts[0], Path: n.Path, Title: n.Title})
+			entries = append(entries, views.FolderEntry{Name: parts[0], Path: n.Path, Title: n.Title})
 		} else if !seen[parts[0]] {
 			seen[parts[0]] = true
-			entries = append(entries, FolderEntry{Name: parts[0], Path: folderPath + "/" + parts[0], IsDir: true})
+			entries = append(entries, views.FolderEntry{Name: parts[0], Path: folderPath + "/" + parts[0], IsDir: true})
 		}
 	}
 	sortEntries(entries)
@@ -162,37 +212,76 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 	if idx := strings.LastIndex(folderPath, "/"); idx >= 0 {
 		folderName = folderPath[idx+1:]
 	}
+	breadcrumbs := buildBreadcrumbs(folderPath + "/placeholder")
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, "<h1>%s</h1><ul>", folderName)
-	for _, e := range entries {
-		if e.IsDir {
-			fmt.Fprintf(w, `<li><a href="/notes/%s/">%s/</a></li>`, e.Path, e.Name)
-		} else {
-			fmt.Fprintf(w, `<li><a href="/notes/%s">%s</a></li>`, e.Path, e.Title)
-		}
+
+	contentCol := views.FolderContentCol(breadcrumbs, folderName, entries)
+
+	if isHTMX(r) {
+		contentCol.Render(r.Context(), w)
+		s.renderTOCForPage(w, r, nil, nil, nil)
+		return
 	}
-	fmt.Fprint(w, "</ul>")
+
+	s.renderFullPage(w, r, views.LayoutParams{
+		Title:      folderName,
+		Tree:       buildTree(s.cache.notes, ""),
+		ContentCol: contentCol,
+	})
 }
 
 func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
 	tagsParam := strings.TrimSpace(r.URL.Query().Get("tags"))
 	date := strings.TrimSpace(r.URL.Query().Get("date"))
+	folder := strings.TrimSpace(r.URL.Query().Get("folder"))
 
-	var notes []index.Note
-	var err error
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if date != "" {
-		notes, err = s.store.NotesByDate(date)
-	} else if q != "" || tagsParam != "" {
-		var tagFilter []string
-		if tagsParam != "" {
-			tagFilter = []string{tagsParam}
+		notes, err := s.store.NotesByDate(date)
+		if err != nil {
+			http.Error(w, "search failed: "+err.Error(), http.StatusInternalServerError)
+			return
 		}
-		notes, err = s.store.Search(q, tagFilter)
+		if wantsJSON(r) {
+			writeJSON(w, notes)
+			return
+		}
+		if len(notes) == 0 {
+			views.SearchEmpty().Render(r.Context(), w)
+		} else {
+			views.SearchResults(notes).Render(r.Context(), w)
+		}
+		return
 	}
 
+	if q == "" && tagsParam == "" {
+		notes := s.cache.notes
+		if folder != "" {
+			prefix := folder + "/"
+			filtered := make([]index.Note, 0)
+			for _, n := range notes {
+				if strings.HasPrefix(n.Path, prefix) {
+					filtered = append(filtered, n)
+				}
+			}
+			notes = filtered
+		}
+		if wantsJSON(r) {
+			writeJSON(w, notes)
+			return
+		}
+		views.Tree(buildTree(notes, "")).Render(r.Context(), w)
+		return
+	}
+
+	var tagFilter []string
+	if tagsParam != "" {
+		tagFilter = []string{tagsParam}
+	}
+	notes, err := s.store.Search(q, tagFilter)
 	if err != nil {
 		http.Error(w, "search failed: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -203,13 +292,10 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if len(notes) == 0 {
-		fmt.Fprint(w, `<p class="empty">No results.</p>`)
-		return
-	}
-	for _, n := range notes {
-		fmt.Fprintf(w, `<div><a href="/notes/%s">%s</a><span>%s</span></div>`, n.Path, n.Title, strings.Join(n.Tags, ", "))
+		views.SearchEmpty().Render(r.Context(), w)
+	} else {
+		views.SearchResults(notes).Render(r.Context(), w)
 	}
 }
 
@@ -234,11 +320,17 @@ func (s *Server) handleCalendar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<div id="calendar">%d-%02d</div>`, year, month)
+	views.Calendar(year, month, days, 0).Render(r.Context(), w)
 }
 
 func (s *Server) handleTags(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, s.cache.tags)
+}
+
+// renderTOCForPage renders the TOC panel as an OOB swap for HTMX requests.
+func (s *Server) renderTOCForPage(w http.ResponseWriter, r *http.Request, headings []markdown.Heading, outLinks []index.Link, backlinks []index.Link) {
+	calYear, calMonth, activeDays := s.calendarData()
+	views.TOCPanel(headings, outLinks, backlinks, true, calYear, calMonth, activeDays).Render(r.Context(), w)
 }
 
 func writeJSON(w http.ResponseWriter, v any) {
@@ -246,7 +338,7 @@ func writeJSON(w http.ResponseWriter, v any) {
 	json.NewEncoder(w).Encode(v)
 }
 
-func sortEntries(entries []FolderEntry) {
+func sortEntries(entries []views.FolderEntry) {
 	sort.Slice(entries, func(i, j int) bool {
 		if entries[i].IsDir != entries[j].IsDir {
 			return entries[i].IsDir

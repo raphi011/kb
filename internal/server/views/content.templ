@@ -1,0 +1,116 @@
+package views
+
+import (
+	"github.com/raphi011/kb/internal/index"
+	"github.com/raphi011/kb/internal/markdown"
+)
+
+templ Breadcrumb(segments []BreadcrumbSegment, currentTitle string) {
+	<nav id="breadcrumb">
+		<a class="bc-seg" href="/">~</a>
+		for _, seg := range segments {
+			<span class="bc-sep">/</span>
+			@ContentLink("bc-seg", "/notes/" + seg.FolderPath + "/") {
+				{ seg.Name }
+			}
+		}
+		<span class="bc-sep">/</span>
+		<span class="bc-seg current">{ currentTitle }</span>
+	</nav>
+}
+
+templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading) {
+	<details id="mob-toc-details" class="mob-toc" aria-label="Table of contents">
+		<summary class="mob-toc-toggle">On this page</summary>
+		<div class="mob-toc-body">
+			for _, h := range headings {
+				<a class={ "toc-item", templ.KV("h3", h.Level == 3) } href={ templ.SafeURL("#" + h.ID) }>{ h.Text }</a>
+			}
+		</div>
+	</details>
+	<article id="article">
+		<h1 id="article-title">{ note.Title }</h1>
+		<div class="article-meta">
+			<span class="article-meta-text">
+				Created: { note.Created.Format("2006-01-02") } · Modified: { note.Modified.Format("2006-01-02") } · { intStr(note.WordCount) } words
+			</span>
+			for _, tag := range note.Tags {
+				<a class="meta-tag" href={ templ.SafeURL("/?tags=" + tag) }>{ tag }</a>
+			}
+		</div>
+		<hr class="article-divider"/>
+		<div class="prose">
+			@templ.Raw(noteHTML)
+		</div>
+		if len(backlinks) > 0 {
+			<section id="backlinks-section">
+				<h4>Referenced by</h4>
+				for _, link := range backlinks {
+					@ContentLink("backlink-card", "/notes/" + link.SourcePath) {
+						<span class="backlink-card-title">{ link.SourceTitle }</span>
+						if backlinkDir(link.SourcePath) != "" {
+							<span class="backlink-card-path"><span>{ backlinkDir(link.SourcePath) }</span></span>
+						}
+					}
+				}
+			</section>
+		}
+	</article>
+}
+
+templ FolderListing(folderName string, entries []FolderEntry) {
+	<article id="article">
+		<h1>{ folderName }<span class="folder-slash">/</span></h1>
+		<hr class="article-divider"/>
+		if len(entries) > 0 {
+			<ul class="folder-list">
+				for _, entry := range entries {
+					<li class="folder-entry">
+						if entry.IsDir {
+							@ContentLink("folder-link folder-link--dir", "/notes/" + entry.Path + "/") {
+								<span class="folder-icon">&#9656;</span>{ entry.Name }/
+							}
+						} else {
+							@ContentLink("folder-link", "/notes/" + entry.Path) {
+								<span class="folder-icon">&#9702;</span>
+								if entry.Title != "" {
+									{ entry.Title }
+								} else {
+									{ entry.Name }
+								}
+							}
+						}
+					</li>
+				}
+			</ul>
+		} else {
+			<p class="folder-empty">Empty folder.</p>
+		}
+	</article>
+}
+
+templ NoteContentCol(segments []BreadcrumbSegment, note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading) {
+	<div id="content-col">
+		@Breadcrumb(segments, note.Title)
+		<div id="content-area">
+			@NoteArticle(note, noteHTML, backlinks, headings)
+		</div>
+	</div>
+}
+
+templ FolderContentCol(segments []BreadcrumbSegment, folderName string, entries []FolderEntry) {
+	<div id="content-col">
+		@Breadcrumb(segments, folderName)
+		<div id="content-area">
+			@FolderListing(folderName, entries)
+		</div>
+	</div>
+}
+
+templ EmptyContentCol() {
+	<div id="content-col">
+		<div id="content-area">
+			<div class="content-empty">Select a note to read it.</div>
+		</div>
+	</div>
+}

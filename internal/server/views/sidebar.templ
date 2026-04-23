@@ -1,0 +1,69 @@
+package views
+
+import (
+	"github.com/raphi011/kb/internal/index"
+)
+
+templ TreeNode(node *FileNode) {
+	if node.IsDir {
+		<details open?={ node.IsOpen }>
+			<summary class="tree-folder"><span class="tree-chevron">&#9656;</span>{ node.Name }</summary>
+			<div class="tree-children">
+				for _, child := range node.Children {
+					@TreeNode(child)
+				}
+			</div>
+		</details>
+	} else {
+		<a
+			class={ "tree-item", templ.KV("active", node.IsActive) }
+			href={ templ.SafeURL("/notes/" + node.Path) }
+			hx-get={ "/notes/" + node.Path }
+			hx-target="#content-col"
+			hx-push-url="true"
+			data-path={ node.Path }
+		>
+			<span class="tree-file-dot"></span>{ node.Name }
+		</a>
+	}
+}
+
+templ Tree(nodes []*FileNode) {
+	<div class="sidebar-section-label">Notes</div>
+	for _, node := range nodes {
+		@TreeNode(node)
+	}
+}
+
+templ TagList(tags []index.Tag) {
+	<div class="resize-handle-v server-tree" data-resize-target="next"></div>
+	<details class="sidebar-tags-section server-tree" open aria-label="Tags">
+		<summary class="sidebar-section-label">
+			Tags <span class="sidebar-tag-count">{ lenStr(tags) }</span>
+		</summary>
+		<div class="sidebar-tags-body">
+			for _, tag := range tags {
+				<span class="sidebar-tag-item" data-tag={ tag.Name }>
+					{ tag.Name } <span class="tag-count">{ intStr(tag.NoteCount) }</span>
+				</span>
+			}
+		</div>
+	</details>
+}
+
+templ Sidebar(nodes []*FileNode, tags []index.Tag) {
+	<div id="sidebar-search">
+		<input type="text" id="sidebar-filter" placeholder="Filter notes..." autocomplete="off"/>
+	</div>
+	<div id="active-filters"></div>
+	<div id="sidebar-inner">
+		if len(nodes) > 0 {
+			<div class="server-tree">
+				@Tree(nodes)
+			</div>
+		}
+	</div>
+	if len(tags) > 0 {
+		@TagList(tags)
+	}
+}

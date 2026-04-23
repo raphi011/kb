@@ -1,0 +1,139 @@
+package views
+
+import (
+	"fmt"
+	"time"
+)
+
+// calendarWeek holds up to 7 days for one row of the calendar grid.
+// Day 0 means empty cell (padding at start/end of month).
+type calendarWeek struct {
+	Days [7]int
+}
+
+// calendarData computes the weeks for a given year/month.
+func calendarData(year, month int) []calendarWeek {
+	first := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+	daysInMonth := time.Date(year, time.Month(month)+1, 0, 0, 0, 0, 0, time.UTC).Day()
+
+	// Monday=0 offset.
+	wd := int(first.Weekday())
+	if wd == 0 {
+		wd = 6 // Sunday -> 6
+	} else {
+		wd-- // Monday -> 0
+	}
+
+	var weeks []calendarWeek
+	var week calendarWeek
+	col := wd
+	for day := 1; day <= daysInMonth; day++ {
+		week.Days[col] = day
+		col++
+		if col == 7 {
+			weeks = append(weeks, week)
+			week = calendarWeek{}
+			col = 0
+		}
+	}
+	if col > 0 {
+		weeks = append(weeks, week)
+	}
+	return weeks
+}
+
+// monthLabel returns "January 2026" etc.
+func monthLabel(year, month int) string {
+	return time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC).Format("January 2006")
+}
+
+// prevMonth returns year, month for the previous month.
+func prevMonth(year, month int) (int, int) {
+	t := time.Date(year, time.Month(month)-1, 1, 0, 0, 0, 0, time.UTC)
+	return t.Year(), int(t.Month())
+}
+
+// nextMonth returns year, month for the next month.
+func nextMonth(year, month int) (int, int) {
+	t := time.Date(year, time.Month(month)+1, 1, 0, 0, 0, 0, time.UTC)
+	return t.Year(), int(t.Month())
+}
+
+// isToday returns true if the given date is today.
+func isToday(year, month, day int) bool {
+	now := time.Now()
+	return now.Year() == year && int(now.Month()) == month && now.Day() == day
+}
+
+// calendarDayClasses returns the CSS classes for a day cell.
+func calendarDayClasses(year, month, day, selectedDay int, active bool) string {
+	classes := "cal-day"
+	if active {
+		classes += " cal-day-active"
+	}
+	if isToday(year, month, day) {
+		classes += " cal-today"
+	}
+	if day == selectedDay {
+		classes += " cal-selected"
+	}
+	return classes
+}
+
+// calendarURL builds the HTMX URL for a day click.
+func calendarURL(year, month, day int) string {
+	return fmt.Sprintf("/search?date=%04d-%02d-%02d", year, month, day)
+}
+
+// calendarNavURL builds the HTMX URL for month navigation.
+func calendarNavURL(year, month int) string {
+	return fmt.Sprintf("/calendar?year=%d&month=%d", year, month)
+}
+
+templ Calendar(year, month int, activeDays map[int]bool, selectedDay int) {
+	<div id="calendar">
+		<div class="cal-header">
+			<button
+				class="cal-nav"
+				aria-label="Previous month"
+				hx-get={ calendarNavURL(prevMonth(year, month)) }
+				hx-target="#calendar"
+				hx-swap="outerHTML"
+			>&lsaquo;</button>
+			<span class="cal-month-label">{ monthLabel(year, month) }</span>
+			<button
+				class="cal-nav"
+				aria-label="Next month"
+				hx-get={ calendarNavURL(nextMonth(year, month)) }
+				hx-target="#calendar"
+				hx-swap="outerHTML"
+			>&rsaquo;</button>
+		</div>
+		<div class="cal-grid">
+			<span class="cal-dow">Mo</span>
+			<span class="cal-dow">Tu</span>
+			<span class="cal-dow">We</span>
+			<span class="cal-dow">Th</span>
+			<span class="cal-dow">Fr</span>
+			<span class="cal-dow">Sa</span>
+			<span class="cal-dow">Su</span>
+			for _, week := range calendarData(year, month) {
+				for _, day := range week.Days {
+					if day == 0 {
+						<span class="cal-day cal-day-empty"></span>
+					} else if activeDays[day] {
+						<a
+							class={ calendarDayClasses(year, month, day, selectedDay, true) }
+							href={ templ.SafeURL(calendarURL(year, month, day)) }
+							hx-get={ calendarURL(year, month, day) }
+							hx-target="#sidebar-inner"
+							data-date={ fmt.Sprintf("%04d-%02d-%02d", year, month, day) }
+						>{ intStr(day) }</a>
+					} else {
+						<span class={ calendarDayClasses(year, month, day, selectedDay, false) }>{ intStr(day) }</span>
+					}
+				}
+			}
+		</div>
+	</div>
+}

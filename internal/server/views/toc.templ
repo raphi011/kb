@@ -1,0 +1,70 @@
+package views
+
+import (
+	"github.com/raphi011/kb/internal/index"
+	"github.com/raphi011/kb/internal/markdown"
+)
+
+templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []index.Link, oob bool, calYear int, calMonth int, activeDays map[int]bool) {
+	<aside
+		id="toc-panel"
+		if oob {
+			hx-swap-oob="true"
+		}
+	>
+		if calYear > 0 {
+			@Calendar(calYear, calMonth, activeDays, 0)
+			<div class="resize-handle-v" data-resize-target="next"></div>
+		}
+		if len(headings) > 0 {
+			<div id="toc-header"><span>On this page</span></div>
+			<div id="toc-inner">
+				for _, h := range headings {
+					<a class={ "toc-item", templ.KV("h3", h.Level == 3) } href={ templ.SafeURL("#" + h.ID) }>{ h.Text }</a>
+				}
+			</div>
+		}
+		if len(outgoing) > 0 {
+			<div class="resize-handle-v" data-resize-target="next"></div>
+			<details class="toc-links-section" open aria-label="Outgoing links">
+				<summary class="toc-links-label">Links <span class="tl-count">{ lenStr(outgoing) }</span></summary>
+				<div class="toc-links-body">
+					for _, link := range outgoing {
+						if link.External {
+							<a class="toc-link-item toc-link-out" href={ templ.SafeURL(link.TargetPath) } target="_blank" rel="noopener">
+								if link.Title != "" {
+									{ link.Title }
+								} else {
+									{ link.TargetPath }
+								}
+							</a>
+						} else if link.TargetPath != "" {
+							@ContentLink("toc-link-item toc-link-out", "/notes/" + link.TargetPath) {
+								if link.Title != "" {
+									{ link.Title }
+								} else {
+									{ link.TargetPath }
+								}
+							}
+						} else {
+							<span class="toc-link-item toc-link-out">{ link.Title }</span>
+						}
+					}
+				</div>
+			</details>
+		}
+		if len(backlinks) > 0 {
+			<div class="resize-handle-v" data-resize-target="next"></div>
+			<details class="toc-links-section" open aria-label="Backlinks">
+				<summary class="toc-links-label">Backlinks <span class="tl-count">{ lenStr(backlinks) }</span></summary>
+				<div class="toc-links-body">
+					for _, link := range backlinks {
+						@ContentLink("toc-link-item toc-link-in", "/notes/" + link.SourcePath) {
+							{ link.SourceTitle }
+						}
+					}
+				</div>
+			</details>
+		}
+	</aside>
+}

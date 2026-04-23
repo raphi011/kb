@@ -1,0 +1,15 @@
+package views
+
+// ContentLink renders an anchor that navigates via HTMX partial swap.
+// It sets href (for graceful degradation), hx-get, hx-target, and hx-push-url.
+templ ContentLink(class string, href string) {
+	<a
+		class={ class }
+		href={ templ.SafeURL(href) }
+		hx-get={ href }
+		hx-target="#content-col"
+		hx-push-url="true"
+	>
+		{ children... }
+	</a>
+}

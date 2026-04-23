@@ -7,28 +7,8 @@ import (
 	"strings"
 
 	"github.com/raphi011/kb/internal/index"
+	"github.com/raphi011/kb/internal/server/views"
 )
-
-type FileNode struct {
-	Name     string
-	Path     string
-	IsDir    bool
-	IsActive bool
-	IsOpen   bool
-	Children []*FileNode
-}
-
-type BreadcrumbSegment struct {
-	Name       string
-	FolderPath string
-}
-
-type FolderEntry struct {
-	Name  string `json:"name"`
-	Path  string `json:"path"`
-	Title string `json:"title,omitempty"`
-	IsDir bool   `json:"isDir"`
-}
 
 type noteCache struct {
 	notes        []index.Note
@@ -85,12 +65,12 @@ func buildManifestJSON(notes []index.Note) string {
 	return string(b)
 }
 
-func buildBreadcrumbs(notePath string) []BreadcrumbSegment {
+func buildBreadcrumbs(notePath string) []views.BreadcrumbSegment {
 	parts := strings.Split(notePath, "/")
 	dirs := parts[:len(parts)-1]
-	crumbs := make([]BreadcrumbSegment, len(dirs))
+	crumbs := make([]views.BreadcrumbSegment, len(dirs))
 	for i, name := range dirs {
-		crumbs[i] = BreadcrumbSegment{
+		crumbs[i] = views.BreadcrumbSegment{
 			Name:       name,
 			FolderPath: strings.Join(parts[:i+1], "/"),
 		}
@@ -98,9 +78,9 @@ func buildBreadcrumbs(notePath string) []BreadcrumbSegment {
 	return crumbs
 }
 
-func buildTree(notes []index.Note, activePath string) []*FileNode {
+func buildTree(notes []index.Note, activePath string) []*views.FileNode {
 	type treeEntry struct {
-		node     *FileNode
+		node     *views.FileNode
 		children map[string]*treeEntry
 	}
 	root := &treeEntry{children: map[string]*treeEntry{}}
@@ -111,11 +91,11 @@ func buildTree(notes []index.Note, activePath string) []*FileNode {
 		for i, part := range parts {
 			isLast := i == len(parts)-1
 			if _, exists := cur.children[part]; !exists {
-				var node *FileNode
+				var node *views.FileNode
 				if !isLast {
-					node = &FileNode{Name: part, IsDir: true}
+					node = &views.FileNode{Name: part, IsDir: true}
 				} else {
-					node = &FileNode{
+					node = &views.FileNode{
 						Name:     n.Title,
 						Path:     n.Path,
 						IsActive: n.Path == activePath,
@@ -127,8 +107,8 @@ func buildTree(notes []index.Note, activePath string) []*FileNode {
 		}
 	}
 
-	var flatten func(*treeEntry) ([]*FileNode, bool)
-	flatten = func(e *treeEntry) ([]*FileNode, bool) {
+	var flatten func(*treeEntry) ([]*views.FileNode, bool)
+	flatten = func(e *treeEntry) ([]*views.FileNode, bool) {
 		var dirKeys, fileKeys []string
 		for k, child := range e.children {
 			if child.node.IsDir {
@@ -141,7 +121,7 @@ func buildTree(notes []index.Note, activePath string) []*FileNode {
 		sort.Strings(fileKeys)
 
 		anyActive := false
-		nodes := make([]*FileNode, 0, len(e.children))
+		nodes := make([]*views.FileNode, 0, len(e.children))
 		for _, k := range dirKeys {
 			child := e.children[k]
 			child.node.Children, child.node.IsOpen = flatten(child)
