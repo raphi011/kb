@@ -46,7 +46,7 @@ func (d *DB) searchFTS(q string, tags []string) ([]Note, error) {
 		       n.created, n.modified, n.metadata,
 		       COALESCE(GROUP_CONCAT(t.name, char(1)), '') AS tags
 		FROM (
-			SELECT rowid, bm25(notes_fts, 10.0, 1.0, 5.0) AS rank
+			SELECT rowid, bm25(notes_fts, 10.0, 1.0, 5.0) AS rank -- weights: title=10, body=1, path=5
 			FROM notes_fts
 			WHERE notes_fts MATCH ?
 			ORDER BY rank

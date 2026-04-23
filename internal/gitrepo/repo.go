@@ -43,6 +43,7 @@ func (r *Repo) HeadCommitHash() string {
 	return r.head.Hash().String()
 }
 
+// WalkFiles calls fn for each .md file tracked in HEAD.
 func (r *Repo) WalkFiles(fn func(path string) error) error {
 	commit, err := r.repo.CommitObject(r.head.Hash())
 	if err != nil {
