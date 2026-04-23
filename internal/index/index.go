@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"time"
 
 	_ "modernc.org/sqlite"
@@ -205,13 +206,23 @@ func scanNote(row *sql.Row) (*Note, error) {
 		return nil, err
 	}
 	if createdRaw.Valid {
-		n.Created, _ = time.Parse(time.RFC3339, createdRaw.String)
+		var err error
+		n.Created, err = time.Parse(time.RFC3339, createdRaw.String)
+		if err != nil {
+			slog.Warn("invalid created timestamp", "path", n.Path, "raw", createdRaw.String, "error", err)
+		}
 	}
 	if modifiedRaw.Valid {
-		n.Modified, _ = time.Parse(time.RFC3339, modifiedRaw.String)
+		var err error
+		n.Modified, err = time.Parse(time.RFC3339, modifiedRaw.String)
+		if err != nil {
+			slog.Warn("invalid modified timestamp", "path", n.Path, "raw", modifiedRaw.String, "error", err)
+		}
 	}
 	if metadataRaw.Valid && metadataRaw.String != "" {
-		_ = json.Unmarshal([]byte(metadataRaw.String), &n.Metadata)
+		if err := json.Unmarshal([]byte(metadataRaw.String), &n.Metadata); err != nil {
+			slog.Warn("invalid metadata JSON", "path", n.Path, "error", err)
+		}
 	}
 	return &n, nil
 }

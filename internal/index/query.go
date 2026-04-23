@@ -3,6 +3,7 @@ package index
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 )
@@ -162,13 +163,23 @@ func scanNoteRow(rows interface{ Scan(...any) error }) (*Note, error) {
 		return nil, err
 	}
 	if createdRaw != "" {
-		n.Created, _ = time.Parse(time.RFC3339, createdRaw)
+		var err error
+		n.Created, err = time.Parse(time.RFC3339, createdRaw)
+		if err != nil {
+			slog.Warn("invalid created timestamp", "path", n.Path, "raw", createdRaw, "error", err)
+		}
 	}
 	if modifiedRaw != "" {
-		n.Modified, _ = time.Parse(time.RFC3339, modifiedRaw)
+		var err error
+		n.Modified, err = time.Parse(time.RFC3339, modifiedRaw)
+		if err != nil {
+			slog.Warn("invalid modified timestamp", "path", n.Path, "raw", modifiedRaw, "error", err)
+		}
 	}
 	if metadataRaw != "" {
-		_ = json.Unmarshal([]byte(metadataRaw), &n.Metadata)
+		if err := json.Unmarshal([]byte(metadataRaw), &n.Metadata); err != nil {
+			slog.Warn("invalid metadata JSON", "path", n.Path, "error", err)
+		}
 	}
 	if tagsRaw != "" {
 		n.Tags = strings.Split(tagsRaw, "\x01")
