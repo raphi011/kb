@@ -101,7 +101,7 @@ function isEditing(el) {
 }
 
 function scrollTarget() {
-  return document.getElementById('content-area');
+  return document.scrollingElement;
 }
 
 function navigateNote(direction) {

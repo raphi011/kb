@@ -44,9 +44,8 @@ export function initHTMXHooks() {
       mermaid.run({ nodes: document.querySelectorAll('#content-area .mermaid') });
     }
 
-    // 5. Scroll content area to top.
-    const contentArea = document.getElementById('content-area');
-    if (contentArea) contentArea.scrollTop = 0;
+    // 5. Scroll to top.
+    window.scrollTo(0, 0);
   });
 
   // Re-init resize handles after calendar month navigation.

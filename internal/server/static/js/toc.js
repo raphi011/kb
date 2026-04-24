@@ -6,9 +6,8 @@ export function destroyToc() {
     observer.disconnect();
     observer = null;
   }
-  const contentArea = document.getElementById('content-area');
-  if (scrollHandler && contentArea) {
-    contentArea.removeEventListener('scroll', scrollHandler);
+  if (scrollHandler) {
+    document.removeEventListener('scroll', scrollHandler);
     scrollHandler = null;
   }
   const progressBar = document.getElementById('progress-bar');
@@ -18,10 +17,8 @@ export function destroyToc() {
 export function initToc() {
   destroyToc();
 
-  const contentArea = document.getElementById('content-area');
   const tocItems = document.querySelectorAll('#toc-inner .toc-item, .mob-toc-body .toc-item');
   const progressBar = document.getElementById('progress-bar');
-  if (!contentArea) return;
 
   const headingIds = [...new Set([...tocItems].map(a => {
     const href = a.getAttribute('href');
@@ -57,7 +54,7 @@ export function initToc() {
         tocItems.forEach(el => el.classList.remove('active'));
         (tocMap.get(activeId) || []).forEach(el => el.classList.add('active'));
       },
-      { root: contentArea, rootMargin: '-10% 0px -80% 0px', threshold: 0 }
+      { rootMargin: '-10% 0px -80% 0px', threshold: 0 }
     );
 
     headingEls.forEach(el => observer.observe(el));
@@ -65,11 +62,12 @@ export function initToc() {
 
   if (progressBar) {
     scrollHandler = () => {
-      const max = contentArea.scrollHeight - contentArea.clientHeight;
-      const pct = max > 0 ? Math.round((contentArea.scrollTop / max) * 100) : 0;
+      const el = document.scrollingElement;
+      const max = el.scrollHeight - el.clientHeight;
+      const pct = max > 0 ? Math.round((el.scrollTop / max) * 100) : 0;
       progressBar.style.width = pct + '%';
     };
-    contentArea.addEventListener('scroll', scrollHandler, { passive: true });
+    document.addEventListener('scroll', scrollHandler, { passive: true });
   }
 
   const mobDetails = document.getElementById('mob-toc-details');
@@ -80,7 +78,7 @@ export function initToc() {
         e.preventDefault();
         const id = link.getAttribute('href')?.replace('#', '');
         const target = id ? document.getElementById(id) : null;
-        if (target) contentArea.scrollTop = target.offsetTop - 20;
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         mobDetails.open = false;
       }
     });
