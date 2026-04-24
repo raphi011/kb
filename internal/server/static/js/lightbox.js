@@ -13,6 +13,7 @@ export function initLightbox() {
     const img = e.target.closest('#content-area img');
     const mermaid = e.target.closest('#content-area .mermaid');
     if (!img && !mermaid) return;
+    if (dialog.open) return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -31,7 +32,7 @@ export function initLightbox() {
     el = clone;
 
     dialog.showModal();
-    fitToViewport(clone);
+    requestAnimationFrame(() => fitToViewport(clone));
   });
 
   // Close on backdrop click.
@@ -109,20 +110,20 @@ function initPointerHandlers(container) {
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     if (pointers.size === 2) {
-      // Pinch zoom.
       const [a, b] = [...pointers.values()];
       const dist = Math.hypot(b.x - a.x, b.y - a.y);
       const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
 
-      if (lastDist > 0) {
-        const factor = dist / lastDist;
-        zoomAt(mid.x, mid.y, scale * factor);
-      }
-
-      // Pan by midpoint movement.
+      // Pan by midpoint movement first, then zoom.
       if (lastMid) {
         tx += mid.x - lastMid.x;
         ty += mid.y - lastMid.y;
+      }
+
+      if (lastDist > 0) {
+        const factor = dist / lastDist;
+        zoomAt(mid.x, mid.y, scale * factor);
+      } else {
         applyTransform(el);
       }
 
