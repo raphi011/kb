@@ -14,7 +14,6 @@ import (
 
 	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
 	"github.com/alecthomas/chroma/v2/styles"
-	"github.com/go-git/go-git/v5/storage"
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
 )
@@ -34,7 +33,6 @@ type Store interface {
 	NotesByDate(date string) ([]index.Note, error)
 	ReadFile(path string) ([]byte, error)
 	Render(src []byte) (markdown.RenderResult, error)
-	Storer() storage.Storer
 }
 
 // ReIndexer refreshes the git HEAD and re-indexes changed notes.
