@@ -82,5 +82,91 @@ function applyTransform(element) {
   }
 }
 
-function initPointerHandlers(container) {}
-function initWheelHandler(container) {}
+function initPointerHandlers(container) {
+  const pointers = new Map();
+  let lastDist = 0;
+  let lastMid = null;
+
+  container.addEventListener('pointerdown', (e) => {
+    if (!el) return;
+    e.preventDefault();
+    container.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    container.classList.add('grabbing');
+
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      lastDist = Math.hypot(b.x - a.x, b.y - a.y);
+      lastMid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    }
+  });
+
+  container.addEventListener('pointermove', (e) => {
+    if (!el || !pointers.has(e.pointerId)) return;
+    const prev = pointers.get(e.pointerId);
+    const dx = e.clientX - prev.x;
+    const dy = e.clientY - prev.y;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    if (pointers.size === 2) {
+      // Pinch zoom.
+      const [a, b] = [...pointers.values()];
+      const dist = Math.hypot(b.x - a.x, b.y - a.y);
+      const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+
+      if (lastDist > 0) {
+        const factor = dist / lastDist;
+        zoomAt(mid.x, mid.y, scale * factor);
+      }
+
+      // Pan by midpoint movement.
+      if (lastMid) {
+        tx += mid.x - lastMid.x;
+        ty += mid.y - lastMid.y;
+        applyTransform(el);
+      }
+
+      lastDist = dist;
+      lastMid = mid;
+    } else if (pointers.size === 1) {
+      // Single pointer drag = pan.
+      tx += dx;
+      ty += dy;
+      applyTransform(el);
+    }
+  });
+
+  const onPointerEnd = (e) => {
+    pointers.delete(e.pointerId);
+    container.releasePointerCapture(e.pointerId);
+    if (pointers.size < 2) {
+      lastDist = 0;
+      lastMid = null;
+    }
+    if (pointers.size === 0) {
+      container.classList.remove('grabbing');
+    }
+  };
+
+  container.addEventListener('pointerup', onPointerEnd);
+  container.addEventListener('pointercancel', onPointerEnd);
+}
+
+function initWheelHandler(container) {
+  container.addEventListener('wheel', (e) => {
+    if (!el) return;
+    e.preventDefault();
+    const factor = e.deltaY > 0 ? 0.9 : 1.1;
+    zoomAt(e.clientX, e.clientY, scale * factor);
+  }, { passive: false });
+}
+
+function zoomAt(cx, cy, newScale) {
+  newScale = Math.min(Math.max(newScale, 0.5), 5);
+  const ratio = newScale / scale;
+  // Adjust translation so the point (cx, cy) stays fixed.
+  tx = cx - ratio * (cx - tx);
+  ty = cy - ratio * (cy - ty);
+  scale = newScale;
+  applyTransform(el);
+}
