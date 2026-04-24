@@ -1410,6 +1410,55 @@ a.backlink-card, .backlink-card {
   }
 }
 
+/* ── Media lightbox ───────────────────────────────────────── */
+
+#media-dialog {
+  border: none;
+  background: transparent;
+  padding: 0;
+  max-width: 100vw;
+  max-height: 100dvh;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+
+  &::backdrop {
+    background: oklch(0.10 0.01 70 / 0.85);
+  }
+
+  &[open] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+#media-container {
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+
+  &.grabbing {
+    cursor: grabbing;
+  }
+
+  & > * {
+    transform-origin: 0 0;
+  }
+
+  & > img {
+    display: block;
+    max-width: none;
+    border: none;
+  }
+
+  & > svg {
+    display: block;
+  }
+}
+
 /* ── Folder view ───────────────────────────────────────────── */
 
 .folder-list {
