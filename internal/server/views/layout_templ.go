@@ -121,7 +121,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div><dialog id=\"cmd-dialog\"><div id=\"cmd-box\"><div id=\"cmd-input-row\"><span class=\"cmd-icon-search\">&#8984;</span> <input id=\"cmd-input\" type=\"text\" placeholder=\"Search...\" autocomplete=\"off\"></div><div id=\"cmd-results\"></div><div id=\"cmd-footer\"><span class=\"cmd-hint\"><kbd>&#8593;&#8595;</kbd> navigate</span> <span class=\"cmd-hint\"><kbd>&#8629;</kbd> open</span> <span class=\"cmd-hint\"><kbd>esc</kbd> close</span></div></div></dialog>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div><dialog id=\"cmd-dialog\"><div id=\"cmd-box\"><div id=\"cmd-input-row\"><span class=\"cmd-icon-search\">&#8984;</span> <input id=\"cmd-input\" type=\"text\" placeholder=\"Search...\" autocomplete=\"off\"></div><div id=\"cmd-results\"></div><div id=\"cmd-footer\"><span class=\"cmd-hint\"><kbd>&#8593;&#8595;</kbd> navigate</span> <span class=\"cmd-hint\"><kbd>&#8629;</kbd> open</span> <span class=\"cmd-hint\"><kbd>esc</kbd> close</span></div></div></dialog> <dialog id=\"media-dialog\"><div id=\"media-container\"></div></dialog>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

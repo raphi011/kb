@@ -100,6 +100,9 @@ templ Layout(p LayoutParams) {
 				</div>
 			</div>
 		</dialog>
+		<dialog id="media-dialog">
+			<div id="media-container"></div>
+		</dialog>
 		@templ.Raw("<script>window.__ZK_MANIFEST = " + p.ManifestJSON + ";</script>")
 		<script src="/static/htmx.min.js"></script>
 		<script src="/static/app.min.js"></script>
