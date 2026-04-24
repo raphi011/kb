@@ -30,8 +30,8 @@ func TestGitInfoRefs_UnknownService(t *testing.T) {
 	req.SetBasicAuth("", "test-token")
 	w := httptest.NewRecorder()
 	srv.ServeHTTP(w, req)
-	if w.Code != http.StatusForbidden {
-		t.Errorf("unknown service status = %d, want 403", w.Code)
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("unknown service status = %d, want 400", w.Code)
 	}
 }
 
