@@ -139,6 +139,60 @@ func TestBacklinks(t *testing.T) {
 	}
 }
 
+func TestResolveLinks(t *testing.T) {
+	db := testDB(t)
+	// Note at a nested path.
+	if err := db.UpsertNote(Note{Path: "a.md", Title: "A", Body: "b", WordCount: 1}); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.UpsertNote(Note{Path: "notes/tools/chezmoi.md", Title: "Chezmoi", Body: "b", WordCount: 1}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Link stored with just the filename stem (as wiki-links are parsed).
+	if err := db.SetLinks("a.md", []Link{{TargetPath: "chezmoi.md", Title: "chezmoi"}}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Before resolution: backlinks query with full path finds nothing.
+	backlinks, err := db.Backlinks("notes/tools/chezmoi.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(backlinks) != 0 {
+		t.Fatalf("backlinks before resolve = %d, want 0", len(backlinks))
+	}
+
+	// Resolve.
+	if err := db.ResolveLinks(); err != nil {
+		t.Fatal(err)
+	}
+
+	// After resolution: backlinks query now finds the link.
+	backlinks, err = db.Backlinks("notes/tools/chezmoi.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(backlinks) != 1 {
+		t.Fatalf("backlinks after resolve = %d, want 1", len(backlinks))
+	}
+	if backlinks[0].SourcePath != "a.md" {
+		t.Errorf("backlink source = %q, want %q", backlinks[0].SourcePath, "a.md")
+	}
+
+	// Outgoing link target is now the full path.
+	outgoing, err := db.OutgoingLinks("a.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(outgoing) != 1 {
+		t.Fatalf("outgoing = %d, want 1", len(outgoing))
+	}
+	if outgoing[0].TargetPath != "notes/tools/chezmoi.md" {
+		t.Errorf("target = %q, want %q", outgoing[0].TargetPath, "notes/tools/chezmoi.md")
+	}
+}
+
 func TestNoteByPath_NotFound(t *testing.T) {
 	db := testDB(t)
 	_, err := db.NoteByPath("nonexistent.md")

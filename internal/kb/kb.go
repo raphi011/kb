@@ -85,6 +85,10 @@ func (kb *KB) fullIndex(headSHA string) error {
 		return fmt.Errorf("all %d files failed to index — not updating head_commit", skipped)
 	}
 
+	if err := kb.idx.ResolveLinks(); err != nil {
+		return fmt.Errorf("resolve links: %w", err)
+	}
+
 	if err := kb.idx.SetMeta("head_commit", headSHA); err != nil {
 		return fmt.Errorf("set head commit: %w", err)
 	}
@@ -130,6 +134,10 @@ func (kb *KB) incrementalIndex(oldSHA, newSHA string) error {
 	total := len(diff.Added) + len(diff.Modified)
 	if skipped > 0 && skipped == total {
 		return fmt.Errorf("all %d files failed to index — not updating head_commit", skipped)
+	}
+
+	if err := kb.idx.ResolveLinks(); err != nil {
+		return fmt.Errorf("resolve links: %w", err)
 	}
 
 	if err := kb.idx.SetMeta("head_commit", newSHA); err != nil {
