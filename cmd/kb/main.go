@@ -335,7 +335,22 @@ func serveCmd() *cobra.Command {
 				return fmt.Errorf("--token is required")
 			}
 
-			k, err := openKB(repo)
+			repoPath := repo
+			if repoPath == "" {
+				cwd, err := os.Getwd()
+				if err != nil {
+					return err
+				}
+				repoPath, _ = findRepoRoot(cwd)
+			}
+			if repoPath == "" {
+				repoPath = os.Getenv("KB_REPO")
+			}
+			if repoPath == "" {
+				return fmt.Errorf("not a git repository and KB_REPO not set")
+			}
+
+			k, err := openKB(repoPath)
 			if err != nil {
 				return err
 			}
@@ -345,7 +360,7 @@ func serveCmd() *cobra.Command {
 				return fmt.Errorf("index: %w", err)
 			}
 
-			srv, err := server.New(k, k, token)
+			srv, err := server.New(k, k, token, repoPath)
 			if err != nil {
 				return fmt.Errorf("create server: %w", err)
 			}

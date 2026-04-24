@@ -46,7 +46,7 @@ func newTestServer(t *testing.T) *Server {
 			{Name: "golang", NoteCount: 1},
 		},
 	}
-	srv, err := New(store, store, "test-token")
+	srv, err := New(store, store, "test-token", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,7 +167,7 @@ func TestNewServerRejectsEmptyToken(t *testing.T) {
 		notes: []index.Note{{Path: "a.md", Title: "A", Tags: []string{}}},
 		tags:  []index.Tag{},
 	}
-	_, err := New(store, store, "")
+	_, err := New(store, store, "", "")
 	if err == nil {
 		t.Error("New() should reject empty token")
 	}

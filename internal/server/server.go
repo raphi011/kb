@@ -46,12 +46,13 @@ type Server struct {
 	store       Store
 	reindexer   ReIndexer
 	token       string
+	repoPath    string
 	cache       atomic.Pointer[noteCache]
 	chromaDark  []byte
 	chromaLight []byte
 }
 
-func New(store Store, reindexer ReIndexer, token string) (*Server, error) {
+func New(store Store, reindexer ReIndexer, token string, repoPath string) (*Server, error) {
 	if token == "" {
 		return nil, fmt.Errorf("token must not be empty")
 	}
@@ -72,6 +73,7 @@ func New(store Store, reindexer ReIndexer, token string) (*Server, error) {
 		store:       store,
 		reindexer:   reindexer,
 		token:       token,
+		repoPath:    repoPath,
 		chromaDark:  dark,
 		chromaLight: light,
 	}
