@@ -1452,7 +1452,7 @@ a.backlink-card, .backlink-card {
     display: block;
     max-width: none;
     border: none;
-    background: repeating-conic-gradient(oklch(0.30 0 0) 0% 25%, oklch(0.22 0 0) 0% 50%) 0 0 / 16px 16px;
+    background: white;
   }
 
   & > svg {
