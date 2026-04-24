@@ -346,7 +346,7 @@ html.zen, body.zen {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding: 8px 0;
+    padding: 8px 0 env(safe-area-inset-bottom);
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
@@ -644,6 +644,7 @@ details[open] > .tree-folder::before {
   flex: 1;
   overflow-y: auto;
   min-width: 0;
+  padding-bottom: env(safe-area-inset-bottom);
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
