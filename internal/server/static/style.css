@@ -1457,6 +1457,7 @@ a.backlink-card, .backlink-card {
 
   & > svg {
     display: block;
+    background: white;
   }
 }
 
