@@ -37,7 +37,7 @@ templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, hea
 				Created: { note.Created.Format("2006-01-02") } · Modified: { note.Modified.Format("2006-01-02") } · { intStr(note.WordCount) } words
 			</span>
 			for _, tag := range note.Tags {
-				<a class="meta-tag" href={ templ.SafeURL("/search?tags=" + tag) } hx-get={ "/search?tags=" + tag } hx-target="#content-col" hx-push-url="true">{ tag }</a>
+				<span class="meta-tag" data-tag={ tag }>{ tag }</span>
 			}
 		</div>
 		<hr class="article-divider"/>

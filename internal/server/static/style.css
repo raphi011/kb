@@ -742,7 +742,7 @@ details[open] > .tree-folder::before {
 }
 
 /* Meta tag pills on article */
-a.meta-tag, .meta-tag {
+.meta-tag {
   display: inline-block;
   font-size: 11px;
   font-family: var(--font-ui);
