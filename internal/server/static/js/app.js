@@ -7,6 +7,7 @@ import { initHTMXHooks } from './htmx-hooks.js';
 import { initCalendar } from './calendar.js';
 import { initKeys } from './keys.js';
 import { initZen } from './zen.js';
+import { initLightbox } from './lightbox.js';
 import { recordVisit } from './history.js';
 
 initTheme();
@@ -18,6 +19,7 @@ initHTMXHooks();
 initCalendar();
 initKeys();
 initZen();
+initLightbox();
 
 // Record initial page load if it's a note.
 if (location.pathname.startsWith('/notes/')) {
