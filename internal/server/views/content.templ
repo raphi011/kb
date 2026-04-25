@@ -31,7 +31,18 @@ templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, hea
 		</details>
 	}
 	<article id="article">
-		<h1 id="article-title">{ note.Title }</h1>
+		<div class="article-title-row">
+			<h1 id="article-title">{ note.Title }</h1>
+			<button
+				id="bookmark-btn"
+				class="bookmark-btn"
+				type="button"
+				aria-label="Toggle bookmark"
+				data-path={ note.Path }
+			>
+				<span class="bookmark-icon">&#9734;</span>
+			</button>
+		</div>
 		<div class="article-meta">
 			<span class="article-meta-text">
 				Created: { note.Created.Format("2006-01-02") } · Modified: { note.Modified.Format("2006-01-02") } · { intStr(note.WordCount) } words
