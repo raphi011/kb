@@ -239,6 +239,10 @@ func (kb *KB) NotesByDate(date string) ([]index.Note, error) {
 	return kb.idx.NotesByDate(date)
 }
 
+func (kb *KB) BookmarkedPaths() ([]string, error) {
+	return kb.idx.BookmarkedPaths()
+}
+
 func (kb *KB) ReadFile(path string) ([]byte, error) {
 	return kb.repo.ReadBlob(path)
 }

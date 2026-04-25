@@ -27,6 +27,10 @@ func buildNoteCache(store Store) (*noteCache, error) {
 	if err != nil {
 		return nil, fmt.Errorf("load tags: %w", err)
 	}
+	bookmarkedPaths, err := store.BookmarkedPaths()
+	if err != nil {
+		return nil, fmt.Errorf("load bookmarks: %w", err)
+	}
 
 	lookup := make(map[string]string, len(notes)*2)
 	byPath := make(map[string]*index.Note, len(notes))
@@ -37,7 +41,7 @@ func buildNoteCache(store Store) (*noteCache, error) {
 		byPath[n.Path] = &notes[i]
 	}
 
-	manifest, err := buildManifestJSON(notes)
+	manifest, err := buildManifestJSON(notes, bookmarkedPaths)
 	if err != nil {
 		return nil, err
 	}
@@ -50,12 +54,18 @@ func buildNoteCache(store Store) (*noteCache, error) {
 	}, nil
 }
 
-func buildManifestJSON(notes []index.Note) (string, error) {
+func buildManifestJSON(notes []index.Note, bookmarkedPaths []string) (string, error) {
+	bookmarkSet := make(map[string]bool, len(bookmarkedPaths))
+	for _, p := range bookmarkedPaths {
+		bookmarkSet[p] = true
+	}
+
 	type entry struct {
-		Title string   `json:"title"`
-		Path  string   `json:"path"`
-		Tags  []string `json:"tags"`
-		Mod   int64    `json:"mod"`
+		Title      string   `json:"title"`
+		Path       string   `json:"path"`
+		Tags       []string `json:"tags"`
+		Mod        int64    `json:"mod"`
+		Bookmarked bool     `json:"bookmarked,omitempty"`
 	}
 	entries := make([]entry, len(notes))
 	for i, n := range notes {
@@ -63,7 +73,13 @@ func buildManifestJSON(notes []index.Note) (string, error) {
 		if tags == nil {
 			tags = []string{}
 		}
-		entries[i] = entry{Title: n.Title, Path: n.Path, Tags: tags, Mod: n.Modified.Unix()}
+		entries[i] = entry{
+			Title:      n.Title,
+			Path:       n.Path,
+			Tags:       tags,
+			Mod:        n.Modified.Unix(),
+			Bookmarked: bookmarkSet[n.Path],
+		}
 	}
 	b, err := json.Marshal(entries)
 	if err != nil {

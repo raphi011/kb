@@ -32,6 +32,7 @@ func (m *mockKB) ActivityDays(y, mo int) (map[int]bool, error)     { return map[
 func (m *mockKB) NotesByDate(date string) ([]index.Note, error)    { return nil, nil }
 func (m *mockKB) ReadFile(path string) ([]byte, error)             { return []byte("# Test\n\nBody."), nil }
 func (m *mockKB) Render(src []byte) (markdown.RenderResult, error) { return markdown.Render(src, nil, nil) }
+func (m *mockKB) BookmarkedPaths() ([]string, error)                { return nil, nil }
 func (m *mockKB) ReIndex() error                                   { return nil }
 
 func newTestServer(t *testing.T) *Server {

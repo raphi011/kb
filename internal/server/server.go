@@ -33,6 +33,7 @@ type Store interface {
 	NotesByDate(date string) ([]index.Note, error)
 	ReadFile(path string) ([]byte, error)
 	Render(src []byte) (markdown.RenderResult, error)
+	BookmarkedPaths() ([]string, error)
 }
 
 // ReIndexer refreshes the git HEAD and re-indexes changed notes.
