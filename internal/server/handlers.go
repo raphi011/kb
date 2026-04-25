@@ -417,7 +417,7 @@ func (s *Server) renderError(w http.ResponseWriter, r *http.Request, code int, m
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(code)
 	if isHTMX(r) {
-		if err := views.ErrorContentCol(code, message).Render(r.Context(), w); err != nil {
+		if err := views.ErrorContentInner(code, message).Render(r.Context(), w); err != nil {
 			slog.Error("render error component", "error", err)
 		}
 		s.renderTOCForPage(w, r, nil, nil, nil)

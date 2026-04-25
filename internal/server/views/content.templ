@@ -136,13 +136,17 @@ templ EmptyContentCol() {
 	</div>
 }
 
+templ ErrorContentInner(code int, message string) {
+	<div id="content-area">
+		<div class="content-error">
+			<span class="content-error-code">{ intStr(code) }</span>
+			<span class="content-error-msg">{ message }</span>
+		</div>
+	</div>
+}
+
 templ ErrorContentCol(code int, message string) {
 	<div id="content-col" role="main">
-		<div id="content-area">
-			<div class="content-error">
-				<span class="content-error-code">{ intStr(code) }</span>
-				<span class="content-error-msg">{ message }</span>
-			</div>
-		</div>
+		@ErrorContentInner(code, message)
 	</div>
 }
