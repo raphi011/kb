@@ -3,6 +3,7 @@ import { esc } from './utils.js';
 const manifest = window.__ZK_MANIFEST || [];
 let selectedTags = [];
 let selectedDate = null;
+let bookmarkFilter = false;
 
 let filtersEl, sidebarInner, sidebar;
 
@@ -28,6 +29,9 @@ export function initSidebar() {
         restoreSidebar();
       } else if (chip.dataset.tag) {
         removeTag(chip.dataset.tag);
+      } else if (chip.dataset.bookmark !== undefined) {
+        bookmarkFilter = false;
+        render();
       }
     }
   });
@@ -56,6 +60,10 @@ export function initSidebar() {
       });
     }
   }
+
+  document.addEventListener('zk:bookmarks-changed', () => {
+    if (bookmarkFilter) render();
+  });
 }
 
 // ── Public API for calendar.js ──────────────────────────────
@@ -78,6 +86,12 @@ export function clearDateFilter() {
 // getSelectedDate returns the currently active date filter (or null).
 export function getSelectedDate() {
   return selectedDate;
+}
+
+export function toggleBookmarkFilter() {
+  bookmarkFilter = !bookmarkFilter;
+  if (bookmarkFilter && selectedDate) clearDate(true);
+  render();
 }
 
 // ── Internal ────────────────────────────────────────────────
@@ -124,9 +138,9 @@ function removeTag(tag) {
 
 function render() {
   renderFilters();
-  const hasTags = selectedTags.length > 0;
+  const hasFilters = selectedTags.length > 0 || bookmarkFilter;
 
-  if (!hasTags) {
+  if (!hasFilters) {
     for (const el of sidebarInner.children) {
       if (!el.classList.contains('client-results')) el.style.display = '';
     }
@@ -139,6 +153,7 @@ function render() {
   }
 
   let results = manifest.filter(n => selectedTags.every(t => n.tags.includes(t)));
+  if (bookmarkFilter) results = results.filter(n => n.bookmarked);
 
   sidebarInner.querySelectorAll('.client-results').forEach(el => el.remove());
 
@@ -164,7 +179,7 @@ function render() {
 
 function renderFilters() {
   if (!filtersEl) return;
-  const hasFilters = selectedTags.length > 0 || selectedDate;
+  const hasFilters = selectedTags.length > 0 || selectedDate || bookmarkFilter;
   if (!hasFilters) {
     filtersEl.style.display = 'none';
     return;
@@ -176,6 +191,11 @@ function renderFilters() {
   if (selectedDate) {
     html += `<span class="filter-chip" data-date="${esc(selectedDate)}">` +
             `${esc(selectedDate)} <span class="remove">\u00d7</span></span>`;
+  }
+
+  if (bookmarkFilter) {
+    html += `<span class="filter-chip" data-bookmark>` +
+            `\u2605 Bookmarked <span class="remove">\u00d7</span></span>`;
   }
 
   html += selectedTags.map(t =>

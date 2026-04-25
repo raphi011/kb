@@ -6,6 +6,7 @@ import { initCommandPalette } from './command-palette.js';
 import { initHTMXHooks } from './htmx-hooks.js';
 import { initCalendar } from './calendar.js';
 import { initKeys } from './keys.js';
+import { initBookmarks } from './bookmark.js';
 import { initZen } from './zen.js';
 import { initLightbox } from './lightbox.js';
 import { recordVisit } from './history.js';
@@ -18,6 +19,7 @@ initCommandPalette();
 initHTMXHooks();
 initCalendar();
 initKeys();
+initBookmarks();
 initZen();
 initLightbox();
 

@@ -1,3 +1,6 @@
+import { toggleBookmarkForCurrentNote } from './bookmark.js';
+import { toggleBookmarkFilter } from './sidebar.js';
+
 // Vim-like keyboard shortcuts for navigating the notebook.
 
 const SCROLL_STEP = 60;       // px per j/k press
@@ -24,6 +27,22 @@ function handleKey(e) {
     if (!el) return;
     const half = el.clientHeight / SCROLL_FAST_DIVISOR;
     el.scrollBy({ top: e.key === 'd' ? half : -half, behavior: 'smooth' });
+    return;
+  }
+
+  // Cmd/Ctrl+Shift+B: toggle bookmark filter in sidebar.
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'B') {
+    e.preventDefault();
+    toggleBookmarkFilter();
+    return;
+  }
+
+  // Cmd/Ctrl+B: toggle bookmark for current note.
+  if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
+    e.preventDefault();
+    if (location.pathname.startsWith('/notes/') && location.pathname.endsWith('.md')) {
+      toggleBookmarkForCurrentNote();
+    }
     return;
   }
 
