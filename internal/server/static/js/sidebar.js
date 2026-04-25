@@ -1,6 +1,5 @@
 import { esc } from './utils.js';
-
-const manifest = window.__ZK_MANIFEST || [];
+import { getManifest } from './manifest.js';
 let selectedTags = [];
 let selectedDate = null;
 
@@ -57,7 +56,7 @@ export function initSidebar() {
     }
   }
 
-  document.addEventListener('zk:bookmarks-changed', () => renderBookmarksPanel());
+  document.addEventListener('zk:manifest-changed', () => renderBookmarksPanel());
 
   renderBookmarksPanel();
 }
@@ -142,7 +141,7 @@ function render() {
     if (!el.classList.contains('client-results')) el.style.display = 'none';
   }
 
-  let results = manifest.filter(n => selectedTags.every(t => n.tags.includes(t)));
+  let results = getManifest().filter(n => selectedTags.every(t => n.tags.includes(t)));
 
   sidebarInner.querySelectorAll('.client-results').forEach(el => el.remove());
 
@@ -194,7 +193,7 @@ function renderBookmarksPanel() {
   const panel = document.getElementById('bookmarks-panel');
   if (!panel) return;
 
-  const bookmarks = manifest.filter(n => n.bookmarked);
+  const bookmarks = getManifest().filter(n => n.bookmarked);
   const hasBookmarks = bookmarks.length > 0;
 
   if (hasBookmarks) {
