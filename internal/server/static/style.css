@@ -1311,8 +1311,6 @@ a.backlink-card, .backlink-card {
 
   &:hover { color: var(--accent); background: var(--bg-hover); }
 
-  &.toc-link-out::before { content: '\2197'; font-size: 9px; margin-right: 5px; opacity: 0.4; }
-  &.toc-link-in::before  { content: '\2199'; font-size: 9px; margin-right: 5px; opacity: 0.4; }
 }
 
 /* ── Mobile TOC (inline, details/summary) ──────────────────── */
