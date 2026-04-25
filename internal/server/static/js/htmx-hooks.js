@@ -18,6 +18,7 @@ export function initHTMXHooks() {
     e.preventDefault();
     htmx.ajax('GET', href, { target: '#content-col', swap: 'innerHTML' });
     history.pushState({}, '', href);
+    currentPath = new URL(href, location.origin).pathname;
   });
 
   // Use afterSettle so OOB swaps (#toc-panel) are complete before re-init.
@@ -49,8 +50,11 @@ export function initHTMXHooks() {
   });
 
   // Handle browser back/forward navigation.
+  let currentPath = location.pathname;
   window.addEventListener('popstate', () => {
     const path = location.pathname;
+    if (path === currentPath) return; // hash-only change, let browser handle
+    currentPath = path;
     if (path.startsWith('/notes/')) {
       htmx.ajax('GET', path, { target: '#content-col', swap: 'innerHTML' });
     } else {
