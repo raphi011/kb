@@ -61,6 +61,12 @@ export function initSidebar() {
     }
   }
 
+  // Bookmark filter toggle button.
+  const bmBtn = document.getElementById('bookmark-filter-btn');
+  if (bmBtn) {
+    bmBtn.addEventListener('click', () => toggleBookmarkFilter());
+  }
+
   document.addEventListener('zk:bookmarks-changed', () => {
     if (bookmarkFilter) render();
   });
@@ -178,6 +184,13 @@ function render() {
 }
 
 function renderFilters() {
+  // Update bookmark filter button icon.
+  const bmBtn = document.getElementById('bookmark-filter-btn');
+  if (bmBtn) {
+    bmBtn.textContent = bookmarkFilter ? '\u2605' : '\u2606';
+    bmBtn.classList.toggle('active', bookmarkFilter);
+  }
+
   if (!filtersEl) return;
   const hasFilters = selectedTags.length > 0 || selectedDate || bookmarkFilter;
   if (!hasFilters) {

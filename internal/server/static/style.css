@@ -336,8 +336,15 @@ html.zen, body.zen {
   overflow: hidden;
 
 
+  #sidebar-toolbar {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
   #active-filters {
     display: none;
+    flex: 1;
     flex-wrap: wrap;
     gap: 3px;
     padding: 6px 10px 7px;
@@ -345,6 +352,24 @@ html.zen, body.zen {
     background: var(--surface);
     flex-shrink: 0;
     animation: fadeSlideIn 0.15s ease;
+  }
+
+  .sidebar-toolbar-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 14px;
+    color: var(--text-muted);
+    opacity: 0.5;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+
+  .sidebar-toolbar-btn:hover,
+  .sidebar-toolbar-btn.active {
+    opacity: 1;
+    color: var(--accent);
   }
 
   #sidebar-inner {
@@ -649,7 +674,7 @@ details[open] > .tree-folder::before {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-.content-empty {
+.content-empty, .content-error {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -657,6 +682,19 @@ details[open] > .tree-folder::before {
   color: var(--text-muted);
   font-size: 14px;
   font-family: var(--font-prose);
+  gap: 12px;
+}
+
+.content-error-code {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+
+.content-error-msg {
+  font-size: 16px;
+  color: var(--text-muted);
 }
 
 /* ── Breadcrumb ────────────────────────────────────────────── */

@@ -294,7 +294,7 @@ func Sidebar(nodes []*FileNode, tags []index.Tag) templ.Component {
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div id=\"active-filters\"></div><div id=\"sidebar-inner\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<div id=\"sidebar-toolbar\"><div id=\"active-filters\"></div><button id=\"bookmark-filter-btn\" class=\"sidebar-toolbar-btn\" type=\"button\" aria-label=\"Filter bookmarks\" title=\"Filter bookmarks\">&#9734;</button></div><div id=\"sidebar-inner\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
