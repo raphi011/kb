@@ -270,5 +270,5 @@ func (kb *KB) Render(src []byte) (markdown.RenderResult, error) {
 		lookup[stem] = n.Path
 		lookup[strings.TrimSuffix(n.Path, ".md")] = n.Path
 	}
-	return markdown.Render(src, lookup)
+	return markdown.Render(src, lookup, nil)
 }

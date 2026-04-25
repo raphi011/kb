@@ -6,7 +6,7 @@ import (
 )
 
 func TestRender_BasicMarkdown(t *testing.T) {
-	result, err := Render([]byte("# Hello\n\nParagraph with **bold**."), nil)
+	result, err := Render([]byte("# Hello\n\nParagraph with **bold**."), nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -20,7 +20,7 @@ func TestRender_BasicMarkdown(t *testing.T) {
 
 func TestRender_HeadingCollection(t *testing.T) {
 	src := "# Title\n\n## Section One\n\n### Subsection\n\n## Section Two\n"
-	result, err := Render([]byte(src), nil)
+	result, err := Render([]byte(src), nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestRender_WikiLinkResolution(t *testing.T) {
 	lookup := map[string]string{
 		"go-concurrency": "notes/go-concurrency.md",
 	}
-	result, err := Render([]byte("See [[go-concurrency]]."), lookup)
+	result, err := Render([]byte("See [[go-concurrency]]."), lookup, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestRender_WikiLinkResolution(t *testing.T) {
 }
 
 func TestRender_ExternalLinkTargetBlank(t *testing.T) {
-	result, err := Render([]byte("[Go](https://go.dev)"), nil)
+	result, err := Render([]byte("[Go](https://go.dev)"), nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func TestRender_ExternalLinkTargetBlank(t *testing.T) {
 
 func TestRender_MermaidBlock(t *testing.T) {
 	src := "```mermaid\ngraph TD\n  A --> B\n```\n"
-	result, err := Render([]byte(src), nil)
+	result, err := Render([]byte(src), nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +68,7 @@ func TestRender_MermaidBlock(t *testing.T) {
 
 func TestRender_SyntaxHighlighting(t *testing.T) {
 	src := "```go\nfunc main() {}\n```\n"
-	result, err := Render([]byte(src), nil)
+	result, err := Render([]byte(src), nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,9 +77,44 @@ func TestRender_SyntaxHighlighting(t *testing.T) {
 	}
 }
 
+func TestRender_WikiLinkDisplaysTitle(t *testing.T) {
+	lookup := map[string]string{
+		"chezmoi": "notes/tools/chezmoi.md",
+	}
+	titleLookup := map[string]string{
+		"notes/tools/chezmoi.md": "Chezmoi Setup Guide",
+	}
+	result, err := Render([]byte("See [[chezmoi]]."), lookup, titleLookup)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, ">Chezmoi Setup Guide</a>") {
+		t.Errorf("wiki-link should display note title, got: %s", result.HTML)
+	}
+}
+
+func TestRender_WikiLinkAliasOverridesTitle(t *testing.T) {
+	lookup := map[string]string{
+		"chezmoi": "notes/tools/chezmoi.md",
+	}
+	titleLookup := map[string]string{
+		"notes/tools/chezmoi.md": "Chezmoi Setup Guide",
+	}
+	result, err := Render([]byte("See [[chezmoi|my dotfiles]]."), lookup, titleLookup)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, ">my dotfiles</a>") {
+		t.Errorf("alias should override title, got: %s", result.HTML)
+	}
+	if strings.Contains(result.HTML, "Chezmoi Setup Guide") {
+		t.Errorf("title should not appear when alias is present, got: %s", result.HTML)
+	}
+}
+
 func TestRender_MermaidXSS(t *testing.T) {
 	src := "```mermaid\n</pre><script>alert(1)</script><pre>\n```\n"
-	result, err := Render([]byte(src), nil)
+	result, err := Render([]byte(src), nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -28,7 +28,8 @@ type RenderResult struct {
 
 // noteResolver resolves [[target]] wiki-links to /notes/<path>.
 type noteResolver struct {
-	lookup map[string]string
+	lookup      map[string]string // stem → path
+	titleLookup map[string]string // path → title
 }
 
 func (r noteResolver) ResolveWikilink(n *wikilink.Node) ([]byte, error) {
@@ -41,24 +42,97 @@ func (r noteResolver) ResolveWikilink(n *wikilink.Node) ([]byte, error) {
 	return append([]byte("/notes/"), n.Target...), nil
 }
 
+// wikilinkRenderer renders [[wiki-links]] with title resolution.
+// When no alias is given, it displays the target note's title.
+type wikilinkRenderer struct {
+	resolver noteResolver
+}
+
+func (r *wikilinkRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
+	reg.Register(wikilink.Kind, r.render)
+}
+
+func (r *wikilinkRenderer) render(w util.BufWriter, src []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	n, ok := node.(*wikilink.Node)
+	if !ok {
+		return ast.WalkStop, fmt.Errorf("unexpected node %T", node)
+	}
+
+	if !entering {
+		_, _ = w.WriteString("</a>")
+		return ast.WalkContinue, nil
+	}
+
+	dest, err := r.resolver.ResolveWikilink(n)
+	if err != nil {
+		return ast.WalkStop, err
+	}
+	if len(dest) == 0 {
+		return ast.WalkContinue, nil
+	}
+
+	_, _ = w.WriteString(`<a href="`)
+	_, _ = w.Write(util.URLEscape(dest, true))
+	_, _ = w.WriteString(`">`)
+
+	// Check if there's an alias: if the child text equals the target, no alias was given.
+	childText := nodeTextFromWikilink(src, n)
+	hasAlias := !bytes.Equal(childText, n.Target)
+
+	if hasAlias {
+		// Let goldmark render the alias children.
+		return ast.WalkContinue, nil
+	}
+
+	// No alias — resolve title and write it directly.
+	target := string(n.Target)
+	path := ""
+	if r.resolver.lookup != nil {
+		path = r.resolver.lookup[target]
+	}
+	title := ""
+	if path != "" && r.resolver.titleLookup != nil {
+		title = r.resolver.titleLookup[path]
+	}
+	if title != "" {
+		_, _ = w.WriteString(html.EscapeString(title))
+	} else {
+		_, _ = w.Write(util.EscapeHTML(n.Target))
+	}
+	return ast.WalkSkipChildren, nil
+}
+
+func nodeTextFromWikilink(src []byte, n *wikilink.Node) []byte {
+	if n.ChildCount() == 0 {
+		return nil
+	}
+	var buf bytes.Buffer
+	for c := n.FirstChild(); c != nil; c = c.NextSibling() {
+		if t, ok := c.(*ast.Text); ok {
+			buf.Write(t.Segment.Value(src))
+		}
+	}
+	return buf.Bytes()
+}
+
 // Render converts markdown bytes to HTML with wiki-link resolution, syntax
 // highlighting, mermaid support, h1 stripping, and heading collection.
-func Render(src []byte, lookup map[string]string) (RenderResult, error) {
+func Render(src []byte, lookup map[string]string, titleLookup map[string]string) (RenderResult, error) {
 	hc := &headingCollector{}
 	var buf bytes.Buffer
 	ctx := parser.NewContext()
-	if err := newRenderer(lookup, hc).Convert(src, &buf, parser.WithContext(ctx)); err != nil {
+	if err := newRenderer(lookup, titleLookup, hc).Convert(src, &buf, parser.WithContext(ctx)); err != nil {
 		return RenderResult{}, fmt.Errorf("render markdown: %w", err)
 	}
 	return RenderResult{HTML: buf.String(), Headings: hc.headings}, nil
 }
 
-func newRenderer(lookup map[string]string, hc *headingCollector) goldmark.Markdown {
+func newRenderer(lookup map[string]string, titleLookup map[string]string, hc *headingCollector) goldmark.Markdown {
+	resolver := noteResolver{lookup: lookup, titleLookup: titleLookup}
 	return goldmark.New(
 		goldmark.WithExtensions(
 			extension.GFM,
 			meta.Meta,
-			&wikilink.Extender{Resolver: noteResolver{lookup: lookup}},
 			highlighting.NewHighlighting(
 				highlighting.WithStyle("dracula"),
 				highlighting.WithFormatOptions(chromahtml.WithClasses(true)),
@@ -66,6 +140,9 @@ func newRenderer(lookup map[string]string, hc *headingCollector) goldmark.Markdo
 		),
 		goldmark.WithParserOptions(
 			parser.WithAutoHeadingID(),
+			parser.WithInlineParsers(
+				util.Prioritized(&wikilink.Parser{}, 199),
+			),
 			parser.WithASTTransformers(
 				util.Prioritized(&h1Stripper{}, 101),
 				util.Prioritized(hc, 102),
@@ -75,6 +152,7 @@ func newRenderer(lookup map[string]string, hc *headingCollector) goldmark.Markdo
 		goldmark.WithRendererOptions(
 			gmhtml.WithUnsafe(),
 			renderer.WithNodeRenderers(
+				util.Prioritized(&wikilinkRenderer{resolver: resolver}, 199),
 				util.Prioritized(&mermaidNodeRenderer{}, 100),
 				util.Prioritized(&externalLinkRenderer{}, 50),
 			),
