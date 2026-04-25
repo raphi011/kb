@@ -71,6 +71,34 @@ body {
 
 a { text-decoration: none; color: inherit; }
 
+/* ── View Transitions (htmx transition:true) ─────────────── */
+
+@view-transition { navigation: auto; }
+
+#content-col { view-transition-name: content; }
+#toc-panel   { view-transition-name: toc; }
+
+::view-transition-old(content),
+::view-transition-new(content) {
+  animation-duration: 0.15s;
+  animation-timing-function: ease;
+}
+
+::view-transition-old(content) { animation-name: fade-out; }
+::view-transition-new(content) { animation-name: fade-in; }
+
+::view-transition-old(toc),
+::view-transition-new(toc) {
+  animation-duration: 0.12s;
+  animation-timing-function: ease;
+}
+
+::view-transition-old(toc) { animation-name: fade-out; }
+::view-transition-new(toc) { animation-name: fade-in; }
+
+@keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+
 /* ── Progress bar ──────────────────────────────────────────── */
 
 #progress-bar {
@@ -336,15 +364,8 @@ html.zen, body.zen {
   overflow: hidden;
 
 
-  #sidebar-toolbar {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-  }
-
   #active-filters {
     display: none;
-    flex: 1;
     flex-wrap: wrap;
     gap: 3px;
     padding: 6px 10px 7px;
@@ -354,22 +375,18 @@ html.zen, body.zen {
     animation: fadeSlideIn 0.15s ease;
   }
 
-  .sidebar-toolbar-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 4px 8px;
-    font-size: 14px;
-    color: var(--text-muted);
-    opacity: 0.5;
-    transition: opacity 0.15s;
+  .sidebar-bookmarks-section {
     flex-shrink: 0;
+    border-bottom: 1px solid var(--border);
   }
 
-  .sidebar-toolbar-btn:hover,
-  .sidebar-toolbar-btn.active {
-    opacity: 1;
-    color: var(--accent);
+  .sidebar-bookmarks-body {
+    display: flex;
+    flex-direction: column;
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
   }
 
   #sidebar-inner {

@@ -3,7 +3,6 @@ import { esc } from './utils.js';
 const manifest = window.__ZK_MANIFEST || [];
 let selectedTags = [];
 let selectedDate = null;
-let bookmarkFilter = false;
 
 let filtersEl, sidebarInner, sidebar;
 
@@ -29,9 +28,6 @@ export function initSidebar() {
         restoreSidebar();
       } else if (chip.dataset.tag) {
         removeTag(chip.dataset.tag);
-      } else if (chip.dataset.bookmark !== undefined) {
-        bookmarkFilter = false;
-        render();
       }
     }
   });
@@ -61,15 +57,9 @@ export function initSidebar() {
     }
   }
 
-  // Bookmark filter toggle button.
-  const bmBtn = document.getElementById('bookmark-filter-btn');
-  if (bmBtn) {
-    bmBtn.addEventListener('click', () => toggleBookmarkFilter());
-  }
+  document.addEventListener('zk:bookmarks-changed', () => renderBookmarksPanel());
 
-  document.addEventListener('zk:bookmarks-changed', () => {
-    if (bookmarkFilter) render();
-  });
+  renderBookmarksPanel();
 }
 
 // ── Public API for calendar.js ──────────────────────────────
@@ -92,12 +82,6 @@ export function clearDateFilter() {
 // getSelectedDate returns the currently active date filter (or null).
 export function getSelectedDate() {
   return selectedDate;
-}
-
-export function toggleBookmarkFilter() {
-  bookmarkFilter = !bookmarkFilter;
-  if (bookmarkFilter && selectedDate) clearDate(true);
-  render();
 }
 
 // ── Internal ────────────────────────────────────────────────
@@ -144,9 +128,9 @@ function removeTag(tag) {
 
 function render() {
   renderFilters();
-  const hasFilters = selectedTags.length > 0 || bookmarkFilter;
+  const hasTags = selectedTags.length > 0;
 
-  if (!hasFilters) {
+  if (!hasTags) {
     for (const el of sidebarInner.children) {
       if (!el.classList.contains('client-results')) el.style.display = '';
     }
@@ -159,7 +143,6 @@ function render() {
   }
 
   let results = manifest.filter(n => selectedTags.every(t => n.tags.includes(t)));
-  if (bookmarkFilter) results = results.filter(n => n.bookmarked);
 
   sidebarInner.querySelectorAll('.client-results').forEach(el => el.remove());
 
@@ -173,6 +156,7 @@ function render() {
       <a class="result-item" href="/notes/${encodeURI(n.path)}"
          hx-get="/notes/${encodeURI(n.path)}"
          hx-target="#content-col"
+         hx-swap="innerHTML transition:true"
          hx-push-url="true">
         <div class="result-title">${esc(n.title || n.path)}</div>
       </a>
@@ -184,15 +168,8 @@ function render() {
 }
 
 function renderFilters() {
-  // Update bookmark filter button icon.
-  const bmBtn = document.getElementById('bookmark-filter-btn');
-  if (bmBtn) {
-    bmBtn.textContent = bookmarkFilter ? '\u2605' : '\u2606';
-    bmBtn.classList.toggle('active', bookmarkFilter);
-  }
-
   if (!filtersEl) return;
-  const hasFilters = selectedTags.length > 0 || selectedDate || bookmarkFilter;
+  const hasFilters = selectedTags.length > 0 || selectedDate;
   if (!hasFilters) {
     filtersEl.style.display = 'none';
     return;
@@ -206,14 +183,42 @@ function renderFilters() {
             `${esc(selectedDate)} <span class="remove">\u00d7</span></span>`;
   }
 
-  if (bookmarkFilter) {
-    html += `<span class="filter-chip" data-bookmark>` +
-            `\u2605 Bookmarked <span class="remove">\u00d7</span></span>`;
-  }
-
   html += selectedTags.map(t =>
     `<span class="filter-chip" data-tag="${esc(t)}">${esc(t)} <span class="remove">\u00d7</span></span>`
   ).join('');
 
   filtersEl.innerHTML = html;
+}
+
+function renderBookmarksPanel() {
+  const panel = document.getElementById('bookmarks-panel');
+  if (!panel) return;
+
+  const bookmarks = manifest.filter(n => n.bookmarked);
+
+  if (bookmarks.length === 0) {
+    panel.innerHTML = '';
+    return;
+  }
+
+  panel.innerHTML = `
+    <details class="sidebar-bookmarks-section" open>
+      <summary class="sidebar-section-label">
+        Bookmarks <span class="sidebar-tag-count">${bookmarks.length}</span>
+      </summary>
+      <div class="sidebar-bookmarks-body">
+        ${bookmarks.map(n => `
+          <a class="tree-item" href="/notes/${esc(n.path)}"
+             hx-get="/notes/${esc(n.path)}"
+             hx-target="#content-col"
+             hx-swap="innerHTML transition:true"
+             hx-push-url="true"
+             data-path="${esc(n.path)}">
+            ${esc(n.title || n.path)}
+          </a>
+        `).join('')}
+      </div>
+    </details>`;
+
+  htmx.process(panel);
 }

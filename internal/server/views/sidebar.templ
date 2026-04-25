@@ -20,6 +20,7 @@ templ TreeNode(node *FileNode) {
 			href={ templ.SafeURL("/notes/" + node.Path) }
 			hx-get={ "/notes/" + node.Path }
 			hx-target="#content-col"
+			hx-swap="innerHTML transition:true"
 			hx-push-url="true"
 			data-path={ node.Path }
 		>
@@ -51,10 +52,8 @@ templ TagList(tags []index.Tag) {
 }
 
 templ Sidebar(nodes []*FileNode, tags []index.Tag) {
-	<div id="sidebar-toolbar">
-		<div id="active-filters"></div>
-		<button id="bookmark-filter-btn" class="sidebar-toolbar-btn" type="button" aria-label="Filter bookmarks" title="Filter bookmarks">&#9734;</button>
-	</div>
+	<div id="active-filters"></div>
+	<div id="bookmarks-panel"></div>
 	<div id="sidebar-inner">
 		if len(nodes) > 0 {
 			<div class="server-tree">
