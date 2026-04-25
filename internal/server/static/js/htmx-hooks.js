@@ -3,6 +3,16 @@ import { initResize } from './resize.js';
 import { recordVisit } from './history.js';
 
 export function initHTMXHooks() {
+  // Allow htmx to swap error responses (4xx/5xx) into the content area
+  // so the user sees an error message instead of a silent no-op.
+  document.addEventListener('htmx:beforeSwap', (e) => {
+    const status = e.detail.xhr.status;
+    if (status >= 400 && e.detail.target.id === 'content-col') {
+      e.detail.shouldSwap = true;
+      e.detail.isError = false;
+    }
+  });
+
   // Intercept clicks on internal links inside rendered markdown content
   // and upgrade them to HTMX navigations to avoid full page reloads.
   document.addEventListener('click', (e) => {
@@ -16,14 +26,22 @@ export function initHTMXHooks() {
     if (a.hasAttribute('hx-get')) return;
 
     e.preventDefault();
-    htmx.ajax('GET', href, { target: '#content-col', swap: 'innerHTML' });
+    htmx.ajax('GET', href, { target: '#content-col', swap: 'innerHTML transition:true' });
     history.pushState({}, '', href);
     currentPath = new URL(href, location.origin).pathname;
+  });
+
+  // Toggle aria-busy for screen readers during content swaps.
+  document.body.addEventListener('htmx:beforeRequest', (e) => {
+    if (e.detail.target?.id === 'content-col') {
+      e.detail.target.setAttribute('aria-busy', 'true');
+    }
   });
 
   // Use afterSettle so OOB swaps (#toc-panel) are complete before re-init.
   document.body.addEventListener('htmx:afterSettle', (e) => {
     if (e.detail.target.id !== 'content-col') return;
+    e.detail.target.removeAttribute('aria-busy');
 
     // Close mobile drawer after navigation.
     const sidebar = document.getElementById('sidebar');
@@ -56,7 +74,7 @@ export function initHTMXHooks() {
     if (path === currentPath) return; // hash-only change, let browser handle
     currentPath = path;
     if (path.startsWith('/notes/')) {
-      htmx.ajax('GET', path, { target: '#content-col', swap: 'innerHTML' });
+      htmx.ajax('GET', path, { target: '#content-col', swap: 'innerHTML transition:true' });
     } else {
       location.reload();
     }

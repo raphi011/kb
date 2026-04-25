@@ -98,7 +98,8 @@ templ Calendar(year, month int, activeDays map[int]bool, selectedDay int) {
 				aria-label="Previous month"
 				hx-get={ calendarNavURL(prevMonth(year, month)) }
 				hx-target="#calendar"
-				hx-swap="outerHTML"
+				hx-swap="outerHTML transition:true"
+				hx-sync="closest #calendar:replace"
 			>&lsaquo;</button>
 			<span class="cal-month-label">{ monthLabel(year, month) }</span>
 			<button
@@ -106,7 +107,8 @@ templ Calendar(year, month int, activeDays map[int]bool, selectedDay int) {
 				aria-label="Next month"
 				hx-get={ calendarNavURL(nextMonth(year, month)) }
 				hx-target="#calendar"
-				hx-swap="outerHTML"
+				hx-swap="outerHTML transition:true"
+				hx-sync="closest #calendar:replace"
 			>&rsaquo;</button>
 		</div>
 		<div class="cal-grid">

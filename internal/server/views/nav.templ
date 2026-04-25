@@ -8,6 +8,7 @@ templ ContentLink(class string, href string) {
 		href={ templ.SafeURL(href) }
 		hx-get={ href }
 		hx-target="#content-col"
+		hx-swap="innerHTML transition:true"
 		hx-push-url="true"
 	>
 		{ children... }

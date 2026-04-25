@@ -68,7 +68,7 @@ templ Layout(p LayoutParams) {
 		<div id="progress-bar"></div>
 		<header id="topbar">
 			<button id="mob-menu-btn" aria-label="Menu">&#9776;</button>
-			<a id="logo" href="/" hx-get="/" hx-target="#content-col" hx-push-url="true"><span class="logo-dot"></span><strong>kb</strong></a>
+			<a id="logo" href="/" hx-get="/" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true"><span class="logo-dot"></span><strong>kb</strong></a>
 			<div id="topbar-spacer"></div>
 			<button id="cmd-trigger" type="button"><span>Search</span><kbd>&#8984;K</kbd></button>
 			<button id="zen-toggle" type="button" aria-label="Toggle zen mode" title="Toggle zen mode">&#8865;</button>

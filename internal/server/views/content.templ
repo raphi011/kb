@@ -6,8 +6,8 @@ import (
 )
 
 templ Breadcrumb(segments []BreadcrumbSegment, currentTitle string) {
-	<nav id="breadcrumb">
-		<a class="bc-seg" href="/" hx-get="/" hx-target="#content-col" hx-push-url="true">~</a>
+	<nav id="breadcrumb" aria-label="Breadcrumb">
+		<a class="bc-seg" href="/" hx-get="/" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true">~</a>
 		for _, seg := range segments {
 			<span class="bc-sep">/</span>
 			@ContentLink("bc-seg", "/notes/" + seg.FolderPath + "/") {
@@ -103,7 +103,7 @@ templ FolderListing(folderName string, entries []FolderEntry) {
 }
 
 templ NoteContentCol(segments []BreadcrumbSegment, note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading) {
-	<div id="content-col">
+	<div id="content-col" role="main">
 		@Breadcrumb(segments, note.Title)
 		<div id="content-area">
 			@NoteArticle(note, noteHTML, backlinks, headings)
@@ -112,7 +112,7 @@ templ NoteContentCol(segments []BreadcrumbSegment, note *index.Note, noteHTML st
 }
 
 templ FolderContentCol(segments []BreadcrumbSegment, folderName string, entries []FolderEntry) {
-	<div id="content-col">
+	<div id="content-col" role="main">
 		@Breadcrumb(segments, folderName)
 		<div id="content-area">
 			@FolderListing(folderName, entries)
@@ -121,9 +121,20 @@ templ FolderContentCol(segments []BreadcrumbSegment, folderName string, entries 
 }
 
 templ EmptyContentCol() {
-	<div id="content-col">
+	<div id="content-col" role="main">
 		<div id="content-area">
 			<div class="content-empty">Select a note to read it.</div>
+		</div>
+	</div>
+}
+
+templ ErrorContentCol(code int, message string) {
+	<div id="content-col" role="main">
+		<div id="content-area">
+			<div class="content-error">
+				<span class="content-error-code">{ intStr(code) }</span>
+				<span class="content-error-msg">{ message }</span>
+			</div>
 		</div>
 	</div>
 }

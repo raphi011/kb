@@ -120,7 +120,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleNote(w http.ResponseWriter, r *http.Request) {
 	notePath := r.PathValue("path")
 	if notePath == "" {
-		http.NotFound(w, r)
+		s.renderError(w, r, http.StatusNotFound, "Note not found")
 		return
 	}
 
@@ -132,7 +132,7 @@ func (s *Server) handleNote(w http.ResponseWriter, r *http.Request) {
 	cache := s.noteCache()
 	note := cache.notesByPath[notePath]
 	if note == nil {
-		http.NotFound(w, r)
+		s.renderError(w, r, http.StatusNotFound, "Note not found")
 		return
 	}
 
@@ -143,7 +143,7 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 	raw, err := s.store.ReadFile(note.Path)
 	if err != nil {
 		slog.Error("read note", "path", note.Path, "error", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		s.renderError(w, r, http.StatusInternalServerError, "Failed to read note")
 		return
 	}
 
@@ -159,7 +159,7 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 	result, err := s.store.Render(raw)
 	if err != nil {
 		slog.Error("render note", "path", note.Path, "error", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		s.renderError(w, r, http.StatusInternalServerError, "Failed to render note")
 		return
 	}
 
@@ -413,6 +413,24 @@ func writeJSON(w http.ResponseWriter, v any) {
 	if err := json.NewEncoder(w).Encode(v); err != nil {
 		slog.Error("write JSON response", "error", err)
 	}
+}
+
+// renderError renders an error page or an error fragment for HTMX requests.
+func (s *Server) renderError(w http.ResponseWriter, r *http.Request, code int, message string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(code)
+	if isHTMX(r) {
+		if err := views.ErrorContentCol(code, message).Render(r.Context(), w); err != nil {
+			slog.Error("render error component", "error", err)
+		}
+		s.renderTOCForPage(w, r, nil, nil, nil)
+		return
+	}
+	s.renderFullPage(w, r, views.LayoutParams{
+		Title:      message,
+		Tree:       buildTree(s.noteCache().notes, ""),
+		ContentCol: views.ErrorContentCol(code, message),
+	})
 }
 
 func sortEntries(entries []views.FolderEntry) {
