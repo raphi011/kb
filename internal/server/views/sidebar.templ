@@ -7,7 +7,7 @@ import (
 templ TreeNode(node *FileNode) {
 	if node.IsDir {
 		<details open?={ node.IsOpen }>
-			<summary class="tree-folder">{ node.Name }</summary>
+			<summary class="tree-folder" title={ node.Name }>{ node.Name }</summary>
 			<div class="tree-children">
 				for _, child := range node.Children {
 					@TreeNode(child)
@@ -23,6 +23,7 @@ templ TreeNode(node *FileNode) {
 			hx-swap="innerHTML transition:true"
 			hx-push-url="true"
 			data-path={ node.Path }
+			title={ node.Name }
 		>
 			{ node.Name }
 		</a>
