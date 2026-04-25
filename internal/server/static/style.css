@@ -1312,6 +1312,12 @@ a.backlink-card, .backlink-card {
 
   &:hover { color: var(--accent); background: var(--bg-hover); }
 
+  &[target="_blank"]::after {
+    content: '\2197';
+    font-size: 9px;
+    margin-left: 4px;
+    opacity: 0.4;
+  }
 }
 
 /* ── Mobile TOC (inline, details/summary) ──────────────────── */
