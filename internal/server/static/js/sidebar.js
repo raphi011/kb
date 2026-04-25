@@ -202,11 +202,12 @@ function renderBookmarksPanel() {
   }
 
   panel.innerHTML = `
-    <details class="sidebar-bookmarks-section" open>
+    <div class="resize-handle-v" data-resize-target="next"></div>
+    <details class="sidebar-tags-section" open aria-label="Bookmarks">
       <summary class="sidebar-section-label">
         Bookmarks <span class="sidebar-tag-count">${bookmarks.length}</span>
       </summary>
-      <div class="sidebar-bookmarks-body">
+      <div class="sidebar-section-body">
         ${bookmarks.map(n => `
           <a class="tree-item" href="/notes/${esc(n.path)}"
              hx-get="/notes/${esc(n.path)}"

@@ -375,20 +375,6 @@ html.zen, body.zen {
     animation: fadeSlideIn 0.15s ease;
   }
 
-  .sidebar-bookmarks-section {
-    flex-shrink: 0;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .sidebar-bookmarks-body {
-    display: flex;
-    flex-direction: column;
-    max-height: 200px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border) transparent;
-  }
-
   #sidebar-inner {
     flex: 1;
     min-height: 0;
@@ -557,6 +543,13 @@ details[open] > .tree-folder::before {
   flex-wrap: wrap;
   gap: 4px;
   align-content: flex-start;
+  max-height: 30vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.sidebar-section-body {
   max-height: 30vh;
   overflow-y: auto;
   scrollbar-width: thin;
