@@ -201,6 +201,81 @@ func TestNoteByPath_NotFound(t *testing.T) {
 	}
 }
 
+func TestBookmarks(t *testing.T) {
+	db := testDB(t)
+	if err := db.UpsertNote(Note{Path: "a.md", Title: "A", Body: "b", WordCount: 1}); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.UpsertNote(Note{Path: "b.md", Title: "B", Body: "b", WordCount: 1}); err != nil {
+		t.Fatal(err)
+	}
+
+	paths, err := db.BookmarkedPaths()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(paths) != 0 {
+		t.Fatalf("bookmarks = %d, want 0", len(paths))
+	}
+
+	if err := db.AddBookmark("a.md"); err != nil {
+		t.Fatal(err)
+	}
+	paths, err = db.BookmarkedPaths()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(paths) != 1 || paths[0] != "a.md" {
+		t.Fatalf("bookmarks = %v, want [a.md]", paths)
+	}
+
+	if err := db.AddBookmark("a.md"); err != nil {
+		t.Fatal(err)
+	}
+	paths, err = db.BookmarkedPaths()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(paths) != 1 {
+		t.Fatalf("duplicate add: bookmarks = %d, want 1", len(paths))
+	}
+
+	if err := db.RemoveBookmark("a.md"); err != nil {
+		t.Fatal(err)
+	}
+	paths, err = db.BookmarkedPaths()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(paths) != 0 {
+		t.Fatalf("after remove: bookmarks = %d, want 0", len(paths))
+	}
+
+	if err := db.RemoveBookmark("nonexistent.md"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestBookmarks_CascadeDelete(t *testing.T) {
+	db := testDB(t)
+	if err := db.UpsertNote(Note{Path: "a.md", Title: "A", Body: "b", WordCount: 1}); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.AddBookmark("a.md"); err != nil {
+		t.Fatal(err)
+	}
+	if err := db.DeleteNote("a.md"); err != nil {
+		t.Fatal(err)
+	}
+	paths, err := db.BookmarkedPaths()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(paths) != 0 {
+		t.Fatalf("bookmarks should be empty after cascade delete, got %v", paths)
+	}
+}
+
 func TestIndexMeta(t *testing.T) {
 	db := testDB(t)
 	if err := db.SetMeta("head_commit", "abc123"); err != nil {
