@@ -195,31 +195,36 @@ function renderBookmarksPanel() {
   if (!panel) return;
 
   const bookmarks = manifest.filter(n => n.bookmarked);
+  const hasBookmarks = bookmarks.length > 0;
 
-  if (bookmarks.length === 0) {
-    panel.innerHTML = '';
-    return;
+  if (hasBookmarks) {
+    panel.innerHTML = `
+      <div class="resize-handle-v" data-resize-target="next"></div>
+      <details class="sidebar-tags-section" open aria-label="Bookmarks">
+        <summary class="sidebar-section-label">
+          Bookmarks <span class="sidebar-tag-count">${bookmarks.length}</span>
+        </summary>
+        <div class="sidebar-section-body">
+          ${bookmarks.map(n => `
+            <a class="tree-item" href="/notes/${esc(n.path)}"
+               hx-get="/notes/${esc(n.path)}"
+               hx-target="#content-col"
+               hx-swap="innerHTML transition:true"
+               hx-push-url="true"
+               data-path="${esc(n.path)}">
+              ${esc(n.title || n.path)}
+            </a>`).join('')}
+        </div>
+      </details>`;
+  } else {
+    panel.innerHTML = `
+      <div class="resize-handle-v" data-resize-target="next"></div>
+      <div class="sidebar-tags-section">
+        <span class="sidebar-section-label">
+          Bookmarks <span class="sidebar-tag-count">0</span>
+        </span>
+      </div>`;
   }
-
-  panel.innerHTML = `
-    <div class="resize-handle-v" data-resize-target="next"></div>
-    <details class="sidebar-tags-section" open aria-label="Bookmarks">
-      <summary class="sidebar-section-label">
-        Bookmarks <span class="sidebar-tag-count">${bookmarks.length}</span>
-      </summary>
-      <div class="sidebar-section-body">
-        ${bookmarks.map(n => `
-          <a class="tree-item" href="/notes/${esc(n.path)}"
-             hx-get="/notes/${esc(n.path)}"
-             hx-target="#content-col"
-             hx-swap="innerHTML transition:true"
-             hx-push-url="true"
-             data-path="${esc(n.path)}">
-            ${esc(n.title || n.path)}
-          </a>
-        `).join('')}
-      </div>
-    </details>`;
 
   htmx.process(panel);
 }
