@@ -1219,8 +1219,8 @@ a.backlink-card, .backlink-card {
 
   &:hover { color: var(--text); background: var(--bg-hover); }
   &.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); }
-  &.h1 { font-weight: 600; }
-  &.h3 { padding-left: 26px; font-size: 11px; }
+  &.h1 { padding-left: 8px; }
+  &.h3 { padding-left: 28px; }
 }
 
 /* ── TOC links/backlinks sections ──────────────────────────── */
