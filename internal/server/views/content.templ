@@ -102,21 +102,29 @@ templ FolderListing(folderName string, entries []FolderEntry) {
 	</article>
 }
 
+templ NoteContentInner(segments []BreadcrumbSegment, note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading) {
+	@Breadcrumb(segments, note.Title)
+	<div id="content-area">
+		@NoteArticle(note, noteHTML, backlinks, headings)
+	</div>
+}
+
 templ NoteContentCol(segments []BreadcrumbSegment, note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading) {
 	<div id="content-col" role="main">
-		@Breadcrumb(segments, note.Title)
-		<div id="content-area">
-			@NoteArticle(note, noteHTML, backlinks, headings)
-		</div>
+		@NoteContentInner(segments, note, noteHTML, backlinks, headings)
+	</div>
+}
+
+templ FolderContentInner(segments []BreadcrumbSegment, folderName string, entries []FolderEntry) {
+	@Breadcrumb(segments, folderName)
+	<div id="content-area">
+		@FolderListing(folderName, entries)
 	</div>
 }
 
 templ FolderContentCol(segments []BreadcrumbSegment, folderName string, entries []FolderEntry) {
 	<div id="content-col" role="main">
-		@Breadcrumb(segments, folderName)
-		<div id="content-area">
-			@FolderListing(folderName, entries)
-		</div>
+		@FolderContentInner(segments, folderName, entries)
 	</div>
 }
 

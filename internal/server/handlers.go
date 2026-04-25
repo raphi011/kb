@@ -99,11 +99,10 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	contentCol := views.FolderContentCol(nil, "Knowledge Base", entries)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if isHTMX(r) {
-		if err := contentCol.Render(r.Context(), w); err != nil {
+		if err := views.FolderContentInner(nil, "Knowledge Base", entries).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
 		s.renderTOCForPage(w, r, nil, nil, nil)
@@ -113,7 +112,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	s.renderFullPage(w, r, views.LayoutParams{
 		Title:      "Knowledge Base",
 		Tree:       buildTree(cache.notes, ""),
-		ContentCol: contentCol,
+		ContentCol: views.FolderContentCol(nil, "Knowledge Base", entries),
 	})
 }
 
@@ -179,7 +178,7 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if isHTMX(r) {
-		if err := views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, headings).Render(r.Context(), w); err != nil {
+		if err := views.NoteContentInner(breadcrumbs, note, result.HTML, backlinks, headings).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
 		s.renderTOCForPage(w, r, headings, outLinks, backlinks)
@@ -234,10 +233,8 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	contentCol := views.FolderContentCol(breadcrumbs, folderName, entries)
-
 	if isHTMX(r) {
-		if err := contentCol.Render(r.Context(), w); err != nil {
+		if err := views.FolderContentInner(breadcrumbs, folderName, entries).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
 		s.renderTOCForPage(w, r, nil, nil, nil)
@@ -247,7 +244,7 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 	s.renderFullPage(w, r, views.LayoutParams{
 		Title:      folderName,
 		Tree:       buildTree(cache.notes, ""),
-		ContentCol: contentCol,
+		ContentCol: views.FolderContentCol(breadcrumbs, folderName, entries),
 	})
 }
 
