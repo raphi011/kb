@@ -48,6 +48,16 @@ export function initHTMXHooks() {
     window.scrollTo(0, 0);
   });
 
+  // Handle browser back/forward navigation.
+  window.addEventListener('popstate', () => {
+    const path = location.pathname;
+    if (path.startsWith('/notes/')) {
+      htmx.ajax('GET', path, { target: '#content-col', swap: 'innerHTML' });
+    } else {
+      location.reload();
+    }
+  });
+
   // Re-init resize handles after calendar month navigation.
   document.body.addEventListener('htmx:afterSwap', (e) => {
     if (e.detail.target.id !== 'calendar') return;
