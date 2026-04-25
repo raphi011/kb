@@ -16,6 +16,7 @@ function setupHandle(handleId, cssVar, panelId, min, max, invert) {
     e.preventDefault();
     handle.setPointerCapture(e.pointerId);
     handle.classList.add('dragging');
+    panel.style.transition = 'none';
     const startX = e.clientX;
     const startWidth = panel.getBoundingClientRect().width;
 
@@ -27,6 +28,7 @@ function setupHandle(handleId, cssVar, panelId, min, max, invert) {
 
     function onUp() {
       handle.classList.remove('dragging');
+      panel.style.transition = '';
       handle.removeEventListener('pointermove', onMove);
       handle.removeEventListener('pointerup', onUp);
       const finalWidth = Math.round(panel.getBoundingClientRect().width);
