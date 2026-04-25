@@ -53,7 +53,6 @@ templ TagList(tags []index.Tag) {
 
 templ Sidebar(nodes []*FileNode, tags []index.Tag) {
 	<div id="active-filters"></div>
-	<div id="bookmarks-panel"></div>
 	<div id="sidebar-inner">
 		if len(nodes) > 0 {
 			<div class="server-tree">
@@ -61,6 +60,7 @@ templ Sidebar(nodes []*FileNode, tags []index.Tag) {
 			</div>
 		}
 	</div>
+	<div id="bookmarks-panel"></div>
 	if len(tags) > 0 {
 		@TagList(tags)
 	}
