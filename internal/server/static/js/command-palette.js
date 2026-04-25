@@ -1,9 +1,8 @@
 import { esc, fuzzyMatch } from './utils.js';
 import { getRecentPaths } from './history.js';
+import { getManifest, findByPath } from './manifest.js';
+import { navigateTo } from './navigation.js';
 
-const manifest = window.__ZK_MANIFEST || [];
-// Build path→note lookup once for O(1) access.
-const byPath = new Map(manifest.map(n => [n.path, n]));
 let focusIdx = 0;
 
 export function initCommandPalette() {
@@ -48,8 +47,7 @@ export function initCommandPalette() {
       const focused = els[focusIdx];
       if (focused?.dataset.href) {
         dialog.close();
-        htmx.ajax('GET', focused.dataset.href, { target: '#content-col', swap: 'innerHTML' });
-        history.pushState({}, '', focused.dataset.href);
+        navigateTo(focused.dataset.href);
       }
     }
   });
@@ -58,8 +56,7 @@ export function initCommandPalette() {
     const item = e.target.closest('.cmd-item');
     if (item?.dataset.href) {
       dialog.close();
-      htmx.ajax('GET', item.dataset.href, { target: '#content-col', swap: 'innerHTML' });
-      history.pushState({}, '', item.dataset.href);
+      navigateTo(item.dataset.href);
     }
   });
 }
@@ -72,12 +69,12 @@ function openPalette(dialog, input, results) {
 
 function renderResults(query, container) {
   const q = query.trim().toLowerCase();
+  const manifest = getManifest();
   let html = '';
 
   if (!q) {
-    // Recently visited (from localStorage).
     const visitedPaths = getRecentPaths();
-    const visited = visitedPaths.map(p => byPath.get(p)).filter(Boolean).slice(0, 5);
+    const visited = visitedPaths.map(p => findByPath(p)).filter(Boolean).slice(0, 5);
     const visitedSet = new Set(visitedPaths);
 
     if (visited.length) {
@@ -85,7 +82,6 @@ function renderResults(query, container) {
       visited.forEach(n => { html += itemHtml(n); });
     }
 
-    // Recently modified (excluding already-shown visited notes).
     const modified = [...manifest]
       .sort((a, b) => b.mod - a.mod)
       .filter(n => !visitedSet.has(n.path))
@@ -131,7 +127,6 @@ function setFocus(els) {
   els.forEach((el, i) => el.classList.toggle('focused', i === focusIdx));
 }
 
-// Highlight fuzzy-matched characters in text, merging consecutive runs.
 function fuzzyHighlight(text, query) {
   const m = fuzzyMatch(query, text);
   if (!m) return esc(text);
