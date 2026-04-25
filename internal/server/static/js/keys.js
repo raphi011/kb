@@ -1,4 +1,5 @@
 import { toggleBookmarkForCurrentNote } from './bookmark.js';
+import { navigateTo } from './navigation.js';
 
 // Vim-like keyboard shortcuts for navigating the notebook.
 
@@ -125,13 +126,9 @@ function navigateNote(direction) {
   if (nextIdx < 0 || nextIdx >= items.length) return;
 
   const next = items[nextIdx];
-  // Trigger HTMX navigation if available, otherwise plain click.
-  if (next.hasAttribute('hx-get')) {
-    htmx.ajax('GET', next.getAttribute('hx-get'), {
-      target: '#content-col',
-      swap: 'innerHTML',
-    });
-    history.pushState({}, '', next.getAttribute('href'));
+  const href = next.getAttribute('href');
+  if (href) {
+    navigateTo(href);
   } else {
     next.click();
   }
