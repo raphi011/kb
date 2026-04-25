@@ -25,5 +25,5 @@ initLightbox();
 
 // Record initial page load if it's a note.
 if (location.pathname.startsWith('/notes/')) {
-  recordVisit(decodeURIComponent(location.pathname).replace(/^\/note\//, ''));
+  recordVisit(decodeURIComponent(location.pathname).replace(/^\/notes\//, ''));
 }
