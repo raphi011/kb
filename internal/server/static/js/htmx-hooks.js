@@ -1,10 +1,9 @@
 import { initToc } from './toc.js';
 import { initResize } from './resize.js';
-import { recordVisit } from './history.js';
+import { navigateTo, fetchContent, isPathChange, updateTreeActive } from './navigation.js';
 
 export function initHTMXHooks() {
-  // Allow htmx to swap error responses (4xx/5xx) into the content area
-  // so the user sees an error message instead of a silent no-op.
+  // Allow htmx to swap error responses (4xx/5xx) into the content area.
   document.addEventListener('htmx:beforeSwap', (e) => {
     const status = e.detail.xhr.status;
     if (status >= 400 && e.detail.target.id === 'content-col') {
@@ -13,22 +12,17 @@ export function initHTMXHooks() {
     }
   });
 
-  // Intercept clicks on internal links inside rendered markdown content
-  // and upgrade them to HTMX navigations to avoid full page reloads.
+  // Upgrade clicks on internal markdown links to HTMX navigations.
   document.addEventListener('click', (e) => {
     const a = e.target.closest('#content-area a[href]');
     if (!a) return;
 
     const href = a.getAttribute('href');
-    // Only intercept internal /notes/ links (not external, anchor-only, or other paths)
     if (!href || !href.startsWith('/notes/')) return;
-    // Skip if already an HTMX-managed link
     if (a.hasAttribute('hx-get')) return;
 
     e.preventDefault();
-    htmx.ajax('GET', href, { target: '#content-col', swap: 'innerHTML transition:true' });
-    history.pushState({}, '', href);
-    currentPath = new URL(href, location.origin).pathname;
+    navigateTo(href);
   });
 
   // Toggle aria-busy for screen readers during content swaps.
@@ -38,43 +32,25 @@ export function initHTMXHooks() {
     }
   });
 
-  // Use afterSettle so OOB swaps (#toc-panel) are complete before re-init.
+  // Post-swap cleanup: re-init components, scroll to top.
   document.body.addEventListener('htmx:afterSettle', (e) => {
     if (e.detail.target.id !== 'content-col') return;
     e.detail.target.removeAttribute('aria-busy');
 
-    // Close mobile drawer after navigation.
-    const sidebar = document.getElementById('sidebar');
-    const backdrop = document.getElementById('sidebar-backdrop');
-    if (sidebar) sidebar.classList.remove('mob-open');
-    if (backdrop) backdrop.classList.remove('mob-open');
-
-    // 1. Update tree active state + record visit.
+    closeMobileDrawer();
     updateTreeActive();
-
-    // 2. Re-init TOC observer + progress bar.
     initToc();
-
-    // 3. Re-init vertical resize handles (new TOC panel DOM).
     initResize();
-
-    // 4. Re-run mermaid on new content.
-    if (window.mermaid) {
-      mermaid.run({ nodes: document.querySelectorAll('#content-area .mermaid') });
-    }
-
-    // 5. Scroll to top.
+    rerenderMermaid();
     window.scrollTo(0, 0);
   });
 
-  // Handle browser back/forward navigation.
-  let currentPath = location.pathname;
+  // Handle browser back/forward.
   window.addEventListener('popstate', () => {
+    if (!isPathChange()) return;
     const path = location.pathname;
-    if (path === currentPath) return; // hash-only change, let browser handle
-    currentPath = path;
     if (path.startsWith('/notes/')) {
-      htmx.ajax('GET', path, { target: '#content-col', swap: 'innerHTML transition:true' });
+      fetchContent(path);
     } else {
       location.reload();
     }
@@ -87,24 +63,15 @@ export function initHTMXHooks() {
   });
 }
 
-function updateTreeActive() {
-  const path = decodeURIComponent(location.pathname).replace(/^\/note\//, '').replace(/^\/folder\//, '');
+function closeMobileDrawer() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (sidebar) sidebar.classList.remove('mob-open');
+  if (backdrop) backdrop.classList.remove('mob-open');
+}
 
-  // Record note visit for command palette recents.
-  if (location.pathname.startsWith('/notes/')) recordVisit(path);
-
-  // Remove old active.
-  document.querySelectorAll('.tree-item.active').forEach(el => el.classList.remove('active'));
-
-  // Set new active.
-  const link = document.querySelector(`.tree-item[data-path="${CSS.escape(path)}"]`);
-  if (link) {
-    link.classList.add('active');
-    // Expand parent <details> elements.
-    let parent = link.parentElement;
-    while (parent) {
-      if (parent.tagName === 'DETAILS') parent.open = true;
-      parent = parent.parentElement;
-    }
+function rerenderMermaid() {
+  if (window.mermaid) {
+    mermaid.run({ nodes: document.querySelectorAll('#content-area .mermaid') });
   }
 }
