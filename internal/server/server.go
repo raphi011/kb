@@ -34,6 +34,8 @@ type Store interface {
 	ReadFile(path string) ([]byte, error)
 	Render(src []byte) (markdown.RenderResult, error)
 	BookmarkedPaths() ([]string, error)
+	AddBookmark(path string) error
+	RemoveBookmark(path string) error
 }
 
 // ReIndexer refreshes the git HEAD and re-indexes changed notes.
@@ -113,6 +115,8 @@ func (s *Server) registerRoutes() error {
 	s.mux.HandleFunc("GET /calendar", s.handleCalendar)
 	s.mux.HandleFunc("GET /tags", s.handleTags)
 	s.mux.HandleFunc("GET /notes/{path...}", s.handleNote)
+	s.mux.HandleFunc("PUT /api/bookmarks/{path...}", s.handleBookmarkPut)
+	s.mux.HandleFunc("DELETE /api/bookmarks/{path...}", s.handleBookmarkDelete)
 	s.mux.HandleFunc("GET /git/info/refs", s.handleGitInfoRefs)
 	s.mux.HandleFunc("POST /git/git-upload-pack", s.handleGitUploadPack)
 	s.mux.HandleFunc("POST /git/git-receive-pack", s.handleGitReceivePack)

@@ -33,6 +33,8 @@ func (m *mockKB) NotesByDate(date string) ([]index.Note, error)    { return nil,
 func (m *mockKB) ReadFile(path string) ([]byte, error)             { return []byte("# Test\n\nBody."), nil }
 func (m *mockKB) Render(src []byte) (markdown.RenderResult, error) { return markdown.Render(src, nil, nil) }
 func (m *mockKB) BookmarkedPaths() ([]string, error)                { return nil, nil }
+func (m *mockKB) AddBookmark(path string) error                    { return nil }
+func (m *mockKB) RemoveBookmark(path string) error                 { return nil }
 func (m *mockKB) ReIndex() error                                   { return nil }
 
 func newTestServer(t *testing.T) *Server {
@@ -160,6 +162,27 @@ func TestCalendarInvalidParams(t *testing.T) {
 	srv.ServeHTTP(w, req)
 	if w.Code != http.StatusBadRequest {
 		t.Errorf("invalid calendar params status = %d, want 400", w.Code)
+	}
+}
+
+func TestBookmarkAPI(t *testing.T) {
+	srv := newTestServer(t)
+	cookie := &http.Cookie{Name: sessionCookieName, Value: signToken("test-token")}
+
+	req := httptest.NewRequest("PUT", "/api/bookmarks/notes/hello.md", nil)
+	req.AddCookie(cookie)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code != http.StatusNoContent {
+		t.Fatalf("PUT bookmark status = %d, want 204, body = %s", w.Code, w.Body.String())
+	}
+
+	req = httptest.NewRequest("DELETE", "/api/bookmarks/notes/hello.md", nil)
+	req.AddCookie(cookie)
+	w = httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code != http.StatusNoContent {
+		t.Fatalf("DELETE bookmark status = %d, want 204", w.Code)
 	}
 }
 

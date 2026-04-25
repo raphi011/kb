@@ -243,6 +243,14 @@ func (kb *KB) BookmarkedPaths() ([]string, error) {
 	return kb.idx.BookmarkedPaths()
 }
 
+func (kb *KB) AddBookmark(path string) error {
+	return kb.idx.AddBookmark(path)
+}
+
+func (kb *KB) RemoveBookmark(path string) error {
+	return kb.idx.RemoveBookmark(path)
+}
+
 func (kb *KB) ReadFile(path string) ([]byte, error) {
 	return kb.repo.ReadBlob(path)
 }

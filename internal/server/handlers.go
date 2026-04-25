@@ -377,6 +377,34 @@ func (s *Server) renderTOCForPage(w http.ResponseWriter, r *http.Request, headin
 	}
 }
 
+func (s *Server) handleBookmarkPut(w http.ResponseWriter, r *http.Request) {
+	path := r.PathValue("path")
+	if path == "" {
+		http.Error(w, "missing path", http.StatusBadRequest)
+		return
+	}
+	if err := s.store.AddBookmark(path); err != nil {
+		slog.Error("add bookmark", "path", path, "error", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) handleBookmarkDelete(w http.ResponseWriter, r *http.Request) {
+	path := r.PathValue("path")
+	if path == "" {
+		http.Error(w, "missing path", http.StatusBadRequest)
+		return
+	}
+	if err := s.store.RemoveBookmark(path); err != nil {
+		slog.Error("remove bookmark", "path", path, "error", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(v); err != nil {
