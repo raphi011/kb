@@ -6,8 +6,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/open-spaced-repetition/go-fsrs/v3"
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
+	"github.com/raphi011/kb/internal/srs"
 )
 
 type mockKB struct {
@@ -31,11 +33,20 @@ func (m *mockKB) Backlinks(path string) ([]index.Link, error)      { return nil,
 func (m *mockKB) ActivityDays(y, mo int) (map[int]bool, error)     { return map[int]bool{}, nil }
 func (m *mockKB) NotesByDate(date string) ([]index.Note, error)    { return nil, nil }
 func (m *mockKB) ReadFile(path string) ([]byte, error)             { return []byte("# Test\n\nBody."), nil }
-func (m *mockKB) Render(src []byte) (markdown.RenderResult, error) { return markdown.Render(src, nil, nil) }
-func (m *mockKB) BookmarkedPaths() ([]string, error)                { return nil, nil }
-func (m *mockKB) AddBookmark(path string) error                    { return nil }
-func (m *mockKB) RemoveBookmark(path string) error                 { return nil }
-func (m *mockKB) ReIndex() error                                   { return nil }
+func (m *mockKB) Render(src []byte) (markdown.RenderResult, error) { return markdown.Render(src, nil, nil, false) }
+func (m *mockKB) BookmarkedPaths() ([]string, error)                          { return nil, nil }
+func (m *mockKB) AddBookmark(path string) error                               { return nil }
+func (m *mockKB) RemoveBookmark(path string) error                            { return nil }
+func (m *mockKB) ReIndex() error                                              { return nil }
+func (m *mockKB) RenderWithTags(src []byte, _ []string) (markdown.RenderResult, error) {
+	return markdown.Render(src, nil, nil, false)
+}
+func (m *mockKB) DueCards(limit int) ([]srs.Card, error)                      { return nil, nil }
+func (m *mockKB) ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error) { return srs.Card{}, nil }
+func (m *mockKB) PreviewCard(hash string) (srs.Previews, error)               { return srs.Previews{}, nil }
+func (m *mockKB) FlashcardStats() (srs.Stats, error)                          { return srs.Stats{}, nil }
+func (m *mockKB) FlashcardsForNote(path string) ([]srs.Card, error)           { return nil, nil }
+func (m *mockKB) NotesWithFlashcards() ([]index.NoteFlashcardCount, error)    { return nil, nil }
 
 func newTestServer(t *testing.T) *Server {
 	t.Helper()

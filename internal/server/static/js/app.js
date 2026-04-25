@@ -9,6 +9,7 @@ import { initKeys } from './keys.js';
 import { initBookmarks } from './bookmark.js';
 import { initZen } from './zen.js';
 import { initLightbox } from './lightbox.js';
+import { initFlashcards } from './flashcards.js';
 import { recordVisit } from './history.js';
 
 initTheme();
@@ -22,6 +23,7 @@ initKeys();
 initBookmarks();
 initZen();
 initLightbox();
+initFlashcards();
 
 // Record initial page load if it's a note.
 if (location.pathname.startsWith('/notes/')) {

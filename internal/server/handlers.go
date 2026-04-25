@@ -69,6 +69,9 @@ func (s *Server) renderFullPage(w http.ResponseWriter, r *http.Request, p views.
 	p.CalendarYear = calYear
 	p.CalendarMonth = calMonth
 	p.ActiveDays = activeDays
+	if fcNotes, err := s.store.NotesWithFlashcards(); err == nil {
+		p.FlashcardNotes = fcNotes
+	}
 	if err := views.Layout(p).Render(r.Context(), w); err != nil {
 		slog.Error("render component", "error", err)
 	}
@@ -155,7 +158,7 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 		return
 	}
 
-	result, err := s.store.Render(raw)
+	result, err := s.store.RenderWithTags(raw, note.Tags)
 	if err != nil {
 		slog.Error("render note", "path", note.Path, "error", err)
 		s.renderError(w, r, http.StatusInternalServerError, "Failed to render note")

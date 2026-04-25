@@ -1,0 +1,156 @@
+package views
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/raphi011/kb/internal/index"
+	"github.com/raphi011/kb/internal/srs"
+)
+
+func dueLabel(t time.Time) string {
+	d := time.Until(t)
+	switch {
+	case d < time.Minute:
+		return "now"
+	case d < time.Hour:
+		return fmt.Sprintf("%dm", int(d.Minutes()))
+	case d < 24*time.Hour:
+		return fmt.Sprintf("%dh", int(d.Hours()))
+	default:
+		return fmt.Sprintf("%dd", int(d.Hours()/24))
+	}
+}
+
+templ FlashcardDashboardContent(stats index.FlashcardStats) {
+	<div id="content-area">
+		<article id="article">
+			<h1 id="article-title">Flashcards</h1>
+			<hr class="article-divider"/>
+			<div class="fc-dashboard">
+				<div class="fc-stats">
+					<div class="fc-stat">
+						<span class="fc-stat-num">{ intStr(stats.New) }</span>
+						<span class="fc-stat-label">New</span>
+					</div>
+					<div class="fc-stat">
+						<span class="fc-stat-num">{ intStr(stats.Learning) }</span>
+						<span class="fc-stat-label">Learning</span>
+					</div>
+					<div class="fc-stat">
+						<span class="fc-stat-num">{ intStr(stats.DueToday) }</span>
+						<span class="fc-stat-label">Due</span>
+					</div>
+					<div class="fc-stat">
+						<span class="fc-stat-num">{ intStr(stats.ReviewedToday) }</span>
+						<span class="fc-stat-label">Reviewed</span>
+					</div>
+				</div>
+				if stats.DueToday > 0 {
+					<a class="fc-start-btn" href="/flashcards/review" hx-get="/flashcards/review" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true">
+						Start review
+					</a>
+				} else {
+					<p class="fc-all-done">All caught up! No cards due.</p>
+				}
+			</div>
+		</article>
+	</div>
+}
+
+templ FlashcardDashboardCol(stats index.FlashcardStats) {
+	<div id="content-col" role="main">
+		@FlashcardDashboardContent(stats)
+	</div>
+}
+
+templ ReviewCardContent(card srs.Card, previews srs.Previews) {
+	<div id="content-area">
+		<article id="article">
+			<h1 id="article-title">Review</h1>
+			<hr class="article-divider"/>
+			<div class="fc-review-card" data-card-hash={ card.CardHash }>
+				<div class="fc-question">
+					<div class="fc-card-meta">
+						<span class="fc-card-kind">{ card.Kind }</span>
+						<a class="fc-card-note" href={ templ.SafeURL("/notes/" + card.NotePath) }>{ card.NotePath }</a>
+					</div>
+					<div class="fc-q-text">{ card.Question }</div>
+				</div>
+				<div class="fc-answer-section">
+					<button class="fc-show-answer" type="button" onclick="this.parentElement.querySelector('.fc-answer').removeAttribute('hidden');this.remove();">
+						Show answer
+					</button>
+					<div class="fc-answer" hidden>
+						<div class="fc-a-text">{ card.Answer }</div>
+						<div class="fc-rating-buttons">
+							<form method="post" action={ templ.SafeURL("/flashcards/review/" + card.CardHash) } hx-post={ "/flashcards/review/" + card.CardHash } hx-target="#content-col" hx-swap="innerHTML transition:true">
+								<button class="fc-rate fc-rate-again" name="rating" value="1" type="submit">
+									Again<span class="fc-rate-due">{ dueLabel(previews.Again) }</span>
+								</button>
+								<button class="fc-rate fc-rate-hard" name="rating" value="2" type="submit">
+									Hard<span class="fc-rate-due">{ dueLabel(previews.Hard) }</span>
+								</button>
+								<button class="fc-rate fc-rate-good" name="rating" value="3" type="submit">
+									Good<span class="fc-rate-due">{ dueLabel(previews.Good) }</span>
+								</button>
+								<button class="fc-rate fc-rate-easy" name="rating" value="4" type="submit">
+									Easy<span class="fc-rate-due">{ dueLabel(previews.Easy) }</span>
+								</button>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+		</article>
+	</div>
+}
+
+templ ReviewCardCol(card srs.Card, previews srs.Previews) {
+	<div id="content-col" role="main">
+		@ReviewCardContent(card, previews)
+	</div>
+}
+
+templ ReviewDoneContent(stats index.FlashcardStats) {
+	<div id="content-area">
+		<article id="article">
+			<h1 id="article-title">Review Complete</h1>
+			<hr class="article-divider"/>
+			<div class="fc-dashboard">
+				<p class="fc-all-done">All caught up! You reviewed { intStr(stats.ReviewedToday) } cards today.</p>
+				<a class="fc-start-btn" href="/flashcards" hx-get="/flashcards" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true">
+					Back to dashboard
+				</a>
+			</div>
+		</article>
+	</div>
+}
+
+templ ReviewDoneCol(stats index.FlashcardStats) {
+	<div id="content-col" role="main">
+		@ReviewDoneContent(stats)
+	</div>
+}
+
+templ FlashcardsForNoteContent(notePath string, cards []srs.Card) {
+	<div id="content-area">
+		<article id="article">
+			<h1 id="article-title">Flashcards in { notePath }</h1>
+			<hr class="article-divider"/>
+			if len(cards) == 0 {
+				<p>No flashcards found in this note.</p>
+			} else {
+				<div class="fc-note-cards">
+					for _, card := range cards {
+						<div class="fc-note-card">
+							<span class="fc-card-kind">{ card.Kind }</span>
+							<div class="fc-q-text">{ card.Question }</div>
+							<div class="fc-a-text">{ card.Answer }</div>
+						</div>
+					}
+				</div>
+			}
+		</article>
+	</div>
+}

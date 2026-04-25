@@ -117,10 +117,11 @@ func nodeTextFromWikilink(src []byte, n *wikilink.Node) []byte {
 
 // Render converts markdown bytes to HTML with wiki-link resolution, syntax
 // highlighting, mermaid support, h1 stripping, and heading collection.
-func Render(src []byte, lookup map[string]string, titleLookup map[string]string) (RenderResult, error) {
+func Render(src []byte, lookup map[string]string, titleLookup map[string]string, flashcardsEnabled bool) (RenderResult, error) {
 	hc := &headingCollector{}
 	var buf bytes.Buffer
 	ctx := parser.NewContext()
+	ctx.Set(flashcardsEnabledKey, flashcardsEnabled)
 	if err := newRenderer(lookup, titleLookup, hc).Convert(src, &buf, parser.WithContext(ctx)); err != nil {
 		return RenderResult{}, fmt.Errorf("render markdown: %w", err)
 	}
@@ -147,6 +148,7 @@ func newRenderer(lookup map[string]string, titleLookup map[string]string, hc *he
 				util.Prioritized(&h1Stripper{}, 101),
 				util.Prioritized(hc, 102),
 				util.Prioritized(&mermaidTransformer{}, 100),
+				util.Prioritized(&flashcardTransformer{}, 99),
 			),
 		),
 		goldmark.WithRendererOptions(
@@ -154,6 +156,7 @@ func newRenderer(lookup map[string]string, titleLookup map[string]string, hc *he
 			renderer.WithNodeRenderers(
 				util.Prioritized(&wikilinkRenderer{resolver: resolver}, 199),
 				util.Prioritized(&mermaidNodeRenderer{}, 100),
+				util.Prioritized(&flashcardNodeRenderer{}, 95),
 				util.Prioritized(&externalLinkRenderer{}, 50),
 			),
 		),

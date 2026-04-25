@@ -20,6 +20,7 @@ type MarkdownDoc struct {
 	ExternalLinks []ExternalLink
 	Headings      []Heading
 	Frontmatter   map[string]any
+	Flashcards    []ParsedCard
 }
 
 type ExternalLink struct {
@@ -67,6 +68,10 @@ func ParseMarkdown(content string) *MarkdownDoc {
 	doc.Lead = extractLead(doc.Body)
 	doc.WordCount = countWords(w.textContent.String())
 
+	if hasFlashcardsTag(doc.Tags) {
+		doc.Flashcards = extractFlashcards(doc.Body)
+	}
+
 	return doc
 }
 
@@ -113,6 +118,16 @@ func collectTags(fm map[string]any, textContent string) []string {
 	}
 
 	return tags
+}
+
+// hasFlashcardsTag returns true if any tag is "flashcards" or has prefix "flashcards/".
+func hasFlashcardsTag(tags []string) bool {
+	for _, t := range tags {
+		if t == "flashcards" || strings.HasPrefix(t, "flashcards/") {
+			return true
+		}
+	}
+	return false
 }
 
 func extractLead(body string) string {

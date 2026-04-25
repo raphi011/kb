@@ -54,4 +54,43 @@ CREATE TABLE IF NOT EXISTS bookmarks (
     path    TEXT PRIMARY KEY REFERENCES notes(path) ON DELETE CASCADE,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS flashcards (
+    card_hash       TEXT PRIMARY KEY,
+    note_path       TEXT NOT NULL REFERENCES notes(path) ON DELETE CASCADE,
+    kind            TEXT NOT NULL,
+    question        TEXT NOT NULL,
+    answer          TEXT NOT NULL,
+    reversed        INTEGER NOT NULL DEFAULT 0,
+    ord             INTEGER NOT NULL,
+    first_seen      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_seen       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS flashcards_by_note ON flashcards(note_path);
+
+CREATE TABLE IF NOT EXISTS flashcard_state (
+    card_hash       TEXT PRIMARY KEY REFERENCES flashcards(card_hash) ON DELETE CASCADE,
+    due             DATETIME NOT NULL,
+    stability       REAL NOT NULL,
+    difficulty      REAL NOT NULL,
+    elapsed_days    REAL NOT NULL,
+    scheduled_days  REAL NOT NULL,
+    reps            INTEGER NOT NULL,
+    lapses          INTEGER NOT NULL,
+    state           INTEGER NOT NULL,
+    last_review     DATETIME
+);
+CREATE INDEX IF NOT EXISTS flashcard_state_due ON flashcard_state(due);
+
+CREATE TABLE IF NOT EXISTS flashcard_reviews (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    card_hash       TEXT NOT NULL REFERENCES flashcards(card_hash) ON DELETE CASCADE,
+    reviewed_at     DATETIME NOT NULL,
+    rating          INTEGER NOT NULL,
+    elapsed_days    REAL NOT NULL,
+    scheduled_days  REAL NOT NULL,
+    state_before    INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS flashcard_reviews_by_card ON flashcard_reviews(card_hash);
+CREATE INDEX IF NOT EXISTS flashcard_reviews_by_date ON flashcard_reviews(reviewed_at);
 `

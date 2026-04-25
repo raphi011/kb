@@ -14,8 +14,10 @@ import (
 
 	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
 	"github.com/alecthomas/chroma/v2/styles"
+	"github.com/open-spaced-repetition/go-fsrs/v3"
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
+	"github.com/raphi011/kb/internal/srs"
 )
 
 //go:embed static
@@ -36,6 +38,13 @@ type Store interface {
 	BookmarkedPaths() ([]string, error)
 	AddBookmark(path string) error
 	RemoveBookmark(path string) error
+	RenderWithTags(src []byte, tags []string) (markdown.RenderResult, error)
+	DueCards(limit int) ([]srs.Card, error)
+	ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error)
+	PreviewCard(hash string) (srs.Previews, error)
+	FlashcardStats() (srs.Stats, error)
+	FlashcardsForNote(path string) ([]srs.Card, error)
+	NotesWithFlashcards() ([]index.NoteFlashcardCount, error)
 }
 
 // ReIndexer refreshes the git HEAD and re-indexes changed notes.
@@ -120,6 +129,11 @@ func (s *Server) registerRoutes() error {
 	s.mux.HandleFunc("GET /git/info/refs", s.handleGitInfoRefs)
 	s.mux.HandleFunc("POST /git/git-upload-pack", s.handleGitUploadPack)
 	s.mux.HandleFunc("POST /git/git-receive-pack", s.handleGitReceivePack)
+	s.mux.HandleFunc("GET /flashcards", s.handleFlashcardDashboard)
+	s.mux.HandleFunc("GET /flashcards/review", s.handleFlashcardReview)
+	s.mux.HandleFunc("POST /flashcards/review/{hash}", s.handleFlashcardRate)
+	s.mux.HandleFunc("GET /flashcards/note/{path...}", s.handleFlashcardsForNote)
+	s.mux.HandleFunc("GET /api/flashcards/stats", s.handleFlashcardStatsAPI)
 	return nil
 }
 

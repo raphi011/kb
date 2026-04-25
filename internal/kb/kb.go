@@ -5,14 +5,17 @@ import (
 	"log/slog"
 	"strings"
 
+	"github.com/open-spaced-repetition/go-fsrs/v3"
 	"github.com/raphi011/kb/internal/gitrepo"
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
+	"github.com/raphi011/kb/internal/srs"
 )
 
 type KB struct {
 	repo *gitrepo.Repo
 	idx  *index.DB
+	srs  *srs.Service
 }
 
 func Open(repoPath, dbPath string) (*KB, error) {
@@ -24,7 +27,8 @@ func Open(repoPath, dbPath string) (*KB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open index: %w", err)
 	}
-	return &KB{repo: repo, idx: idx}, nil
+	srsService := srs.New(idx)
+	return &KB{repo: repo, idx: idx, srs: srsService}, nil
 }
 
 func (kb *KB) Close() error {
@@ -202,6 +206,12 @@ func (kb *KB) indexFile(path string, content []byte, timestamps map[string]gitre
 		return fmt.Errorf("set links: %w", err)
 	}
 
+	if len(doc.Flashcards) > 0 {
+		if err := kb.idx.UpsertFlashcards(path, doc.Flashcards); err != nil {
+			return fmt.Errorf("upsert flashcards: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -271,6 +281,11 @@ func (kb *KB) ReIndex() error {
 
 // Render renders markdown bytes to HTML using the wiki-link lookup from the index.
 func (kb *KB) Render(src []byte) (markdown.RenderResult, error) {
+	return kb.RenderWithTags(src, nil)
+}
+
+// RenderWithTags renders markdown with optional flashcard support based on tags.
+func (kb *KB) RenderWithTags(src []byte, tags []string) (markdown.RenderResult, error) {
 	notes, err := kb.idx.AllNotes()
 	if err != nil {
 		return markdown.RenderResult{}, err
@@ -284,5 +299,41 @@ func (kb *KB) Render(src []byte) (markdown.RenderResult, error) {
 		lookup[strings.TrimSuffix(n.Path, ".md")] = n.Path
 		titleLookup[n.Path] = n.Title
 	}
-	return markdown.Render(src, lookup, titleLookup)
+	flashcardsEnabled := hasFlashcardsTag(tags)
+	return markdown.Render(src, lookup, titleLookup, flashcardsEnabled)
+}
+
+func hasFlashcardsTag(tags []string) bool {
+	for _, t := range tags {
+		if t == "flashcards" || strings.HasPrefix(t, "flashcards/") {
+			return true
+		}
+	}
+	return false
+}
+
+// --- Flashcard API (delegates to srs service) ---
+
+func (kb *KB) DueCards(limit int) ([]srs.Card, error) {
+	return kb.srs.DueCards(limit)
+}
+
+func (kb *KB) ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error) {
+	return kb.srs.Review(hash, rating)
+}
+
+func (kb *KB) PreviewCard(hash string) (srs.Previews, error) {
+	return kb.srs.Preview(hash)
+}
+
+func (kb *KB) FlashcardStats() (srs.Stats, error) {
+	return kb.srs.Stats()
+}
+
+func (kb *KB) FlashcardsForNote(path string) ([]srs.Card, error) {
+	return kb.srs.FlashcardsForNote(path)
+}
+
+func (kb *KB) NotesWithFlashcards() ([]index.NoteFlashcardCount, error) {
+	return kb.srs.NotesWithFlashcards()
 }

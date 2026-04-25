@@ -52,7 +52,7 @@ templ TagList(tags []index.Tag) {
 	</details>
 }
 
-templ Sidebar(nodes []*FileNode, tags []index.Tag) {
+templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFlashcardCount) {
 	<div id="active-filters"></div>
 	<div id="sidebar-inner">
 		if len(nodes) > 0 {
@@ -62,6 +62,31 @@ templ Sidebar(nodes []*FileNode, tags []index.Tag) {
 		}
 	</div>
 	<div id="bookmarks-panel"></div>
+	if len(flashcardNotes) > 0 {
+		<div class="resize-handle-v server-tree" data-resize-target="next"></div>
+		<details class="sidebar-tags-section server-tree" open aria-label="Flashcards">
+			<summary class="sidebar-section-label">
+				Flashcards <span id="fc-due-badge" class="sidebar-tag-count fc-badge"></span>
+				<a class="sidebar-section-link" href="/flashcards" hx-get="/flashcards" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true" title="Flashcard dashboard" onclick="event.stopPropagation()">&#8594;</a>
+			</summary>
+			<div class="sidebar-section-body">
+				for _, nfc := range flashcardNotes {
+					<a
+						class="sidebar-fc-item"
+						href={ templ.SafeURL("/notes/" + nfc.NotePath) }
+						hx-get={ "/notes/" + nfc.NotePath }
+						hx-target="#content-col"
+						hx-swap="innerHTML transition:true"
+						hx-push-url="true"
+						title={ nfc.NotePath }
+					>
+						{ nfc.NoteTitle }
+						<span class="sidebar-fc-count">{ intStr(nfc.CardCount) }</span>
+					</a>
+				}
+			</div>
+		</details>
+	}
 	if len(tags) > 0 {
 		@TagList(tags)
 	}

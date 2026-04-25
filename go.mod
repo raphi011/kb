@@ -6,6 +6,7 @@ require (
 	github.com/a-h/templ v0.3.1001
 	github.com/alecthomas/chroma/v2 v2.23.1
 	github.com/go-git/go-git/v5 v5.18.0
+	github.com/open-spaced-repetition/go-fsrs/v3 v3.3.1
 	github.com/spf13/cobra v1.10.2
 	github.com/yuin/goldmark v1.8.2
 	github.com/yuin/goldmark-highlighting/v2 v2.0.0-20230729083705-37449abec8cc
