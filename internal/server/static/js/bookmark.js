@@ -1,4 +1,4 @@
-const manifest = window.__ZK_MANIFEST || [];
+import { findByPath, setBookmarked } from './manifest.js';
 
 export function initBookmarks() {
   document.addEventListener('click', (e) => {
@@ -22,24 +22,22 @@ export function toggleBookmarkForCurrentNote() {
 }
 
 function toggleBookmark(path) {
-  const entry = manifest.find(n => n.path === path);
+  const entry = findByPath(path);
   const isBookmarked = entry?.bookmarked;
   const method = isBookmarked ? 'DELETE' : 'PUT';
 
   fetch('/api/bookmarks/' + encodeURI(path), { method })
     .then(res => {
       if (!res.ok) return;
-      if (entry) entry.bookmarked = !isBookmarked;
+      setBookmarked(path, !isBookmarked);
       updateBookmarkIcon();
-      document.dispatchEvent(new CustomEvent('zk:bookmarks-changed'));
     });
 }
 
 function updateBookmarkIcon() {
   const btn = document.getElementById('bookmark-btn');
   if (!btn) return;
-  const path = btn.dataset.path;
-  const entry = manifest.find(n => n.path === path);
+  const entry = findByPath(btn.dataset.path);
   const icon = btn.querySelector('.bookmark-icon');
   if (icon) {
     icon.textContent = entry?.bookmarked ? '\u2605' : '\u2606';
