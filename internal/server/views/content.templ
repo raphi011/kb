@@ -25,7 +25,7 @@ templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, hea
 			<summary class="mob-toc-toggle">On this page</summary>
 			<div class="mob-toc-body">
 				for _, h := range headings {
-					<a class={ "toc-item", templ.KV("h3", h.Level == 3) } href={ templ.SafeURL("#" + h.ID) }>{ h.Text }</a>
+					<a class={ "toc-item", templ.KV("h1", h.Level == 1), templ.KV("h3", h.Level == 3) } href={ templ.SafeURL("#" + h.ID) }>{ h.Text }</a>
 				}
 			</div>
 		</details>

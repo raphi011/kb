@@ -163,6 +163,9 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 		return
 	}
 
+	// Prepend the note title as an h1 entry so it appears in the TOC.
+	headings := append([]markdown.Heading{{Text: note.Title, ID: "article-title", Level: 1}}, result.Headings...)
+
 	outLinks, err := s.store.OutgoingLinks(note.Path)
 	if err != nil {
 		slog.Error("outgoing links", "path", note.Path, "error", err)
@@ -176,18 +179,18 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if isHTMX(r) {
-		if err := views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, result.Headings).Render(r.Context(), w); err != nil {
+		if err := views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, headings).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, result.Headings, outLinks, backlinks)
+		s.renderTOCForPage(w, r, headings, outLinks, backlinks)
 		return
 	}
 
 	s.renderFullPage(w, r, views.LayoutParams{
 		Title:         note.Title,
 		Tree:          buildTree(s.noteCache().notes, note.Path),
-		ContentCol:    views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, result.Headings),
-		Headings:      result.Headings,
+		ContentCol:    views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, headings),
+		Headings:      headings,
 		OutgoingLinks: outLinks,
 		Backlinks:     backlinks,
 	})
