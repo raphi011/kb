@@ -264,11 +264,13 @@ func (kb *KB) Render(src []byte) (markdown.RenderResult, error) {
 		return markdown.RenderResult{}, err
 	}
 	lookup := make(map[string]string, len(notes)*2)
+	titleLookup := make(map[string]string, len(notes))
 	for _, n := range notes {
 		stem := n.Path[strings.LastIndex(n.Path, "/")+1:]
 		stem = strings.TrimSuffix(stem, ".md")
 		lookup[stem] = n.Path
 		lookup[strings.TrimSuffix(n.Path, ".md")] = n.Path
+		titleLookup[n.Path] = n.Title
 	}
-	return markdown.Render(src, lookup, nil)
+	return markdown.Render(src, lookup, titleLookup)
 }
