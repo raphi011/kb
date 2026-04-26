@@ -4,9 +4,14 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
+	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/open-spaced-repetition/go-fsrs/v3"
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
@@ -409,5 +414,105 @@ func TestMarpNoteRendersSlideContainer(t *testing.T) {
 	}
 	if !strings.Contains(body, "marp-present-btn") {
 		t.Errorf("response should contain present button")
+	}
+}
+
+func TestGitHistoryEndpoint(t *testing.T) {
+	dir := t.TempDir()
+
+	repo, err := gogit.PlainInit(dir, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wt, err := repo.Worktree()
+	if err != nil {
+		t.Fatal(err)
+	}
+	notePath := filepath.Join(dir, "notes", "test.md")
+	os.MkdirAll(filepath.Dir(notePath), 0o755)
+	os.WriteFile(notePath, []byte("# Test\n\nOriginal."), 0o644)
+	wt.Add("notes/test.md")
+	wt.Commit("initial", &gogit.CommitOptions{
+		Author: &object.Signature{Name: "test", Email: "t@t.com", When: time.Now()},
+	})
+
+	store := &mockKB{
+		notes: []index.Note{
+			{Path: "notes/test.md", Title: "Test", Tags: []string{}},
+		},
+		tags: []index.Tag{},
+	}
+	srv, err := New(store, store, "test-token", dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest("GET", "/api/git/history/notes/test.md", nil)
+	req.Header.Set("Authorization", "Bearer test-token")
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200, body = %s", w.Code, w.Body.String())
+	}
+	body := w.Body.String()
+	if !strings.Contains(body, "git-commit-item") {
+		t.Error("response should contain git-commit-item elements")
+	}
+	if !strings.Contains(body, "initial") {
+		t.Error("response should contain commit message 'initial'")
+	}
+}
+
+func TestGitVersionEndpoint(t *testing.T) {
+	dir := t.TempDir()
+
+	repo, err := gogit.PlainInit(dir, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wt, err := repo.Worktree()
+	if err != nil {
+		t.Fatal(err)
+	}
+	notePath := filepath.Join(dir, "notes", "test.md")
+	os.MkdirAll(filepath.Dir(notePath), 0o755)
+	os.WriteFile(notePath, []byte("# Test\n\nOriginal content."), 0o644)
+	wt.Add("notes/test.md")
+	hash, err := wt.Commit("initial", &gogit.CommitOptions{
+		Author: &object.Signature{Name: "test", Email: "t@t.com", When: time.Now()},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	store := &mockKB{
+		notes: []index.Note{
+			{Path: "notes/test.md", Title: "Test", Tags: []string{}},
+		},
+		tags: []index.Tag{},
+	}
+	srv, err := New(store, store, "test-token", dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req := httptest.NewRequest("GET", "/api/git/version/"+hash.String()+"/notes/test.md", nil)
+	req.Header.Set("Authorization", "Bearer test-token")
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200, body = %s", w.Code, w.Body.String())
+	}
+	body := w.Body.String()
+	if !strings.Contains(body, "version-banner") {
+		t.Error("response should contain version-banner")
+	}
+	if !strings.Contains(body, "Original content") {
+		t.Error("response should contain the old note content")
+	}
+	if !strings.Contains(body, "Return to current") {
+		t.Error("response should contain return link")
 	}
 }
