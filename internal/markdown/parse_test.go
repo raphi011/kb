@@ -129,3 +129,41 @@ func TestParseMarkdown_Headings(t *testing.T) {
 		t.Errorf("Headings[1] = %+v, want Subsection level 3", doc.Headings[1])
 	}
 }
+
+func TestParseMarkdown_IsMarp(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  bool
+	}{
+		{
+			name:  "marp true in frontmatter",
+			input: "---\nmarp: true\ntheme: gaia\n---\n\n# Slide 1\n\n---\n\n# Slide 2\n",
+			want:  true,
+		},
+		{
+			name:  "no marp frontmatter",
+			input: "---\ntitle: Regular Note\n---\n\n# Hello\n\nBody.",
+			want:  false,
+		},
+		{
+			name:  "marp false in frontmatter",
+			input: "---\nmarp: false\n---\n\n# Hello\n",
+			want:  false,
+		},
+		{
+			name:  "no frontmatter at all",
+			input: "# Hello\n\nBody.",
+			want:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			doc := ParseMarkdown(tt.input)
+			if doc.IsMarp != tt.want {
+				t.Errorf("IsMarp = %v, want %v", doc.IsMarp, tt.want)
+			}
+		})
+	}
+}

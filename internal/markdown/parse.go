@@ -21,6 +21,7 @@ type MarkdownDoc struct {
 	Headings      []Heading
 	Frontmatter   map[string]any
 	Flashcards    []ParsedCard
+	IsMarp        bool
 }
 
 type ExternalLink struct {
@@ -48,6 +49,8 @@ func ParseMarkdown(content string) *MarkdownDoc {
 			doc.Frontmatter = fm
 		}
 	}
+
+	doc.IsMarp = doc.Frontmatter["marp"] == true
 
 	doc.Title = frontmatterString(doc.Frontmatter, "title")
 	if doc.Title == "" {
