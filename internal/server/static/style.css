@@ -1592,6 +1592,34 @@ a.backlink-card, .backlink-card {
   font-style: italic;
 }
 
+/* ── Settings ──────────────────────────────────────────────── */
+
+.settings-section { margin-top: 16px; }
+.settings-section-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+
+.settings-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.settings-btn {
+  padding: 6px 14px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface-hover);
+  color: var(--fg);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.settings-btn:hover { background: var(--border); }
+
+.settings-btn.htmx-request {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 /* ── Toast ─────────────────────────────────────────────────── */
 
 #toast-container {
