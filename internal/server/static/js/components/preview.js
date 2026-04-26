@@ -4,6 +4,7 @@ let hoverTimer = null;
 let graceTimer = null;
 let activeAnchor = null;
 let fetchAbort = null;
+let previewInitialized = false;
 
 function getPopover() {
   if (!popover) {
@@ -89,6 +90,9 @@ async function show(anchor) {
 }
 
 export function initPreview() {
+  if (previewInitialized) return;
+  previewInitialized = true;
+
   document.addEventListener('mouseenter', (e) => {
     const link = e.target.closest('a.wikilink');
     if (!link) return;
