@@ -1,0 +1,25 @@
+package views
+
+type ArticleProps struct {
+	Title        string
+	TitleActions templ.Component // nil = no action buttons
+}
+
+// ArticlePage renders the standard article shell: title row with optional
+// action buttons, divider, and children content.
+templ ArticlePage(p ArticleProps) {
+	<article id="article">
+		if p.TitleActions != nil {
+			<div class="article-title-row">
+				<h1 id="article-title">{ p.Title }</h1>
+				<div class="article-title-actions">
+					@p.TitleActions
+				</div>
+			</div>
+		} else {
+			<h1 id="article-title">{ p.Title }</h1>
+		}
+		<hr class="article-divider"/>
+		{ children... }
+	</article>
+}
