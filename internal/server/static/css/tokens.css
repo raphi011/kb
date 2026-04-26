@@ -26,6 +26,57 @@
   --accent-tag:  oklch(0.65 0.15 38);
   --link:        oklch(0.70 0.12 38);
   --code-bg:     oklch(0.20 0.012 70);
+
+  /* Aliases for legacy variable names */
+  --fg: var(--text);
+  --fg-muted: var(--text-muted);
+  --bg-secondary: var(--surface);
+
+  /* Semantic status colors */
+  --color-success: oklch(0.7 0.15 145);
+  --color-error: oklch(0.65 0.2 25);
+  --color-warning: oklch(0.70 0.20 60);
+  --color-info: oklch(0.60 0.15 240);
+
+  /* Flashcard rating */
+  --fc-again: var(--color-error);
+  --fc-hard: var(--color-warning);
+  --fc-good: var(--color-success);
+  --fc-easy: var(--color-info);
+
+  /* Overlay */
+  --backdrop: oklch(0.15 0.01 70 / 0.5);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px oklch(0.15 0.02 70 / 0.15);
+  --shadow-md: 0 4px 16px oklch(0.15 0.02 70 / 0.25);
+  --shadow-lg: 0 8px 32px oklch(0.15 0.02 70 / 0.4);
+
+  /* Spacing */
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 24px;
+  --space-8: 32px;
+
+  /* Border radius */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-full: 20px;
+
+  /* Z-index scale */
+  --z-sticky: 100;
+  --z-overlay: 200;
+  --z-modal: 1000;
+
+  /* Transition timing */
+  --duration-fast: 0.1s;
+  --duration-base: 0.15s;
+  --duration-slow: 0.2s;
 }
 
 [data-theme="light"] {
@@ -42,4 +93,19 @@
   --accent-tag:  oklch(0.52 0.15 38);
   --link:        oklch(0.48 0.12 38);
   --code-bg:     oklch(0.89 0.015 80);
+  --fg: var(--text);
+  --fg-muted: var(--text-muted);
+  --bg-secondary: var(--surface);
+  --color-success: oklch(0.45 0.15 145);
+  --color-error: oklch(0.50 0.20 25);
+  --color-warning: oklch(0.55 0.20 60);
+  --color-info: oklch(0.45 0.15 240);
+  --fc-again: var(--color-error);
+  --fc-hard: var(--color-warning);
+  --fc-good: var(--color-success);
+  --fc-easy: var(--color-info);
+  --backdrop: oklch(0.15 0.01 70 / 0.3);
+  --shadow-sm: 0 2px 8px oklch(0.15 0.02 70 / 0.08);
+  --shadow-md: 0 4px 16px oklch(0.15 0.02 70 / 0.12);
+  --shadow-lg: 0 8px 32px oklch(0.15 0.02 70 / 0.2);
 }
