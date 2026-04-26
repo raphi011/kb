@@ -21,21 +21,7 @@ func (s *Server) handleFlashcardDashboard(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	if isHTMX(r) {
-		if err := views.FlashcardDashboardContent(stats).Render(r.Context(), w); err != nil {
-			slog.Error("render component", "error", err)
-		}
-		s.renderTOCForPage(w, r, nil, nil, nil, nil, nil)
-		return
-	}
-
-	s.renderFullPage(w, r, views.LayoutParams{
-		Title:      "Flashcards",
-		Tree:       buildTree(s.noteCache().notes, ""),
-		ContentCol: views.FlashcardDashboardCol(stats),
-	})
+	s.renderContent(w, r, "Flashcards", views.FlashcardDashboardContent(stats), TOCData{})
 }
 
 func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {

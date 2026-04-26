@@ -486,20 +486,8 @@ func writeJSON(w http.ResponseWriter, v any) {
 
 // renderError renders an error page or an error fragment for HTMX requests.
 func (s *Server) renderError(w http.ResponseWriter, r *http.Request, code int, message string) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(code)
-	if isHTMX(r) {
-		if err := views.ErrorContentInner(code, message).Render(r.Context(), w); err != nil {
-			slog.Error("render error component", "error", err)
-		}
-		s.renderTOCForPage(w, r, nil, nil, nil, nil, nil)
-		return
-	}
-	s.renderFullPage(w, r, views.LayoutParams{
-		Title:      message,
-		Tree:       buildTree(s.noteCache().notes, ""),
-		ContentCol: views.ErrorContentCol(code, message),
-	})
+	s.renderContent(w, r, message, views.ErrorContentInner(code, message), TOCData{})
 }
 
 func sortEntries(entries []views.FolderEntry) {

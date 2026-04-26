@@ -10,21 +10,7 @@ import (
 )
 
 func (s *Server) handleSettings(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	if isHTMX(r) {
-		if err := views.SettingsContent().Render(r.Context(), w); err != nil {
-			slog.Error("render component", "error", err)
-		}
-		s.renderTOCForPage(w, r, nil, nil, nil, nil, nil)
-		return
-	}
-
-	s.renderFullPage(w, r, views.LayoutParams{
-		Title:      "Settings",
-		Tree:       buildTree(s.noteCache().notes, ""),
-		ContentCol: views.SettingsCol(),
-	})
+	s.renderContent(w, r, "Settings", views.SettingsContent(), TOCData{})
 }
 
 func (s *Server) renderToast(w http.ResponseWriter, r *http.Request, msg string, isError bool) {
