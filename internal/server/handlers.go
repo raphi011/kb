@@ -195,22 +195,29 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
+	toc := TOCData{
+		Headings:       headings,
+		OutgoingLinks:  outLinks,
+		Backlinks:      backlinks,
+		FlashcardPanel: fcPanel,
+	}
+
 	if isHTMX(r) {
 		if err := views.NoteContentInner(breadcrumbs, note, result.HTML, backlinks, headings, shareToken).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, headings, outLinks, backlinks, fcPanel, nil)
+		s.renderTOC(w, r, toc)
 		return
 	}
 
 	s.renderFullPage(w, r, views.LayoutParams{
 		Title:          note.Title,
 		Tree:           buildTree(s.noteCache().notes, note.Path),
-		ContentCol:     views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, headings, shareToken),
-		Headings:       headings,
-		OutgoingLinks:  outLinks,
-		Backlinks:      backlinks,
-		FlashcardPanel: fcPanel,
+		ContentCol:     views.ContentCol(views.NoteContentInner(breadcrumbs, note, result.HTML, backlinks, headings, shareToken)),
+		Headings:       toc.Headings,
+		OutgoingLinks:  toc.OutgoingLinks,
+		Backlinks:      toc.Backlinks,
+		FlashcardPanel: toc.FlashcardPanel,
 	})
 }
 
@@ -233,18 +240,20 @@ func (s *Server) renderMarpNote(w http.ResponseWriter, r *http.Request, note *in
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
+	toc := TOCData{SlidePanel: slidePanel}
+
 	if isHTMX(r) {
 		if err := views.MarpNoteContentInner(breadcrumbs, note, string(raw), doc.Slides, baseURL, shareToken).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, nil, nil, nil, nil, slidePanel)
+		s.renderTOC(w, r, toc)
 		return
 	}
 
 	s.renderFullPage(w, r, views.LayoutParams{
 		Title:      note.Title,
 		Tree:       buildTree(s.noteCache().notes, note.Path),
-		ContentCol: views.MarpNoteContentCol(breadcrumbs, note, string(raw), doc.Slides, baseURL, shareToken),
+		ContentCol: views.ContentCol(views.MarpNoteContentInner(breadcrumbs, note, string(raw), doc.Slides, baseURL, shareToken)),
 		SlidePanel: slidePanel,
 	})
 }
