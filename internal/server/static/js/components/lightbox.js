@@ -1,3 +1,5 @@
+import { registry } from '../lib/registry.js';
+
 let scale = 1;
 let tx = 0;
 let ty = 0;
@@ -171,3 +173,5 @@ function zoomAt(cx, cy, newScale) {
   scale = newScale;
   applyTransform(el);
 }
+
+registry.register('#media-dialog', { init: initLightbox });

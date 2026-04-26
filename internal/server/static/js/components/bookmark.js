@@ -1,4 +1,5 @@
 import { findByPath, setBookmarked } from '../lib/manifest.js';
+import { registry } from '../lib/registry.js';
 
 export function initBookmarks() {
   document.addEventListener('click', (e) => {
@@ -8,11 +9,6 @@ export function initBookmarks() {
   });
 
   updateBookmarkIcon();
-
-  document.body.addEventListener('htmx:afterSettle', (e) => {
-    if (e.detail.target.id !== 'content-col') return;
-    updateBookmarkIcon();
-  });
 }
 
 export function toggleBookmarkForCurrentNote() {
@@ -44,3 +40,5 @@ function updateBookmarkIcon() {
   }
   btn.classList.toggle('bookmarked', !!entry?.bookmarked);
 }
+
+registry.register('#bookmark-btn', { init: updateBookmarkIcon });

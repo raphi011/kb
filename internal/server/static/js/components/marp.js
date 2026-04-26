@@ -1,3 +1,5 @@
+import { registry } from '../lib/registry.js';
+
 let marpLoaded = false;
 let marpLoadPromise = null;
 
@@ -147,3 +149,5 @@ export function onMarpSwap() {
   totalSlides = 0;
   renderMarp();
 }
+
+registry.register('#marp-container', { init: onMarpSwap });

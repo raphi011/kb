@@ -1,4 +1,5 @@
 import { set } from '../lib/store.js';
+import { registry } from '../lib/registry.js';
 
 let verticalAbort = null;
 
@@ -87,3 +88,5 @@ function setupVerticalHandles() {
     }, { signal });
   }
 }
+
+registry.register('.resize-handle, .resize-handle-v', { init: initResize });

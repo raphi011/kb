@@ -1,3 +1,5 @@
+import { registry } from '../lib/registry.js';
+
 export function initShare() {
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('#share-btn');
@@ -6,11 +8,6 @@ export function initShare() {
   });
 
   updateShareIcon();
-
-  document.body.addEventListener('htmx:afterSettle', (e) => {
-    if (e.detail.target.id !== 'content-col') return;
-    updateShareIcon();
-  });
 }
 
 function handleShareClick(btn) {
@@ -78,3 +75,5 @@ function updateShareIcon() {
   const token = btn.dataset.shareToken;
   btn.classList.toggle('shared', !!token);
 }
+
+registry.register('#share-btn', { init: updateShareIcon });

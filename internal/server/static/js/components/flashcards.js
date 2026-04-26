@@ -1,3 +1,5 @@
+import { registry } from '../lib/registry.js';
+
 // Flashcard inline reveal + badge polling + review panel tracking.
 
 let reviewState = null; // { done: 0, total: 0, ratings: {1:0, 2:0, 3:0, 4:0} }
@@ -171,3 +173,5 @@ function updateBadge() {
     })
     .catch(() => {});
 }
+
+registry.register('.fc-review-card, #fc-panel', { init: onReviewCardSettled });

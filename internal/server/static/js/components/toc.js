@@ -1,3 +1,5 @@
+import { registry } from '../lib/registry.js';
+
 let observer = null;
 let scrollHandler = null;
 
@@ -84,3 +86,5 @@ export function initToc() {
     });
   }
 }
+
+registry.register('#toc-inner', { init: initToc, destroy: destroyToc });
