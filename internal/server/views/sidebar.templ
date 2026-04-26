@@ -1,16 +1,17 @@
 package views
 
 import (
+	"fmt"
 	"github.com/raphi011/kb/internal/index"
 )
 
-templ TreeNode(node *FileNode) {
+templ TreeNode(node *FileNode, depth int) {
 	if node.IsDir {
 		<details open?={ node.IsOpen }>
-			<summary class="tree-folder" title={ node.Name }>{ node.Name }</summary>
+			<summary class="tree-folder" style={ fmt.Sprintf("--depth:%d", depth) } title={ node.Name }>{ node.Name }</summary>
 			<div class="tree-children">
 				for _, child := range node.Children {
-					@TreeNode(child)
+					@TreeNode(child, depth+1)
 				}
 			</div>
 		</details>
@@ -32,7 +33,7 @@ templ TreeNode(node *FileNode) {
 
 templ Tree(nodes []*FileNode) {
 	for _, node := range nodes {
-		@TreeNode(node)
+		@TreeNode(node, 0)
 	}
 }
 
