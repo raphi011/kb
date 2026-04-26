@@ -418,14 +418,6 @@ func (s *Server) handleTags(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, s.noteCache().tags)
 }
 
-// renderTOCForPage renders the TOC panel as an OOB swap for HTMX requests.
-func (s *Server) renderTOCForPage(w http.ResponseWriter, r *http.Request, headings []markdown.Heading, outLinks []index.Link, backlinks []index.Link, fcPanel *views.FlashcardPanelData, slidePanel *views.SlidePanelData) {
-	calYear, calMonth, activeDays := s.calendarData()
-	if err := views.TOCPanel(headings, outLinks, backlinks, true, calYear, calMonth, activeDays, fcPanel, slidePanel).Render(r.Context(), w); err != nil {
-		slog.Error("render component", "error", err)
-	}
-}
-
 func (s *Server) handleBookmarkPut(w http.ResponseWriter, r *http.Request) {
 	path := r.PathValue("path")
 	if path == "" {
