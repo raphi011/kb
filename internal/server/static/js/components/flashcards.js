@@ -1,3 +1,4 @@
+import { api } from '../lib/api.js';
 import { registry } from '../lib/registry.js';
 
 // Flashcard inline reveal + badge polling + review panel tracking.
@@ -163,15 +164,13 @@ function updateReviewPanel(hash, rating) {
   }
 }
 
-function updateBadge() {
+async function updateBadge() {
   const badge = document.getElementById('fc-due-badge');
   if (!badge) return;
-  fetch('/api/flashcards/stats')
-    .then(r => r.json())
-    .then(stats => {
-      badge.textContent = stats.dueToday > 0 ? stats.dueToday : '';
-    })
-    .catch(() => {});
+  const stats = await api('GET', '/api/flashcards/stats').catch(() => null);
+  if (stats) {
+    badge.textContent = stats.dueToday > 0 ? stats.dueToday : '';
+  }
 }
 
 registry.register('.fc-review-card, #fc-panel', { init: onReviewCardSettled });
