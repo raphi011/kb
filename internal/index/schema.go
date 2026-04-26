@@ -94,6 +94,12 @@ CREATE TABLE IF NOT EXISTS flashcard_reviews (
 );
 CREATE INDEX IF NOT EXISTS flashcard_reviews_by_card ON flashcard_reviews(card_hash);
 CREATE INDEX IF NOT EXISTS flashcard_reviews_by_date ON flashcard_reviews(reviewed_at);
+
+CREATE TABLE IF NOT EXISTS shared_notes (
+    token     TEXT PRIMARY KEY,
+    note_path TEXT NOT NULL UNIQUE REFERENCES notes(path) ON DELETE CASCADE,
+    created   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 `
 
 // migrationsSQL adds columns that may be missing from older databases.
