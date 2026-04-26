@@ -14,6 +14,10 @@ func (s *Server) handleShareCreate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing path", http.StatusBadRequest)
 		return
 	}
+	if _, err := s.store.NoteByPath(path); err != nil {
+		http.NotFound(w, r)
+		return
+	}
 	token, err := s.store.ShareNote(path)
 	if err != nil {
 		slog.Error("share note", "path", path, "error", err)
@@ -112,6 +116,7 @@ func (s *Server) handleSharedNote(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("X-Robots-Tag", "noindex, nofollow")
 	if err := views.SharedLayout(note.Title, result.HTML).Render(r.Context(), w); err != nil {
 		slog.Error("render shared template", "error", err)
 	}

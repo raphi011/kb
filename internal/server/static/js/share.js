@@ -40,14 +40,17 @@ function copyAndToast(url, path) {
 
   const toast = document.createElement('div');
   toast.className = 'toast';
-  toast.innerHTML = 'Share link copied! <button class="toast-action" data-revoke-path="' + path + '">Revoke</button>';
-  container.appendChild(toast);
-
-  toast.querySelector('.toast-action').addEventListener('click', (e) => {
+  toast.appendChild(document.createTextNode('Share link copied! '));
+  const revokeBtn = document.createElement('button');
+  revokeBtn.className = 'toast-action';
+  revokeBtn.textContent = 'Revoke';
+  revokeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     revoke(path);
     toast.remove();
   });
+  toast.appendChild(revokeBtn);
+  container.appendChild(toast);
 }
 
 function revoke(path) {
