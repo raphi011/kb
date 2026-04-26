@@ -2090,3 +2090,40 @@ a.backlink-card, .backlink-card {
   min-width: 1.5em;
   text-align: right;
 }
+
+/* --- Wikilink preview popover --- */
+.preview-popover-container {
+  position: absolute;
+  z-index: 1000;
+  max-width: 480px;
+  max-height: 300px;
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  padding: 0;
+}
+.preview-popover-container[hidden] {
+  display: none;
+}
+.preview-popover .preview-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 12px 16px 4px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+}
+.preview-popover .preview-content {
+  padding: 8px 16px 12px;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.preview-popover .preview-content p:first-child {
+  margin-top: 0;
+}
+.preview-popover .preview-content p:last-child {
+  margin-bottom: 0;
+}
