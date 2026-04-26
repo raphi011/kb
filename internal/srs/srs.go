@@ -40,8 +40,9 @@ func New(idx *index.DB) *Service {
 }
 
 // DueCards returns cards that are due for review.
-func (s *Service) DueCards(limit int) ([]Card, error) {
-	fcs, err := s.idx.DueCards(s.now(), limit)
+// If notePath is non-empty, only cards from that note are returned.
+func (s *Service) DueCards(notePath string, limit int) ([]Card, error) {
+	fcs, err := s.idx.DueCards(s.now(), notePath, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -122,9 +123,14 @@ func (s *Service) Stats() (Stats, error) {
 	return s.idx.FlashcardStats(s.now())
 }
 
+// ReviewSummaryForNote returns rating counts for a note's reviews today.
+func (s *Service) ReviewSummaryForNote(notePath string) (index.ReviewSummary, error) {
+	return s.idx.ReviewSummaryForNote(notePath, s.now())
+}
+
 // NotesWithFlashcards returns notes that contain flashcards with their card counts.
 func (s *Service) NotesWithFlashcards() ([]index.NoteFlashcardCount, error) {
-	return s.idx.NotesWithFlashcards()
+	return s.idx.NotesWithFlashcards(s.now())
 }
 
 // FlashcardsForNote returns all flashcards for a note.

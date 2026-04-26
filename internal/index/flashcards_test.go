@@ -98,12 +98,46 @@ func TestDueCards(t *testing.T) {
 	}
 
 	// New card (no state) should be due.
-	due, err := db.DueCards(time.Now(), 10)
+	due, err := db.DueCards(time.Now(), "", 10)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(due) != 1 {
 		t.Fatalf("got %d due cards, want 1", len(due))
+	}
+}
+
+func TestNotesWithFlashcards_DueCount(t *testing.T) {
+	db := setupTestDB(t)
+
+	cards := []markdown.ParsedCard{
+		{Hash: "fc1", Question: "Q1", Answer: "A1", Kind: markdown.FlashcardInline, Ord: 0},
+		{Hash: "fc2", Question: "Q2", Answer: "A2", Kind: markdown.FlashcardInline, Ord: 1},
+	}
+	if err := db.UpsertFlashcards("test.md", cards); err != nil {
+		t.Fatal(err)
+	}
+
+	// Mark fc1 as reviewed with a future due date.
+	now := time.Now()
+	future := now.Add(24 * time.Hour)
+	err := db.RecordReview("fc1", future, 5.0, 5.0, 0, 1, 1, 0, 2, 3, 0, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	notes, err := db.NotesWithFlashcards(now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(notes) != 1 {
+		t.Fatalf("got %d notes, want 1", len(notes))
+	}
+	if notes[0].CardCount != 2 {
+		t.Errorf("CardCount = %d, want 2", notes[0].CardCount)
+	}
+	if notes[0].DueCount != 1 {
+		t.Errorf("DueCount = %d, want 1 (fc2 is new/due, fc1 is scheduled future)", notes[0].DueCount)
 	}
 }
 

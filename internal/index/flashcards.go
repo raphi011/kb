@@ -37,6 +37,49 @@ type FlashcardStats struct {
 	ReviewedToday int `json:"reviewedToday"`
 }
 
+// ReviewSummary holds per-rating counts for a review session.
+type ReviewSummary struct {
+	Again    int
+	Hard     int
+	Good     int
+	Easy     int
+	Total    int
+}
+
+// ReviewSummaryForNote returns rating counts for reviews of a note done today.
+func (d *DB) ReviewSummaryForNote(notePath string, now time.Time) (ReviewSummary, error) {
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Format(time.RFC3339)
+	rows, err := d.db.Query(`
+		SELECT r.rating, COUNT(*) FROM flashcard_reviews r
+		JOIN flashcards f ON f.card_hash = r.card_hash
+		WHERE f.note_path = ? AND r.reviewed_at >= ?
+		GROUP BY r.rating`, notePath, todayStart)
+	if err != nil {
+		return ReviewSummary{}, err
+	}
+	defer rows.Close()
+
+	var s ReviewSummary
+	for rows.Next() {
+		var rating, count int
+		if err := rows.Scan(&rating, &count); err != nil {
+			return s, err
+		}
+		switch rating {
+		case 1:
+			s.Again = count
+		case 2:
+			s.Hard = count
+		case 3:
+			s.Good = count
+		case 4:
+			s.Easy = count
+		}
+		s.Total += count
+	}
+	return s, rows.Err()
+}
+
 // UpsertFlashcards syncs the flashcard rows for a note with the parsed cards.
 // It preserves flashcard_state for unchanged hashes.
 func (d *DB) UpsertFlashcards(notePath string, cards []markdown.ParsedCard) error {
@@ -108,9 +151,11 @@ func (d *DB) DeleteFlashcardsForNote(notePath string) error {
 }
 
 // DueCards returns flashcards that are due for review.
-func (d *DB) DueCards(now time.Time, limit int) ([]Flashcard, error) {
+// If notePath is non-empty, only cards from that note are returned.
+func (d *DB) DueCards(now time.Time, notePath string, limit int) ([]Flashcard, error) {
 	nowStr := now.Format(time.RFC3339)
-	rows, err := d.db.Query(`
+
+	query := `
 		SELECT f.card_hash, f.note_path, f.kind, f.question, f.answer, f.reversed, f.ord, f.first_seen,
 		       COALESCE(s.due, ''), COALESCE(s.stability, 0), COALESCE(s.difficulty, 0),
 		       COALESCE(s.elapsed_days, 0), COALESCE(s.scheduled_days, 0),
@@ -118,9 +163,18 @@ func (d *DB) DueCards(now time.Time, limit int) ([]Flashcard, error) {
 		       COALESCE(s.last_review, '')
 		FROM flashcards f
 		LEFT JOIN flashcard_state s ON s.card_hash = f.card_hash
-		WHERE s.card_hash IS NULL OR s.due <= ?
-		ORDER BY CASE WHEN s.card_hash IS NULL THEN 0 ELSE 1 END, s.due ASC
-		LIMIT ?`, nowStr, limit)
+		WHERE (s.card_hash IS NULL OR s.due <= ?)`
+
+	args := []any{nowStr}
+	if notePath != "" {
+		query += ` AND f.note_path = ?`
+		args = append(args, notePath)
+	}
+	query += ` ORDER BY CASE WHEN s.card_hash IS NULL THEN 0 ELSE 1 END, s.due ASC
+		LIMIT ?`
+	args = append(args, limit)
+
+	rows, err := d.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -213,16 +267,20 @@ type NoteFlashcardCount struct {
 	NotePath  string
 	NoteTitle string
 	CardCount int
+	DueCount  int
 }
 
 // NotesWithFlashcards returns notes that contain flashcards, ordered by title.
-func (d *DB) NotesWithFlashcards() ([]NoteFlashcardCount, error) {
+func (d *DB) NotesWithFlashcards(now time.Time) ([]NoteFlashcardCount, error) {
+	nowStr := now.Format(time.RFC3339)
 	rows, err := d.db.Query(`
-		SELECT f.note_path, n.title, COUNT(*) as card_count
+		SELECT f.note_path, n.title, COUNT(*) as card_count,
+		       SUM(CASE WHEN s.card_hash IS NULL OR s.due <= ? THEN 1 ELSE 0 END) as due_count
 		FROM flashcards f
 		JOIN notes n ON n.path = f.note_path
+		LEFT JOIN flashcard_state s ON s.card_hash = f.card_hash
 		GROUP BY f.note_path
-		ORDER BY n.title`)
+		ORDER BY n.title`, nowStr)
 	if err != nil {
 		return nil, err
 	}
@@ -231,7 +289,7 @@ func (d *DB) NotesWithFlashcards() ([]NoteFlashcardCount, error) {
 	var result []NoteFlashcardCount
 	for rows.Next() {
 		var nfc NoteFlashcardCount
-		if err := rows.Scan(&nfc.NotePath, &nfc.NoteTitle, &nfc.CardCount); err != nil {
+		if err := rows.Scan(&nfc.NotePath, &nfc.NoteTitle, &nfc.CardCount, &nfc.DueCount); err != nil {
 			return nil, err
 		}
 		result = append(result, nfc)
