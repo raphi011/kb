@@ -39,7 +39,7 @@ func SlidePanel(data SlidePanelData) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"resize-handle-v\" data-resize-target=\"next\"></div><details class=\"panel-section slide-panel\" open aria-label=\"Slides\" id=\"slide-panel\"><summary class=\"panel-label\">Slides <span class=\"panel-count\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"resize-handle-v\" data-resize-target=\"next\"></div><details class=\"panel-section slide-panel\" open aria-label=\"Slides\" id=\"slide-panel\" data-panel=\"slides\"><summary class=\"panel-label\">Slides <span class=\"panel-count\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -242,7 +242,7 @@ func TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []in
 				return templ_7745c5c3_Err
 			}
 			if len(outgoing) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<details class=\"panel-section toc-links-section\" open aria-label=\"Outgoing links\"><summary class=\"panel-label\">Links <span class=\"panel-count\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<details class=\"panel-section toc-links-section\" open aria-label=\"Outgoing links\" data-panel=\"links\"><summary class=\"panel-label\">Links <span class=\"panel-count\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -378,7 +378,7 @@ func TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []in
 				return templ_7745c5c3_Err
 			}
 			if len(backlinks) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<details class=\"panel-section toc-links-section\" open aria-label=\"Backlinks\"><summary class=\"panel-label\">Backlinks <span class=\"panel-count\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<details class=\"panel-section toc-links-section\" open aria-label=\"Backlinks\" data-panel=\"backlinks\"><summary class=\"panel-label\">Backlinks <span class=\"panel-count\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

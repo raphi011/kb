@@ -229,7 +229,7 @@ func TagList(tags []index.Tag) templ.Component {
 			templ_7745c5c3_Var12 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"panel-section sidebar-tags-section server-tree\" open aria-label=\"Tags\"><summary class=\"panel-label\">Tags <span class=\"panel-count\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"panel-section sidebar-tags-section server-tree\" open aria-label=\"Tags\" data-panel=\"tags\"><summary class=\"panel-label\">Tags <span class=\"panel-count\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -343,7 +343,7 @@ func Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFla
 			return templ_7745c5c3_Err
 		}
 		if len(flashcardNotes) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"panel-section sidebar-tags-section server-tree\" open aria-label=\"Flashcards\"><summary class=\"panel-label\">Flashcards <span id=\"fc-due-badge\" class=\"panel-count\"></span></summary><div class=\"panel-body sidebar-section-body\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"panel-section sidebar-tags-section server-tree\" open aria-label=\"Flashcards\" data-panel=\"flashcards\"><summary class=\"panel-label\">Flashcards <span id=\"fc-due-badge\" class=\"panel-count\"></span></summary><div class=\"panel-body sidebar-section-body\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
