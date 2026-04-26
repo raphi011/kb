@@ -1,0 +1,22 @@
+package views
+
+type PanelProps struct {
+	Label string
+	Count int
+	ID    string // data-panel value for localStorage persistence
+	Open  bool
+}
+
+// PanelSection renders a collapsible details panel with a resize handle,
+// label with count badge, and a body that accepts children content.
+templ PanelSection(p PanelProps) {
+	<div class="resize-handle-v" data-resize-target="next"></div>
+	<details class="panel-section" open?={ p.Open } aria-label={ p.Label } data-panel={ p.ID }>
+		<summary class="panel-label">
+			{ p.Label } <span class="panel-count">{ intStr(p.Count) }</span>
+		</summary>
+		<div class="panel-body">
+			{ children... }
+		</div>
+	</details>
+}
