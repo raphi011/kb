@@ -53,6 +53,7 @@ type Store interface {
 // ReIndexer refreshes the git HEAD and re-indexes changed notes.
 type ReIndexer interface {
 	ReIndex() error
+	ForceReIndex() error
 }
 
 type Server struct {

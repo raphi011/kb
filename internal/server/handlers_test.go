@@ -44,6 +44,7 @@ func (m *mockKB) BookmarkedPaths() ([]string, error)                          { 
 func (m *mockKB) AddBookmark(path string) error                               { return nil }
 func (m *mockKB) RemoveBookmark(path string) error                            { return nil }
 func (m *mockKB) ReIndex() error                                              { return nil }
+func (m *mockKB) ForceReIndex() error                                         { return nil }
 func (m *mockKB) RenderWithTags(src []byte, _ []string) (markdown.RenderResult, error) {
 	return markdown.Render(src, nil, nil, false)
 }
