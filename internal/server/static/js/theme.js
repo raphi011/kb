@@ -1,3 +1,5 @@
+import { set } from './ui-store.js';
+
 export function initTheme() {
   const toggle = document.getElementById('theme-toggle');
   const icon = document.getElementById('theme-icon');
@@ -6,7 +8,7 @@ export function initTheme() {
   function apply(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     icon.textContent = theme === 'dark' ? '☾' : '☀';
-    localStorage.setItem('zk-theme', theme);
+    set('theme', theme);
   }
 
   apply(document.documentElement.getAttribute('data-theme') || 'dark');
