@@ -199,11 +199,11 @@ function renderBookmarksPanel() {
   if (hasBookmarks) {
     panel.innerHTML = `
       <div class="resize-handle-v" data-resize-target="next"></div>
-      <details class="sidebar-tags-section" open aria-label="Bookmarks">
-        <summary class="sidebar-section-label">
-          Bookmarks <span class="sidebar-tag-count">${bookmarks.length}</span>
+      <details class="panel-section sidebar-tags-section" open aria-label="Bookmarks">
+        <summary class="panel-label">
+          Bookmarks <span class="panel-count">${bookmarks.length}</span>
         </summary>
-        <div class="sidebar-section-body">
+        <div class="panel-body sidebar-section-body">
           ${bookmarks.map(n => `
             <a class="tree-item" href="/notes/${esc(n.path)}"
                hx-get="/notes/${esc(n.path)}"
@@ -218,9 +218,9 @@ function renderBookmarksPanel() {
   } else {
     panel.innerHTML = `
       <div class="resize-handle-v" data-resize-target="next"></div>
-      <div class="sidebar-tags-section">
-        <span class="sidebar-section-label">
-          Bookmarks <span class="sidebar-tag-count">0</span>
+      <div class="panel-section sidebar-tags-section">
+        <span class="panel-label">
+          Bookmarks <span class="panel-count">0</span>
         </span>
       </div>`;
   }

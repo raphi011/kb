@@ -30,9 +30,9 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 		}
 		<div class="resize-handle-v" data-resize-target="next"></div>
 		if len(outgoing) > 0 {
-			<details class="toc-links-section" open aria-label="Outgoing links">
-				<summary class="toc-links-label">Links <span class="tl-count">{ lenStr(outgoing) }</span></summary>
-				<div class="toc-links-body">
+			<details class="panel-section toc-links-section" open aria-label="Outgoing links">
+				<summary class="panel-label">Links <span class="panel-count">{ lenStr(outgoing) }</span></summary>
+				<div class="panel-body toc-links-body">
 					for _, link := range outgoing {
 						if link.External {
 							<a class="toc-link-item toc-link-out" href={ templ.SafeURL(link.TargetPath) } target="_blank" rel="noopener">
@@ -57,15 +57,15 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 				</div>
 			</details>
 		} else {
-			<div class="toc-links-section toc-links-empty">
-				<span class="toc-links-label">Links <span class="tl-count">0</span></span>
+			<div class="panel-section panel-empty">
+				<span class="panel-label">Links <span class="panel-count">0</span></span>
 			</div>
 		}
 		<div class="resize-handle-v" data-resize-target="next"></div>
 		if len(backlinks) > 0 {
-			<details class="toc-links-section" open aria-label="Backlinks">
-				<summary class="toc-links-label">Backlinks <span class="tl-count">{ lenStr(backlinks) }</span></summary>
-				<div class="toc-links-body">
+			<details class="panel-section toc-links-section" open aria-label="Backlinks">
+				<summary class="panel-label">Backlinks <span class="panel-count">{ lenStr(backlinks) }</span></summary>
+				<div class="panel-body toc-links-body">
 					for _, link := range backlinks {
 						@ContentLink("toc-link-item toc-link-in", "/notes/" + link.SourcePath) {
 							{ link.SourceTitle }
@@ -74,8 +74,8 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 				</div>
 			</details>
 		} else {
-			<div class="toc-links-section toc-links-empty">
-				<span class="toc-links-label">Backlinks <span class="tl-count">0</span></span>
+			<div class="panel-section panel-empty">
+				<span class="panel-label">Backlinks <span class="panel-count">0</span></span>
 			</div>
 		}
 	</aside>

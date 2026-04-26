@@ -229,20 +229,20 @@ func TagList(tags []index.Tag) templ.Component {
 			templ_7745c5c3_Var12 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"sidebar-tags-section server-tree\" open aria-label=\"Tags\"><summary class=\"sidebar-section-label\">Tags <span class=\"sidebar-tag-count\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"panel-section sidebar-tags-section server-tree\" open aria-label=\"Tags\"><summary class=\"panel-label\">Tags <span class=\"panel-count\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(lenStr(tags))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 43, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 43, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</span></summary><div class=\"sidebar-tags-body\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</span></summary><div class=\"panel-body sidebar-tags-body\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -343,7 +343,7 @@ func Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFla
 			return templ_7745c5c3_Err
 		}
 		if len(flashcardNotes) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"sidebar-tags-section server-tree\" open aria-label=\"Flashcards\"><summary class=\"sidebar-section-label\">Flashcards <span id=\"fc-due-badge\" class=\"sidebar-tag-count fc-badge\"></span> <a class=\"sidebar-section-link\" href=\"/flashcards\" hx-get=\"/flashcards\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\" title=\"Flashcard dashboard\" onclick=\"event.stopPropagation()\">&#8594;</a></summary><div class=\"sidebar-section-body\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"panel-section sidebar-tags-section server-tree\" open aria-label=\"Flashcards\"><summary class=\"panel-label\">Flashcards <span id=\"fc-due-badge\" class=\"panel-count fc-badge\"></span> <a class=\"sidebar-section-link\" href=\"/flashcards\" hx-get=\"/flashcards\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\" title=\"Flashcard dashboard\" onclick=\"event.stopPropagation()\">&#8594;</a></summary><div class=\"panel-body sidebar-section-body\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

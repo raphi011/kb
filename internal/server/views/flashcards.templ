@@ -211,7 +211,7 @@ templ FlashcardsForNoteContent(notePath string, cards []srs.Card) {
 templ FlashcardPanel(data FlashcardPanelData) {
 	<div class="resize-handle-v" data-resize-target="next"></div>
 	<details
-		class="toc-links-section fc-panel"
+		class="panel-section fc-panel"
 		open
 		aria-label="Flashcards"
 		id="fc-panel"
@@ -219,18 +219,18 @@ templ FlashcardPanel(data FlashcardPanelData) {
 		data-due={ intStr(data.DueCount) }
 		data-note={ data.NotePath }
 	>
-		<summary class="toc-links-label">
+		<summary class="panel-label">
 			if data.ReviewMode {
-				Reviewing <span class="tl-count" id="fc-panel-progress">0 / { intStr(data.TotalCount) }</span>
+				Reviewing <span class="panel-count" id="fc-panel-progress">0 / { intStr(data.TotalCount) }</span>
 			} else {
 				Flashcards
 				if data.DueCount > 0 {
-					<span class="tl-count fc-panel-due">{ intStr(data.DueCount) } due</span>
+					<span class="panel-count fc-panel-due">{ intStr(data.DueCount) } due</span>
 				}
-				<span class="tl-count">{ intStr(data.TotalCount) }</span>
+				<span class="panel-count">{ intStr(data.TotalCount) }</span>
 			}
 		</summary>
-		<div class="toc-links-body fc-panel-body">
+		<div class="panel-body fc-panel-body">
 			if data.ReviewMode {
 				<div class="fc-panel-bar-wrap">
 					<div class="fc-panel-bar" id="fc-panel-bar" style="width: 0%"></div>

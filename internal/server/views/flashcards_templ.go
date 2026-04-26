@@ -748,7 +748,7 @@ func FlashcardPanel(data FlashcardPanelData) templ.Component {
 			templ_7745c5c3_Var34 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<div class=\"resize-handle-v\" data-resize-target=\"next\"></div><details class=\"toc-links-section fc-panel\" open aria-label=\"Flashcards\" id=\"fc-panel\" data-total=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 59, "<div class=\"resize-handle-v\" data-resize-target=\"next\"></div><details class=\"panel-section fc-panel\" open aria-label=\"Flashcards\" id=\"fc-panel\" data-total=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -787,19 +787,19 @@ func FlashcardPanel(data FlashcardPanelData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "\"><summary class=\"toc-links-label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 62, "\"><summary class=\"panel-label\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if data.ReviewMode {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "Reviewing <span class=\"tl-count\" id=\"fc-panel-progress\">0 / ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 63, "Reviewing <span class=\"panel-count\" id=\"fc-panel-progress\">0 / ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var38 string
 			templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(intStr(data.TotalCount))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/flashcards.templ`, Line: 224, Col: 89}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/flashcards.templ`, Line: 224, Col: 92}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
 			if templ_7745c5c3_Err != nil {
@@ -815,14 +815,14 @@ func FlashcardPanel(data FlashcardPanelData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if data.DueCount > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<span class=\"tl-count fc-panel-due\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<span class=\"panel-count fc-panel-due\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var39 string
 				templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(intStr(data.DueCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/flashcards.templ`, Line: 228, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/flashcards.templ`, Line: 228, Col: 67}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
 				if templ_7745c5c3_Err != nil {
@@ -833,14 +833,14 @@ func FlashcardPanel(data FlashcardPanelData) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, " <span class=\"tl-count\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 68, " <span class=\"panel-count\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var40 string
 			templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(intStr(data.TotalCount))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/flashcards.templ`, Line: 230, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/flashcards.templ`, Line: 230, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
 			if templ_7745c5c3_Err != nil {
@@ -851,7 +851,7 @@ func FlashcardPanel(data FlashcardPanelData) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "</summary><div class=\"toc-links-body fc-panel-body\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 70, "</summary><div class=\"panel-body fc-panel-body\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

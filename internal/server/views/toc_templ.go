@@ -132,20 +132,20 @@ func TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []in
 			return templ_7745c5c3_Err
 		}
 		if len(outgoing) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<details class=\"toc-links-section\" open aria-label=\"Outgoing links\"><summary class=\"toc-links-label\">Links <span class=\"tl-count\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<details class=\"panel-section toc-links-section\" open aria-label=\"Outgoing links\"><summary class=\"panel-label\">Links <span class=\"panel-count\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(lenStr(outgoing))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/toc.templ`, Line: 34, Col: 84}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/toc.templ`, Line: 34, Col: 83}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</span></summary><div class=\"toc-links-body\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "</span></summary><div class=\"panel-body toc-links-body\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -258,7 +258,7 @@ func TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []in
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"toc-links-section toc-links-empty\"><span class=\"toc-links-label\">Links <span class=\"tl-count\">0</span></span></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"panel-section panel-empty\"><span class=\"panel-label\">Links <span class=\"panel-count\">0</span></span></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -268,20 +268,20 @@ func TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []in
 			return templ_7745c5c3_Err
 		}
 		if len(backlinks) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<details class=\"toc-links-section\" open aria-label=\"Backlinks\"><summary class=\"toc-links-label\">Backlinks <span class=\"tl-count\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "<details class=\"panel-section toc-links-section\" open aria-label=\"Backlinks\"><summary class=\"panel-label\">Backlinks <span class=\"panel-count\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(lenStr(backlinks))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/toc.templ`, Line: 67, Col: 89}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/toc.templ`, Line: 67, Col: 88}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</span></summary><div class=\"toc-links-body\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</span></summary><div class=\"panel-body toc-links-body\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -319,7 +319,7 @@ func TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []in
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<div class=\"toc-links-section toc-links-empty\"><span class=\"toc-links-label\">Backlinks <span class=\"tl-count\">0</span></span></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<div class=\"panel-section panel-empty\"><span class=\"panel-label\">Backlinks <span class=\"panel-count\">0</span></span></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

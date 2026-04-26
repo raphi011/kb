@@ -432,16 +432,56 @@ html.zen, body.zen {
   }
 }
 
-/* ── Sidebar section labels ────────────────────────────────── */
+/* ── Collapsible panel primitives ─────────────────────────── */
 
-.sidebar-section-label {
+.panel-section {
+  border-top: 1px solid var(--border);
+  padding: 6px 0 4px;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-label {
   font-size: 9px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-faint);
-  padding: 8px 12px 4px;
+  padding: 3px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
   font-family: var(--font-ui);
   font-weight: 600;
+  flex-shrink: 0;
+
+  &::-webkit-details-marker { display: none; }
+  &:hover { color: var(--text-muted); }
+}
+
+.panel-count {
+  font-size: 10px;
+  background: var(--bg-active);
+  border-radius: 8px;
+  padding: 0 5px;
+  font-weight: 400;
+}
+
+.panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.panel-empty .panel-label {
+  cursor: default;
+  opacity: 0.5;
 }
 
 /* ── Folder tree ───────────────────────────────────────────── */
@@ -512,28 +552,9 @@ details[open] > .tree-folder::before {
 
 .sidebar-tags-section {
   flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
 
-  .sidebar-section-label {
-    list-style: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-    padding-bottom: 8px;
-
-    &::-webkit-details-marker { display: none; }
-  }
-
-  .sidebar-tag-count {
-    font-size: 9px;
-    background: var(--bg-active);
-    border-radius: 8px;
-    padding: 0 5px;
-    color: var(--text-faint);
-    font-weight: 400;
+  .panel-label {
+    padding: 8px 12px;
   }
 }
 
@@ -544,16 +565,10 @@ details[open] > .tree-folder::before {
   gap: 4px;
   align-content: flex-start;
   max-height: 30vh;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
 }
 
 .sidebar-section-body {
   max-height: 30vh;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
 }
 
 .sidebar-section-link {
@@ -1275,51 +1290,7 @@ a.backlink-card, .backlink-card {
 
 /* ── TOC links/backlinks sections ──────────────────────────── */
 
-.toc-links-section {
-  border-top: 1px solid var(--border);
-  padding: 6px 0 4px;
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-
-  &:first-of-type { margin-top: auto; }
-}
-
-.toc-links-label {
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  padding: 3px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  user-select: none;
-  list-style: none;
-  font-family: var(--font-ui);
-  flex-shrink: 0;
-
-  &::-webkit-details-marker { display: none; }
-  &:hover { color: var(--text-muted); }
-
-  .tl-count {
-    font-size: 10px;
-    background: var(--bg-active);
-    border-radius: 8px;
-    padding: 0 5px;
-  }
-}
-
-.toc-links-body,
-.toc-tags-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-}
+.toc-links-section:first-of-type { margin-top: auto; }
 
 .toc-links-body {
   padding: 2px 0 4px;
@@ -1331,11 +1302,6 @@ a.backlink-card, .backlink-card {
   flex-wrap: wrap;
   gap: 4px;
   align-content: flex-start;
-}
-
-.toc-links-empty .toc-links-label {
-  cursor: default;
-  opacity: 0.5;
 }
 
 .toc-empty {

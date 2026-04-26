@@ -38,11 +38,11 @@ templ Tree(nodes []*FileNode) {
 
 templ TagList(tags []index.Tag) {
 	<div class="resize-handle-v server-tree" data-resize-target="next"></div>
-	<details class="sidebar-tags-section server-tree" open aria-label="Tags">
-		<summary class="sidebar-section-label">
-			Tags <span class="sidebar-tag-count">{ lenStr(tags) }</span>
+	<details class="panel-section sidebar-tags-section server-tree" open aria-label="Tags">
+		<summary class="panel-label">
+			Tags <span class="panel-count">{ lenStr(tags) }</span>
 		</summary>
-		<div class="sidebar-tags-body">
+		<div class="panel-body sidebar-tags-body">
 			for _, tag := range tags {
 				<span class="sidebar-tag-item" data-tag={ tag.Name }>
 					{ tag.Name } <span class="tag-count">{ intStr(tag.NoteCount) }</span>
@@ -64,12 +64,12 @@ templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFl
 	<div id="bookmarks-panel"></div>
 	if len(flashcardNotes) > 0 {
 		<div class="resize-handle-v server-tree" data-resize-target="next"></div>
-		<details class="sidebar-tags-section server-tree" open aria-label="Flashcards">
-			<summary class="sidebar-section-label">
-				Flashcards <span id="fc-due-badge" class="sidebar-tag-count fc-badge"></span>
+		<details class="panel-section sidebar-tags-section server-tree" open aria-label="Flashcards">
+			<summary class="panel-label">
+				Flashcards <span id="fc-due-badge" class="panel-count fc-badge"></span>
 				<a class="sidebar-section-link" href="/flashcards" hx-get="/flashcards" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true" title="Flashcard dashboard" onclick="event.stopPropagation()">&#8594;</a>
 			</summary>
-			<div class="sidebar-section-body">
+			<div class="panel-body sidebar-section-body">
 				for _, nfc := range flashcardNotes {
 					<a
 						class="sidebar-fc-item"
