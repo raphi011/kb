@@ -108,7 +108,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</nav><div class=\"resize-handle\" id=\"sidebar-resize\"></div><div id=\"main\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<a class=\"sidebar-footer\" href=\"/settings\" hx-get=\"/settings\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\" title=\"Settings\">&#9881;</a></nav><div class=\"resize-handle\" id=\"sidebar-resize\"></div><div id=\"main\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -132,7 +132,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<script src=\"/static/htmx.min.js\"></script><script src=\"/static/app.min.js\"></script><script src=\"/static/mermaid.min.js\"></script><script>\n\t\t\tif(window.mermaid){mermaid.initialize({startOnLoad:false,theme:'dark'});mermaid.run({nodes:document.querySelectorAll('.mermaid')});}\n\t\t</script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<script src=\"/static/htmx.min.js\"></script><script src=\"/static/app.min.js\"></script><script src=\"/static/mermaid.min.js\"></script><script>\n\t\t\tif(window.mermaid){mermaid.initialize({startOnLoad:false,theme:'dark'});mermaid.run({nodes:document.querySelectorAll('.mermaid')});}\n\t\t</script><div id=\"toast-container\"></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -11,6 +11,7 @@ import { initZen } from './zen.js';
 import { initLightbox } from './lightbox.js';
 import { initFlashcards } from './flashcards.js';
 import { initMarp } from './marp.js';
+import { initToast } from './toast.js';
 import { recordVisit } from './history.js';
 
 initTheme();
@@ -26,6 +27,7 @@ initZen();
 initLightbox();
 initFlashcards();
 initMarp();
+initToast();
 
 // Record initial page load if it's a note.
 if (location.pathname.startsWith('/notes/')) {

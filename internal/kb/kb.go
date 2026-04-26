@@ -280,6 +280,13 @@ func (kb *KB) ReIndex() error {
 	return kb.Index(false)
 }
 
+func (kb *KB) ForceReIndex() error {
+	if err := kb.repo.RefreshHead(); err != nil {
+		return err
+	}
+	return kb.Index(true)
+}
+
 // Render renders markdown bytes to HTML using the wiki-link lookup from the index.
 func (kb *KB) Render(src []byte) (markdown.RenderResult, error) {
 	return kb.RenderWithTags(src, nil)
