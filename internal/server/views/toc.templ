@@ -5,7 +5,35 @@ import (
 	"github.com/raphi011/kb/internal/markdown"
 )
 
-templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []index.Link, oob bool, calYear int, calMonth int, activeDays map[int]bool, flashcardPanel *FlashcardPanelData) {
+// SlidePanelData holds data for the TOC slide navigator panel.
+type SlidePanelData struct {
+	Slides []markdown.SlideInfo
+}
+
+templ SlidePanel(data SlidePanelData) {
+	<div class="resize-handle-v" data-resize-target="next"></div>
+	<details class="panel-section slide-panel" open aria-label="Slides" id="slide-panel">
+		<summary class="panel-label">
+			Slides <span class="panel-count">{ intStr(len(data.Slides)) }</span>
+		</summary>
+		<div class="panel-body slide-panel-body">
+			<div class="slide-panel-cards" id="slide-panel-cards">
+				for _, slide := range data.Slides {
+					<a
+						class="slide-panel-item"
+						data-slide={ intStr(slide.Number - 1) }
+						title={ slide.Title }
+					>
+						<span class="slide-panel-num">{ intStr(slide.Number) }</span>
+						{ slide.Title }
+					</a>
+				}
+			</div>
+		</div>
+	</details>
+}
+
+templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []index.Link, oob bool, calYear int, calMonth int, activeDays map[int]bool, flashcardPanel *FlashcardPanelData, slidePanel *SlidePanelData) {
 	<aside
 		id="toc-panel"
 		if oob {
@@ -82,6 +110,9 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 		}
 		if flashcardPanel != nil {
 			@FlashcardPanel(*flashcardPanel)
+		}
+		if slidePanel != nil {
+			@SlidePanel(*slidePanel)
 		}
 	</aside>
 }

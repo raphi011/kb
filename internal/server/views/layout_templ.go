@@ -28,6 +28,7 @@ type LayoutParams struct {
 	CalendarMonth  int
 	ActiveDays     map[int]bool
 	FlashcardPanel *FlashcardPanelData // nil = don't show
+	SlidePanel     *SlidePanelData
 }
 
 // FileNode represents a file or directory in the sidebar tree.
@@ -83,7 +84,7 @@ func Layout(p LayoutParams) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(p.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 57, Col: 13}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 58, Col: 13}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -119,7 +120,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = TOCPanel(p.Headings, p.OutgoingLinks, p.Backlinks, false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = TOCPanel(p.Headings, p.OutgoingLinks, p.Backlinks, false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

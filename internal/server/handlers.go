@@ -108,7 +108,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		if err := views.FolderContentInner(nil, "Knowledge Base", entries).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, nil, nil, nil, nil)
+		s.renderTOCForPage(w, r, nil, nil, nil, nil, nil)
 		return
 	}
 
@@ -155,6 +155,11 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 			RawContent string `json:"rawContent"`
 		}{note, string(raw)}
 		writeJSON(w, result)
+		return
+	}
+
+	if note.IsMarp {
+		s.renderMarpNote(w, r, note, raw)
 		return
 	}
 
@@ -205,7 +210,7 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 		if err := views.NoteContentInner(breadcrumbs, note, result.HTML, backlinks, headings).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, headings, outLinks, backlinks, fcPanel)
+		s.renderTOCForPage(w, r, headings, outLinks, backlinks, fcPanel, nil)
 		return
 	}
 
@@ -217,6 +222,39 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 		OutgoingLinks:  outLinks,
 		Backlinks:      backlinks,
 		FlashcardPanel: fcPanel,
+	})
+}
+
+func (s *Server) renderMarpNote(w http.ResponseWriter, r *http.Request, note *index.Note, raw []byte) {
+	breadcrumbs := buildBreadcrumbs(note.Path)
+	doc := markdown.ParseMarkdown(string(raw))
+
+	// Base URL for resolving relative image paths in the presentation.
+	baseURL := "/notes/" + note.Path
+	if idx := strings.LastIndex(baseURL, "/"); idx > 0 {
+		baseURL = baseURL[:idx+1]
+	}
+
+	var slidePanel *views.SlidePanelData
+	if len(doc.Slides) > 0 {
+		slidePanel = &views.SlidePanelData{Slides: doc.Slides}
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	if isHTMX(r) {
+		if err := views.MarpNoteContentInner(breadcrumbs, note, string(raw), doc.Slides, baseURL).Render(r.Context(), w); err != nil {
+			slog.Error("render component", "error", err)
+		}
+		s.renderTOCForPage(w, r, nil, nil, nil, nil, slidePanel)
+		return
+	}
+
+	s.renderFullPage(w, r, views.LayoutParams{
+		Title:      note.Title,
+		Tree:       buildTree(s.noteCache().notes, note.Path),
+		ContentCol: views.MarpNoteContentCol(breadcrumbs, note, string(raw), doc.Slides, baseURL),
+		SlidePanel: slidePanel,
 	})
 }
 
@@ -262,7 +300,7 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 		if err := views.FolderContentInner(breadcrumbs, folderName, entries).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, nil, nil, nil, nil)
+		s.renderTOCForPage(w, r, nil, nil, nil, nil, nil)
 		return
 	}
 
@@ -395,9 +433,9 @@ func (s *Server) handleTags(w http.ResponseWriter, r *http.Request) {
 }
 
 // renderTOCForPage renders the TOC panel as an OOB swap for HTMX requests.
-func (s *Server) renderTOCForPage(w http.ResponseWriter, r *http.Request, headings []markdown.Heading, outLinks []index.Link, backlinks []index.Link, fcPanel *views.FlashcardPanelData) {
+func (s *Server) renderTOCForPage(w http.ResponseWriter, r *http.Request, headings []markdown.Heading, outLinks []index.Link, backlinks []index.Link, fcPanel *views.FlashcardPanelData, slidePanel *views.SlidePanelData) {
 	calYear, calMonth, activeDays := s.calendarData()
-	if err := views.TOCPanel(headings, outLinks, backlinks, true, calYear, calMonth, activeDays, fcPanel).Render(r.Context(), w); err != nil {
+	if err := views.TOCPanel(headings, outLinks, backlinks, true, calYear, calMonth, activeDays, fcPanel, slidePanel).Render(r.Context(), w); err != nil {
 		slog.Error("render component", "error", err)
 	}
 }
@@ -445,7 +483,7 @@ func (s *Server) renderError(w http.ResponseWriter, r *http.Request, code int, m
 		if err := views.ErrorContentInner(code, message).Render(r.Context(), w); err != nil {
 			slog.Error("render error component", "error", err)
 		}
-		s.renderTOCForPage(w, r, nil, nil, nil, nil)
+		s.renderTOCForPage(w, r, nil, nil, nil, nil, nil)
 		return
 	}
 	s.renderFullPage(w, r, views.LayoutParams{

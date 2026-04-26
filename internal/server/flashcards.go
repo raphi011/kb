@@ -26,7 +26,7 @@ func (s *Server) handleFlashcardDashboard(w http.ResponseWriter, r *http.Request
 		if err := views.FlashcardDashboardContent(stats).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, nil, nil, nil, nil)
+		s.renderTOCForPage(w, r, nil, nil, nil, nil, nil)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 			if err := views.ReviewDoneContent(stats, notePath, summary).Render(r.Context(), w); err != nil {
 				slog.Error("render component", "error", err)
 			}
-			s.renderTOCForPage(w, r, nil, nil, nil, fcPanel)
+			s.renderTOCForPage(w, r, nil, nil, nil, fcPanel, nil)
 			return
 		}
 		s.renderFullPage(w, r, views.LayoutParams{
@@ -128,7 +128,7 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 		if err := views.ReviewCardContent(data, previews, notePath).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, nil, nil, nil, fcPanel)
+		s.renderTOCForPage(w, r, nil, nil, nil, fcPanel, nil)
 		return
 	}
 

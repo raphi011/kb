@@ -71,6 +71,60 @@ templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, hea
 	</article>
 }
 
+templ MarpArticle(note *index.Note, rawMarkdown string, slides []markdown.SlideInfo, baseURL string) {
+	<article id="article">
+		<div class="article-title-row">
+			<h1 id="article-title">{ note.Title }</h1>
+			<div class="article-title-actions">
+				<button
+					id="marp-present-btn"
+					class="marp-present-btn"
+					type="button"
+					aria-label="Start presentation"
+					title="Present fullscreen"
+				>
+					&#9655; Present
+				</button>
+				<button
+					id="bookmark-btn"
+					class="bookmark-btn"
+					type="button"
+					aria-label="Toggle bookmark"
+					data-path={ note.Path }
+				>
+					<span class="bookmark-icon">&#9734;</span>
+				</button>
+			</div>
+		</div>
+		<div class="article-meta">
+			<span class="article-meta-text">
+				Created: { note.Created.Format("2006-01-02") } · Modified: { note.Modified.Format("2006-01-02") } · { intStr(len(slides)) } slides
+			</span>
+			for _, tag := range note.Tags {
+				<span class="meta-tag" data-tag={ tag }>{ tag }</span>
+			}
+		</div>
+		<hr class="article-divider"/>
+		<div id="marp-container" data-base-url={ baseURL }></div>
+		<script id="marp-source" type="text/markdown">
+			{ rawMarkdown }
+		</script>
+	</article>
+}
+
+templ MarpNoteContentInner(segments []BreadcrumbSegment, note *index.Note, rawMarkdown string, slides []markdown.SlideInfo, baseURL string) {
+	@Breadcrumb(segments, note.Title)
+	<div id="content-area">
+		@MarpArticle(note, rawMarkdown, slides, baseURL)
+	</div>
+}
+
+templ MarpNoteContentCol(segments []BreadcrumbSegment, note *index.Note, rawMarkdown string, slides []markdown.SlideInfo, baseURL string) {
+	<div id="content-col" role="main">
+		@MarpNoteContentInner(segments, note, rawMarkdown, slides, baseURL)
+	</div>
+}
+
 templ FolderListing(folderName string, entries []FolderEntry) {
 	<article id="article">
 		<h1>{ folderName }<span class="folder-slash">/</span></h1>

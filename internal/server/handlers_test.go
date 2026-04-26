@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/open-spaced-repetition/go-fsrs/v3"
@@ -32,7 +33,12 @@ func (m *mockKB) OutgoingLinks(path string) ([]index.Link, error)  { return nil,
 func (m *mockKB) Backlinks(path string) ([]index.Link, error)      { return nil, nil }
 func (m *mockKB) ActivityDays(y, mo int) (map[int]bool, error)     { return map[int]bool{}, nil }
 func (m *mockKB) NotesByDate(date string) ([]index.Note, error)    { return nil, nil }
-func (m *mockKB) ReadFile(path string) ([]byte, error)             { return []byte("# Test\n\nBody."), nil }
+func (m *mockKB) ReadFile(path string) ([]byte, error) {
+	if path == "work/presentations/talk/presentation.md" {
+		return []byte("---\nmarp: true\ntheme: gaia\n---\n\n# Slide 1\n\n---\n\n# Slide 2\n"), nil
+	}
+	return []byte("# Test\n\nBody."), nil
+}
 func (m *mockKB) Render(src []byte) (markdown.RenderResult, error) { return markdown.Render(src, nil, nil, false) }
 func (m *mockKB) BookmarkedPaths() ([]string, error)                          { return nil, nil }
 func (m *mockKB) AddBookmark(path string) error                               { return nil }
@@ -57,6 +63,7 @@ func newTestServer(t *testing.T) *Server {
 		notes: []index.Note{
 			{Path: "notes/hello.md", Title: "Hello", Body: "hello body", Lead: "hello body", WordCount: 2, Tags: []string{"greeting"}},
 			{Path: "notes/go.md", Title: "Go", Body: "go body", Lead: "go body", WordCount: 2, Tags: []string{"golang"}},
+			{Path: "work/presentations/talk/presentation.md", Title: "My Talk", Body: "# Slide 1\n\n---\n\n# Slide 2", Lead: "Slide 1", WordCount: 4, Tags: []string{}, IsMarp: true},
 		},
 		tags: []index.Tag{
 			{Name: "greeting", NoteCount: 1},
@@ -208,5 +215,27 @@ func TestNewServerRejectsEmptyToken(t *testing.T) {
 	_, err := New(store, store, "", "")
 	if err == nil {
 		t.Error("New() should reject empty token")
+	}
+}
+
+func TestMarpNoteRendersSlideContainer(t *testing.T) {
+	srv := newTestServer(t)
+	req := httptest.NewRequest("GET", "/notes/work/presentations/talk/presentation.md", nil)
+	req.Header.Set("Authorization", "Bearer test-token")
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200, body = %s", w.Code, w.Body.String())
+	}
+	body := w.Body.String()
+	if !strings.Contains(body, "marp-container") {
+		t.Errorf("response should contain marp-container")
+	}
+	if !strings.Contains(body, "marp-source") {
+		t.Errorf("response should contain marp-source script block")
+	}
+	if !strings.Contains(body, "marp-present-btn") {
+		t.Errorf("response should contain present button")
 	}
 }
