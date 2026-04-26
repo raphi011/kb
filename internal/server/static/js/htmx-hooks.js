@@ -22,6 +22,7 @@ export function initHTMXHooks() {
     const href = a.getAttribute('href');
     if (!href || !href.startsWith('/notes/')) return;
     if (a.hasAttribute('hx-get')) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
     e.preventDefault();
     navigateTo(href);

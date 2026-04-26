@@ -49,6 +49,9 @@ func (m *mockKB) ForceReIndex() error                                         { 
 func (m *mockKB) RenderWithTags(src []byte, _ []string) (markdown.RenderResult, error) {
 	return markdown.Render(src, nil, nil, false)
 }
+func (m *mockKB) RenderPreview(src []byte) (markdown.RenderResult, error) {
+	return markdown.RenderPreview(src, nil, nil)
+}
 func (m *mockKB) DueCards(notePath string, limit int) ([]srs.Card, error)     { return nil, nil }
 func (m *mockKB) CardByHash(hash string) (srs.Card, error)                   { return srs.Card{}, nil }
 func (m *mockKB) ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error) { return srs.Card{}, nil }

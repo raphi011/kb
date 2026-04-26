@@ -39,6 +39,7 @@ type Store interface {
 	AddBookmark(path string) error
 	RemoveBookmark(path string) error
 	RenderWithTags(src []byte, tags []string) (markdown.RenderResult, error)
+	RenderPreview(src []byte) (markdown.RenderResult, error)
 	DueCards(notePath string, limit int) ([]srs.Card, error)
 	CardByHash(hash string) (srs.Card, error)
 	ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error)
@@ -141,6 +142,7 @@ func (s *Server) registerRoutes() error {
 	s.mux.HandleFunc("GET /settings", s.handleSettings)
 	s.mux.HandleFunc("POST /api/settings/pull", s.handlePull)
 	s.mux.HandleFunc("POST /api/settings/reindex", s.handleForceReindex)
+	s.mux.HandleFunc("GET /preview/{path...}", s.handlePreview)
 	return nil
 }
 

@@ -1,6 +1,7 @@
 package markdown
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -101,6 +102,53 @@ func TestParseMarkdown_Lead(t *testing.T) {
 	}
 }
 
+func TestExtractIntro(t *testing.T) {
+	body := "# Event-Driven Architecture\n\nEDA is a design pattern.\n\nIt decouples producers from consumers.\n\n## Benefits\n\nScalable and resilient.\n"
+	intro := ExtractIntro(body, 800)
+	if !strings.Contains(intro, "EDA is a design pattern") {
+		t.Errorf("missing first paragraph in: %q", intro)
+	}
+	if !strings.Contains(intro, "decouples producers") {
+		t.Errorf("missing second paragraph in: %q", intro)
+	}
+	if strings.Contains(intro, "Benefits") {
+		t.Errorf("should not include next heading in: %q", intro)
+	}
+	if strings.Contains(intro, "Scalable") {
+		t.Errorf("should not include content after next heading in: %q", intro)
+	}
+}
+
+func TestExtractIntro_NoHeading(t *testing.T) {
+	body := "Just a paragraph.\n\nAnother paragraph.\n"
+	intro := ExtractIntro(body, 800)
+	if !strings.Contains(intro, "Just a paragraph") {
+		t.Errorf("missing content in: %q", intro)
+	}
+}
+
+func TestExtractIntro_MaxLen(t *testing.T) {
+	body := "# Title\n\nFirst paragraph.\n\nSecond paragraph that is longer.\n"
+	intro := ExtractIntro(body, 20)
+	if len(intro) > 20 {
+		t.Errorf("intro too long (%d): %q", len(intro), intro)
+	}
+	if !strings.Contains(intro, "First paragraph") {
+		t.Errorf("missing first paragraph in: %q", intro)
+	}
+}
+
+func TestExtractIntro_HeadingInCodeBlock(t *testing.T) {
+	body := "# Title\n\nSome intro text.\n\n```markdown\n## Not a real heading\n```\n\n## Real Heading\n\nAfter.\n"
+	intro := ExtractIntro(body, 800)
+	if !strings.Contains(intro, "Not a real heading") {
+		t.Errorf("should include code block content in: %q", intro)
+	}
+	if strings.Contains(intro, "After.") {
+		t.Errorf("should not include content after real heading in: %q", intro)
+	}
+}
+
 func TestParseMarkdown_WordCount(t *testing.T) {
 	doc := ParseMarkdown("One two three four five.")
 	if doc.WordCount != 5 {
@@ -195,5 +243,68 @@ func TestParseMarkdown_NonMarpNoSlides(t *testing.T) {
 	}
 	if len(doc.Slides) != 0 {
 		t.Errorf("Slides = %d, want 0 for non-Marp note", len(doc.Slides))
+	}
+}
+
+func TestExtractHeadingSection(t *testing.T) {
+	body := `# Title
+
+Intro paragraph.
+
+## Channels
+
+Channels are typed conduits.
+
+They allow goroutines to communicate.
+
+## Mutexes
+
+Mutexes provide mutual exclusion.
+`
+	section := ExtractHeadingSection(body, "Channels")
+	if section == "" {
+		t.Fatal("expected non-empty section")
+	}
+	if !strings.Contains(section, "typed conduits") {
+		t.Errorf("missing channel content in: %s", section)
+	}
+	if !strings.Contains(section, "goroutines to communicate") {
+		t.Errorf("missing second paragraph in: %s", section)
+	}
+	if strings.Contains(section, "Mutexes") {
+		t.Errorf("should not include next heading in: %s", section)
+	}
+}
+
+func TestExtractHeadingSection_NotFound(t *testing.T) {
+	body := "# Title\n\nSome content.\n"
+	section := ExtractHeadingSection(body, "Nonexistent")
+	if section != "" {
+		t.Errorf("expected empty section for missing heading, got: %s", section)
+	}
+}
+
+func TestExtractHeadingSection_NestedHeading(t *testing.T) {
+	body := `## Parent
+
+Parent content.
+
+### Child
+
+Child content.
+
+## Sibling
+
+Sibling content.
+`
+	section := ExtractHeadingSection(body, "Parent")
+	if !strings.Contains(section, "Parent content") {
+		t.Errorf("missing parent content in: %s", section)
+	}
+	if !strings.Contains(section, "Child content") {
+		t.Errorf("should include nested child in: %s", section)
+	}
+	if strings.Contains(section, "Sibling content") {
+		t.Errorf("should not include sibling in: %s", section)
 	}
 }

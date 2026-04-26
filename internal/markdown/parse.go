@@ -137,6 +137,80 @@ func hasFlashcardsTag(tags []string) bool {
 	return false
 }
 
+// ExtractIntro returns the raw markdown of the intro section: everything
+// between the first heading and the next heading, capped at maxLen bytes.
+// Uses goldmark AST to correctly identify headings (ignoring # in code blocks etc).
+func ExtractIntro(body string, maxLen int) string {
+	root, source, _ := parseAST(body)
+
+	// Find byte range: after first heading to before next heading.
+	start := 0
+	end := len(source)
+	foundFirst := false
+
+	for node := root.FirstChild(); node != nil; node = node.NextSibling() {
+		h, ok := node.(*ast.Heading)
+		if !ok {
+			continue
+		}
+		if !foundFirst {
+			// Skip past first heading — intro starts after it.
+			foundFirst = true
+			if next := h.NextSibling(); next != nil {
+				start = segmentStart(next)
+			} else {
+				return ""
+			}
+			continue
+		}
+		// Second heading — intro ends before the heading line.
+		end = headingLineStart(source, h)
+		break
+	}
+
+	intro := strings.TrimSpace(string(source[start:end]))
+	if len(intro) > maxLen {
+		// Truncate at last newline before maxLen to avoid mid-line cuts.
+		if i := strings.LastIndex(intro[:maxLen], "\n"); i > 0 {
+			intro = intro[:i]
+		} else {
+			intro = intro[:maxLen]
+		}
+	}
+	return strings.TrimSpace(intro)
+}
+
+// segmentStart returns the byte offset where a block-level node begins in source.
+func segmentStart(node ast.Node) int {
+	lines := node.Lines()
+	if lines.Len() > 0 {
+		return lines.At(0).Start
+	}
+	// For container nodes (lists, blockquotes), walk to find first text line.
+	for child := node.FirstChild(); child != nil; child = child.NextSibling() {
+		if s := segmentStart(child); s > 0 {
+			return s
+		}
+	}
+	return 0
+}
+
+// headingLineStart returns the byte offset of the beginning of the heading's
+// ATX line (the # characters). Heading.Lines() only covers the text after
+// "## ", so we scan backwards from there to find the line start.
+func headingLineStart(source []byte, h *ast.Heading) int {
+	lines := h.Lines()
+	if lines.Len() == 0 {
+		return len(source)
+	}
+	pos := lines.At(0).Start
+	// Scan backwards past the "# " prefix to the start of the line.
+	for pos > 0 && source[pos-1] != '\n' {
+		pos--
+	}
+	return pos
+}
+
 func extractLead(body string) string {
 	for _, para := range strings.Split(body, "\n\n") {
 		trimmed := strings.TrimSpace(para)
@@ -247,6 +321,60 @@ func inlineText(source []byte, node ast.Node) string {
 
 func isExternalURL(s string) bool {
 	return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
+}
+
+// ExtractHeadingSection returns the markdown content under the specified
+// heading, from the heading line to the next heading at the same or higher
+// level. Returns empty string if the heading is not found.
+func ExtractHeadingSection(body, heading string) string {
+	lines := strings.Split(body, "\n")
+	targetLevel := 0
+	startLine := -1
+
+	for i, line := range lines {
+		level, text := parseHeadingLine(line)
+		if level == 0 {
+			continue
+		}
+		if startLine == -1 {
+			// Looking for the target heading.
+			if strings.EqualFold(strings.TrimSpace(text), strings.TrimSpace(heading)) {
+				targetLevel = level
+				startLine = i + 1
+			}
+			continue
+		}
+		// Already found — stop at same or higher level heading.
+		if level <= targetLevel {
+			return strings.TrimSpace(strings.Join(lines[startLine:i], "\n"))
+		}
+	}
+
+	if startLine == -1 {
+		return ""
+	}
+	return strings.TrimSpace(strings.Join(lines[startLine:], "\n"))
+}
+
+// parseHeadingLine returns the heading level (1-6) and text for ATX headings.
+// Returns 0, "" for non-heading lines.
+func parseHeadingLine(line string) (int, string) {
+	trimmed := strings.TrimSpace(line)
+	level := 0
+	for _, c := range trimmed {
+		if c == '#' {
+			level++
+		} else {
+			break
+		}
+	}
+	if level == 0 || level > 6 {
+		return 0, ""
+	}
+	if len(trimmed) > level && trimmed[level] != ' ' {
+		return 0, "" // "##text" is not a heading
+	}
+	return level, strings.TrimSpace(trimmed[level:])
 }
 
 func dedup(items []string) []string {

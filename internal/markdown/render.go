@@ -34,12 +34,19 @@ type noteResolver struct {
 
 func (r noteResolver) ResolveWikilink(n *wikilink.Node) ([]byte, error) {
 	target := string(n.Target)
+	var dest string
 	if r.lookup != nil {
 		if path, ok := r.lookup[target]; ok {
-			return []byte("/notes/" + path), nil
+			dest = "/notes/" + path
 		}
 	}
-	return append([]byte("/notes/"), n.Target...), nil
+	if dest == "" {
+		dest = "/notes/" + target
+	}
+	if len(n.Fragment) > 0 {
+		dest += "#" + string(n.Fragment)
+	}
+	return []byte(dest), nil
 }
 
 // wikilinkRenderer renders [[wiki-links]] with title resolution.
@@ -73,19 +80,38 @@ func (r *wikilinkRenderer) render(w util.BufWriter, src []byte, node ast.Node, e
 
 	_, _ = w.WriteString(`<a href="`)
 	_, _ = w.Write(util.URLEscape(dest, true))
-	_, _ = w.WriteString(`">`)
+	_, _ = w.WriteString(`" class="wikilink"`)
 
-	// Check if there's an alias: if the child text equals the target, no alias was given.
+	// data-path: the resolved note path (without /notes/ prefix)
+	target := string(n.Target)
+	notePath := target
+	if r.resolver.lookup != nil {
+		if path, ok := r.resolver.lookup[target]; ok {
+			notePath = path
+		}
+	}
+	_, _ = fmt.Fprintf(w, ` data-path="%s"`, html.EscapeString(notePath))
+
+	if len(n.Fragment) > 0 {
+		_, _ = fmt.Fprintf(w, ` data-heading="%s"`, html.EscapeString(string(n.Fragment)))
+	}
+
+	_, _ = w.WriteString(`>`)
+
+	// Check if there's an alias: if the child text equals target or target#fragment,
+	// no alias was given.
 	childText := nodeTextFromWikilink(src, n)
-	hasAlias := !bytes.Equal(childText, n.Target)
+	targetWithFragment := string(n.Target)
+	if len(n.Fragment) > 0 {
+		targetWithFragment += "#" + string(n.Fragment)
+	}
+	hasAlias := string(childText) != string(n.Target) && string(childText) != targetWithFragment
 
 	if hasAlias {
-		// Let goldmark render the alias children.
 		return ast.WalkContinue, nil
 	}
 
 	// No alias — resolve title and write it directly.
-	target := string(n.Target)
 	path := ""
 	if r.resolver.lookup != nil {
 		path = r.resolver.lookup[target]
@@ -156,19 +182,63 @@ func newRenderer(lookup map[string]string, titleLookup map[string]string, hc *he
 			renderer.WithNodeRenderers(
 				util.Prioritized(&wikilinkRenderer{resolver: resolver}, 199),
 				util.Prioritized(&mermaidNodeRenderer{}, 100),
-				util.Prioritized(&flashcardNodeRenderer{}, 95),
+				util.Prioritized(&flashcardNodeRenderer{lookup: lookup, titleLookup: titleLookup}, 95),
 				util.Prioritized(&externalLinkRenderer{}, 50),
 			),
 		),
 	)
 }
 
+// RenderPreview renders markdown for preview popovers. Includes wikilinks,
+// GFM, and syntax highlighting but no page-level transforms (h1 stripping,
+// heading IDs, mermaid, flashcard transformers).
+func RenderPreview(src []byte, lookup map[string]string, titleLookup map[string]string) (RenderResult, error) {
+	resolver := noteResolver{lookup: lookup, titleLookup: titleLookup}
+	md := goldmark.New(
+		goldmark.WithExtensions(
+			extension.GFM,
+			highlighting.NewHighlighting(
+				highlighting.WithStyle("dracula"),
+				highlighting.WithFormatOptions(chromahtml.WithClasses(true)),
+			),
+		),
+		goldmark.WithParserOptions(
+			parser.WithInlineParsers(
+				util.Prioritized(&wikilink.Parser{}, 199),
+			),
+		),
+		goldmark.WithRendererOptions(
+			gmhtml.WithUnsafe(),
+			renderer.WithNodeRenderers(
+				util.Prioritized(&wikilinkRenderer{resolver: resolver}, 199),
+				util.Prioritized(&externalLinkRenderer{}, 50),
+			),
+		),
+	)
+	var buf bytes.Buffer
+	if err := md.Convert(src, &buf); err != nil {
+		return RenderResult{}, fmt.Errorf("render preview: %w", err)
+	}
+	return RenderResult{HTML: buf.String()}, nil
+}
+
 // RenderInline renders a short markdown string (card question/answer) to
-// inline HTML. Uses GFM but no page-level features (h1 stripping, heading
-// IDs, mermaid, flashcard transformers). Strips the wrapping <p> tag.
-func RenderInline(src string) string {
+// inline HTML. Uses GFM + wikilink parser. No page-level features (h1 stripping,
+// heading IDs, mermaid, flashcard transformers). Strips the wrapping <p> tag.
+func RenderInline(src string, lookup, titleLookup map[string]string) string {
+	resolver := noteResolver{lookup: lookup, titleLookup: titleLookup}
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithParserOptions(
+			parser.WithInlineParsers(
+				util.Prioritized(&wikilink.Parser{}, 199),
+			),
+		),
+		goldmark.WithRendererOptions(
+			renderer.WithNodeRenderers(
+				util.Prioritized(&wikilinkRenderer{resolver: resolver}, 199),
+			),
+		),
 	)
 	var buf bytes.Buffer
 	if err := md.Convert([]byte(src), &buf); err != nil {
@@ -182,8 +252,8 @@ func RenderInline(src string) string {
 
 // RenderCardQuestion renders a flashcard question. For cloze cards, it
 // replaces cloze markers with interactive [...] spans after markdown rendering.
-func RenderCardQuestion(question, kind string) string {
-	rendered := RenderInline(question)
+func RenderCardQuestion(question, kind string, lookup, titleLookup map[string]string) string {
+	rendered := RenderInline(question, lookup, titleLookup)
 	if kind == string(FlashcardCloze) {
 		rendered = applyClozeSpans(rendered)
 	}

@@ -15,6 +15,7 @@ type noteCache struct {
 	tags         []index.Tag
 	manifestJSON string
 	lookup       map[string]string
+	titleLookup  map[string]string
 	notesByPath  map[string]*index.Note
 }
 
@@ -33,11 +34,13 @@ func buildNoteCache(store Store) (*noteCache, error) {
 	}
 
 	lookup := make(map[string]string, len(notes)*2)
+	titleLookup := make(map[string]string, len(notes))
 	byPath := make(map[string]*index.Note, len(notes))
 	for i, n := range notes {
 		stem := strings.TrimSuffix(n.Path[strings.LastIndex(n.Path, "/")+1:], ".md")
 		lookup[stem] = n.Path
 		lookup[strings.TrimSuffix(n.Path, ".md")] = n.Path
+		titleLookup[n.Path] = n.Title
 		byPath[n.Path] = &notes[i]
 	}
 
@@ -50,6 +53,7 @@ func buildNoteCache(store Store) (*noteCache, error) {
 		tags:         tags,
 		manifestJSON: manifest,
 		lookup:       lookup,
+		titleLookup:  titleLookup,
 		notesByPath:  byPath,
 	}, nil
 }

@@ -222,3 +222,98 @@ func TestRender_MermaidXSS(t *testing.T) {
 		t.Errorf("mermaid content should be HTML-escaped: %s", result.HTML)
 	}
 }
+
+func TestRender_WikilinkAttributes(t *testing.T) {
+	src := []byte("See [[go-concurrency]] for details.\n")
+	lookup := map[string]string{"go-concurrency": "notes/go-concurrency.md"}
+	titleLookup := map[string]string{"notes/go-concurrency.md": "Go Concurrency"}
+
+	result, err := Render(src, lookup, titleLookup, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Must have class="wikilink"
+	if !strings.Contains(result.HTML, `class="wikilink"`) {
+		t.Errorf("missing class=wikilink in: %s", result.HTML)
+	}
+	// Must have data-path with the resolved note path
+	if !strings.Contains(result.HTML, `data-path="notes/go-concurrency.md"`) {
+		t.Errorf("missing data-path in: %s", result.HTML)
+	}
+	// Must NOT have data-heading when no fragment
+	if strings.Contains(result.HTML, `data-heading`) {
+		t.Errorf("unexpected data-heading in: %s", result.HTML)
+	}
+}
+
+func TestRender_WikilinkFragmentAttributes(t *testing.T) {
+	src := []byte("See [[go-concurrency#Channels]] for details.\n")
+	lookup := map[string]string{"go-concurrency": "notes/go-concurrency.md"}
+	titleLookup := map[string]string{"notes/go-concurrency.md": "Go Concurrency"}
+
+	result, err := Render(src, lookup, titleLookup, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Must have data-heading="Channels"
+	if !strings.Contains(result.HTML, `data-heading="Channels"`) {
+		t.Errorf("missing data-heading in: %s", result.HTML)
+	}
+	// href must include #fragment
+	if !strings.Contains(result.HTML, `#Channels"`) {
+		t.Errorf("missing #Channels in href: %s", result.HTML)
+	}
+}
+
+func TestRenderInline_Wikilink(t *testing.T) {
+	src := "A spaced repetition algorithm [[spaced-repetition#FSRS]]"
+	lookup := map[string]string{"spaced-repetition": "notes/spaced-repetition.md"}
+	titleLookup := map[string]string{"notes/spaced-repetition.md": "Spaced Repetition"}
+
+	result := RenderInline(src, lookup, titleLookup)
+
+	if !strings.Contains(result, `class="wikilink"`) {
+		t.Errorf("missing wikilink class in: %s", result)
+	}
+	if !strings.Contains(result, `data-path="notes/spaced-repetition.md"`) {
+		t.Errorf("missing data-path in: %s", result)
+	}
+	if !strings.Contains(result, `data-heading="FSRS"`) {
+		t.Errorf("missing data-heading in: %s", result)
+	}
+	if !strings.Contains(result, "Spaced Repetition") {
+		t.Errorf("missing resolved title in: %s", result)
+	}
+}
+
+func TestRenderInline_NoLookup(t *testing.T) {
+	src := "See [[some-note]]"
+	result := RenderInline(src, nil, nil)
+
+	if !strings.Contains(result, `class="wikilink"`) {
+		t.Errorf("missing wikilink class in: %s", result)
+	}
+	if !strings.Contains(result, "some-note") {
+		t.Errorf("missing target text in: %s", result)
+	}
+}
+
+func TestRender_FlashcardWithWikilink(t *testing.T) {
+	src := []byte("What is FSRS::An algorithm described in [[spaced-repetition]]\n")
+	lookup := map[string]string{"spaced-repetition": "notes/spaced-repetition.md"}
+	titleLookup := map[string]string{"notes/spaced-repetition.md": "Spaced Repetition"}
+
+	result, err := Render(src, lookup, titleLookup, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(result.HTML, `class="wikilink"`) {
+		t.Errorf("missing wikilink in flashcard HTML: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, "Spaced Repetition") {
+		t.Errorf("missing resolved title in flashcard HTML: %s", result.HTML)
+	}
+}

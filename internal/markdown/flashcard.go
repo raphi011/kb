@@ -481,7 +481,10 @@ func paragraphText(src []byte, p *ast.Paragraph) string {
 	return strings.TrimSpace(buf.String())
 }
 
-type flashcardNodeRenderer struct{}
+type flashcardNodeRenderer struct {
+	lookup      map[string]string
+	titleLookup map[string]string
+}
 
 func (r *flashcardNodeRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 	reg.Register(flashcardKind, r.renderFlashcard)
@@ -493,10 +496,12 @@ func (r *flashcardNodeRenderer) renderFlashcard(w util.BufWriter, _ []byte, node
 		return ast.WalkContinue, nil
 	}
 	fn := node.(*flashcardNode)
+	qHTML := RenderInline(string(fn.question), r.lookup, r.titleLookup)
+	aHTML := RenderInline(string(fn.answer), r.lookup, r.titleLookup)
 	fmt.Fprintf(w, `<div class="flashcard" data-card-hash="%s" data-card-kind="%s">`+"\n", fn.hash, fn.kind)
-	fmt.Fprintf(w, `  <div class="flashcard-q">%s</div>`+"\n", fn.question)
+	fmt.Fprintf(w, `  <div class="flashcard-q">%s</div>`+"\n", qHTML)
 	fmt.Fprintf(w, `  <button class="flashcard-reveal" type="button">Show answer</button>`+"\n")
-	fmt.Fprintf(w, `  <div class="flashcard-a" hidden>%s</div>`+"\n", fn.answer)
+	fmt.Fprintf(w, `  <div class="flashcard-a" hidden>%s</div>`+"\n", aHTML)
 	fmt.Fprintf(w, "</div>\n")
 	return ast.WalkContinue, nil
 }

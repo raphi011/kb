@@ -106,10 +106,11 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 		slog.Error("preview card", "error", err)
 	}
 
+	cache := s.noteCache()
 	data := views.ReviewCardData{
 		Card:         card,
-		QuestionHTML: markdown.RenderCardQuestion(card.Question, card.Kind),
-		AnswerHTML:   markdown.RenderInline(card.Answer),
+		QuestionHTML: markdown.RenderCardQuestion(card.Question, card.Kind, cache.lookup, cache.titleLookup),
+		AnswerHTML:   markdown.RenderInline(card.Answer, cache.lookup, cache.titleLookup),
 	}
 
 	var fcPanel *views.FlashcardPanelData
