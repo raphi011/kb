@@ -12,7 +12,7 @@ type SlidePanelData struct {
 
 templ SlidePanel(data SlidePanelData) {
 	<div class="resize-handle-v" data-resize-target="next"></div>
-	<details class="panel-section slide-panel" open aria-label="Slides" id="slide-panel">
+	<details class="panel-section slide-panel" open aria-label="Slides" id="slide-panel" data-panel="slides">
 		<summary class="panel-label">
 			Slides <span class="panel-count">{ intStr(len(data.Slides)) }</span>
 		</summary>
@@ -59,7 +59,7 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 			}
 			<div class="resize-handle-v" data-resize-target="next"></div>
 			if len(outgoing) > 0 {
-				<details class="panel-section toc-links-section" open aria-label="Outgoing links">
+				<details class="panel-section toc-links-section" open aria-label="Outgoing links" data-panel="links">
 					<summary class="panel-label">Links <span class="panel-count">{ lenStr(outgoing) }</span></summary>
 					<div class="panel-body toc-links-body">
 						for _, link := range outgoing {
@@ -92,7 +92,7 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 			}
 			<div class="resize-handle-v" data-resize-target="next"></div>
 			if len(backlinks) > 0 {
-				<details class="panel-section toc-links-section" open aria-label="Backlinks">
+				<details class="panel-section toc-links-section" open aria-label="Backlinks" data-panel="backlinks">
 					<summary class="panel-label">Backlinks <span class="panel-count">{ lenStr(backlinks) }</span></summary>
 					<div class="panel-body toc-links-body">
 						for _, link := range backlinks {

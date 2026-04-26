@@ -38,7 +38,7 @@ templ Tree(nodes []*FileNode) {
 
 templ TagList(tags []index.Tag) {
 	<div class="resize-handle-v server-tree" data-resize-target="next"></div>
-	<details class="panel-section sidebar-tags-section server-tree" open aria-label="Tags">
+	<details class="panel-section sidebar-tags-section server-tree" open aria-label="Tags" data-panel="tags">
 		<summary class="panel-label">
 			Tags <span class="panel-count">{ lenStr(tags) }</span>
 		</summary>
@@ -64,7 +64,7 @@ templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFl
 	<div id="bookmarks-panel"></div>
 	if len(flashcardNotes) > 0 {
 		<div class="resize-handle-v server-tree" data-resize-target="next"></div>
-		<details class="panel-section sidebar-tags-section server-tree" open aria-label="Flashcards">
+		<details class="panel-section sidebar-tags-section server-tree" open aria-label="Flashcards" data-panel="flashcards">
 			<summary class="panel-label">
 				Flashcards <span id="fc-due-badge" class="panel-count"></span>
 			</summary>

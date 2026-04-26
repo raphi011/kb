@@ -199,7 +199,7 @@ function renderBookmarksPanel() {
   if (hasBookmarks) {
     panel.innerHTML = `
       <div class="resize-handle-v" data-resize-target="next"></div>
-      <details class="panel-section sidebar-tags-section" open aria-label="Bookmarks">
+      <details class="panel-section sidebar-tags-section" open aria-label="Bookmarks" data-panel="bookmarks">
         <summary class="panel-label">
           Bookmarks <span class="panel-count">${bookmarks.length}</span>
         </summary>
