@@ -1,0 +1,11 @@
+package views
+
+// IconButton renders a button with an icon and an accessibility label.
+// Extra attributes (data-path, data-share-token, etc.) can be passed via attrs.
+templ IconButton(id string, class string, label string, icon string, attrs templ.Attributes) {
+	<button id={ id } class={ class } type="button" aria-label={ label } title={ label } { attrs... }>
+		<span>
+			@templ.Raw(icon)
+		</span>
+	</button>
+}
