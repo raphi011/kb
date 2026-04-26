@@ -53,6 +53,15 @@ func (s *Service) DueCards(notePath string, limit int) ([]Card, error) {
 	return cards, nil
 }
 
+// CardByHash returns a single card by its hash.
+func (s *Service) CardByHash(hash string) (Card, error) {
+	fc, err := s.idx.FlashcardByHash(hash)
+	if err != nil {
+		return Card{}, err
+	}
+	return Card{Flashcard: *fc}, nil
+}
+
 // Preview returns the scheduled due dates for each rating without persisting.
 func (s *Service) Preview(hash string) (Previews, error) {
 	fc, err := s.idx.FlashcardByHash(hash)

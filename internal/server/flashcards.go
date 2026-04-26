@@ -9,6 +9,7 @@ import (
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
 	"github.com/raphi011/kb/internal/server/views"
+	"github.com/raphi011/kb/internal/srs"
 )
 
 func (s *Server) handleFlashcardDashboard(w http.ResponseWriter, r *http.Request) {
@@ -38,12 +39,24 @@ func (s *Server) handleFlashcardDashboard(w http.ResponseWriter, r *http.Request
 
 func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 	notePath := r.URL.Query().Get("note")
+	cardHash := r.URL.Query().Get("card")
 
-	cards, err := s.store.DueCards(notePath, 1)
-	if err != nil {
-		slog.Error("due cards", "error", err)
-		s.renderError(w, r, http.StatusInternalServerError, "Failed to load cards")
-		return
+	var cards []srs.Card
+	if cardHash != "" {
+		if card, err := s.store.CardByHash(cardHash); err == nil {
+			cards = []srs.Card{card}
+			if notePath == "" {
+				notePath = card.NotePath
+			}
+		}
+	} else {
+		var err error
+		cards, err = s.store.DueCards(notePath, 1)
+		if err != nil {
+			slog.Error("due cards", "error", err)
+			s.renderError(w, r, http.StatusInternalServerError, "Failed to load cards")
+			return
+		}
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

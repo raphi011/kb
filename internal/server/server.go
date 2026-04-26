@@ -40,6 +40,7 @@ type Store interface {
 	RemoveBookmark(path string) error
 	RenderWithTags(src []byte, tags []string) (markdown.RenderResult, error)
 	DueCards(notePath string, limit int) ([]srs.Card, error)
+	CardByHash(hash string) (srs.Card, error)
 	ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error)
 	PreviewCard(hash string) (srs.Previews, error)
 	FlashcardStats() (srs.Stats, error)

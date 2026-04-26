@@ -318,6 +318,10 @@ func (kb *KB) DueCards(notePath string, limit int) ([]srs.Card, error) {
 	return kb.srs.DueCards(notePath, limit)
 }
 
+func (kb *KB) CardByHash(hash string) (srs.Card, error) {
+	return kb.srs.CardByHash(hash)
+}
+
 func (kb *KB) ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error) {
 	return kb.srs.Review(hash, rating)
 }

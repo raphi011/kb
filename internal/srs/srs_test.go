@@ -78,7 +78,7 @@ func TestPreview(t *testing.T) {
 func TestDueCards(t *testing.T) {
 	svc, _ := setupTestSRS(t)
 
-	cards, err := svc.DueCards(10)
+	cards, err := svc.DueCards("", 10)
 	if err != nil {
 		t.Fatal(err)
 	}

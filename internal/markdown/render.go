@@ -163,6 +163,47 @@ func newRenderer(lookup map[string]string, titleLookup map[string]string, hc *he
 	)
 }
 
+// RenderInline renders a short markdown string (card question/answer) to
+// inline HTML. Uses GFM but no page-level features (h1 stripping, heading
+// IDs, mermaid, flashcard transformers). Strips the wrapping <p> tag.
+func RenderInline(src string) string {
+	md := goldmark.New(
+		goldmark.WithExtensions(extension.GFM),
+	)
+	var buf bytes.Buffer
+	if err := md.Convert([]byte(src), &buf); err != nil {
+		return html.EscapeString(src)
+	}
+	out := strings.TrimSpace(buf.String())
+	out = strings.TrimPrefix(out, "<p>")
+	out = strings.TrimSuffix(out, "</p>")
+	return out
+}
+
+// RenderCardQuestion renders a flashcard question. For cloze cards, it
+// replaces cloze markers with interactive [...] spans after markdown rendering.
+func RenderCardQuestion(question, kind string) string {
+	rendered := RenderInline(question)
+	if kind == string(FlashcardCloze) {
+		rendered = applyClozeSpans(rendered)
+	}
+	return rendered
+}
+
+// applyClozeSpans replaces cloze markers in rendered HTML with interactive
+// reveal spans.
+func applyClozeSpans(s string) string {
+	s = clozeAnkiRe.ReplaceAllStringFunc(s, func(match string) string {
+		m := clozeAnkiRe.FindStringSubmatch(match)
+		return fmt.Sprintf(`<span class="cloze" tabindex="0"><span class="cloze-hint">[...]</span><span class="cloze-answer" hidden>%s</span></span>`, html.EscapeString(m[2]))
+	})
+	s = clozeHighlightRe.ReplaceAllStringFunc(s, func(match string) string {
+		m := clozeHighlightRe.FindStringSubmatch(match)
+		return fmt.Sprintf(`<span class="cloze" tabindex="0"><span class="cloze-hint">[...]</span><span class="cloze-answer" hidden>%s</span></span>`, html.EscapeString(m[1]))
+	})
+	return s
+}
+
 // h1Stripper removes the first h1 (shown separately in UI header).
 type h1Stripper struct{}
 

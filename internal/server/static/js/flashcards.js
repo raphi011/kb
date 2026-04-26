@@ -3,12 +3,22 @@
 let reviewState = null; // { done: 0, total: 0, ratings: {1:0, 2:0, 3:0, 4:0} }
 
 export function initFlashcards() {
-  // Delegated click on panel card items — scroll to card in note
+  // Delegated click on panel card items
   document.addEventListener('click', (e) => {
     const item = e.target.closest('.fc-panel-card');
     if (!item) return;
     const hash = item.dataset.hash;
     if (!hash) return;
+
+    // In review mode: jump to that specific card.
+    if (reviewState) {
+      const note = document.getElementById('fc-panel')?.dataset.note;
+      const url = '/flashcards/review?card=' + encodeURIComponent(hash) + (note ? '&note=' + encodeURIComponent(note) : '');
+      htmx.ajax('GET', url, { target: '#content-col', swap: 'innerHTML transition:true' });
+      return;
+    }
+
+    // In reading mode: scroll to the card in the note.
     const target = document.querySelector(`.flashcard[data-card-hash="${hash}"]`);
     if (target) {
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
