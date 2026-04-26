@@ -321,6 +321,8 @@
     border-collapse: collapse;
     margin: 1.2em 0;
     font-size: 14px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
   }
 
   th, td {
