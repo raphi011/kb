@@ -1,0 +1,7 @@
+package views
+
+templ Toast(message string, isError bool) {
+	<div class={ "toast", templ.KV("toast-error", isError) } role="alert">
+		{ message }
+	</div>
+}
