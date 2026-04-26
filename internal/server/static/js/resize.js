@@ -1,3 +1,5 @@
+import { set } from './ui-store.js';
+
 let verticalAbort = null;
 
 export function initResize() {
@@ -32,7 +34,7 @@ function setupHandle(handleId, cssVar, panelId, min, max, invert) {
       handle.removeEventListener('pointermove', onMove);
       handle.removeEventListener('pointerup', onUp);
       const finalWidth = Math.round(panel.getBoundingClientRect().width);
-      localStorage.setItem('zk-' + panelId + '-width', finalWidth);
+      set(panelId === 'sidebar' ? 'sidebarWidth' : 'tocPanelWidth', finalWidth);
     }
 
     handle.addEventListener('pointermove', onMove);
