@@ -471,7 +471,7 @@ a.backlink-card, .backlink-card {
 
 .settings-btn {
   padding: 6px 14px;
-  border-radius: 5px;
+  border-radius: var(--radius-md);
   background: var(--surface);
   color: var(--fg);
   transition: background var(--duration-base);
