@@ -138,6 +138,9 @@ func (s *Server) registerRoutes() error {
 	s.mux.HandleFunc("POST /flashcards/review/{hash}", s.handleFlashcardRate)
 	s.mux.HandleFunc("GET /flashcards/note/{path...}", s.handleFlashcardsForNote)
 	s.mux.HandleFunc("GET /api/flashcards/stats", s.handleFlashcardStatsAPI)
+	s.mux.HandleFunc("GET /settings", s.handleSettings)
+	s.mux.HandleFunc("POST /api/settings/pull", s.handlePull)
+	s.mux.HandleFunc("POST /api/settings/reindex", s.handleForceReindex)
 	return nil
 }
 
