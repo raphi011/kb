@@ -1,4 +1,6 @@
 import { findByPath, setBookmarked } from '../lib/manifest.js';
+import { api } from '../lib/api.js';
+import { toast } from '../lib/toast.js';
 import { registry } from '../lib/registry.js';
 
 export function initBookmarks() {
@@ -17,17 +19,18 @@ export function toggleBookmarkForCurrentNote() {
   toggleBookmark(btn.dataset.path);
 }
 
-function toggleBookmark(path) {
+async function toggleBookmark(path) {
   const entry = findByPath(path);
-  const isBookmarked = entry?.bookmarked;
-  const method = isBookmarked ? 'DELETE' : 'PUT';
+  const method = entry?.bookmarked ? 'DELETE' : 'PUT';
 
-  fetch('/api/bookmarks/' + encodeURI(path), { method })
-    .then(res => {
-      if (!res.ok) return;
-      setBookmarked(path, !isBookmarked);
-      updateBookmarkIcon();
-    });
+  try {
+    await api(method, `/api/bookmarks/${encodeURI(path)}`);
+    setBookmarked(path, !entry?.bookmarked);
+    updateBookmarkIcon();
+    htmx.ajax('GET', '/bookmarks/panel', { target: '#bookmarks-panel', swap: 'outerHTML' });
+  } catch {
+    toast('Failed to update bookmark', true);
+  }
 }
 
 function updateBookmarkIcon() {
