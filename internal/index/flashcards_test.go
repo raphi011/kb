@@ -141,6 +141,32 @@ func TestNotesWithFlashcards_DueCount(t *testing.T) {
 	}
 }
 
+func TestCardOverviewsForNote(t *testing.T) {
+	db := setupTestDB(t)
+
+	cards := []markdown.ParsedCard{
+		{Hash: "ov1", Question: "What is Go", Answer: "A language", Kind: markdown.FlashcardInline, Ord: 0},
+		{Hash: "ov2", Question: "What is Rust", Answer: "A language", Kind: markdown.FlashcardInline, Ord: 1},
+	}
+	if err := db.UpsertFlashcards("test.md", cards); err != nil {
+		t.Fatal(err)
+	}
+
+	overviews, err := db.CardOverviewsForNote("test.md", time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(overviews) != 2 {
+		t.Fatalf("got %d overviews, want 2", len(overviews))
+	}
+	if overviews[0].Hash != "ov1" {
+		t.Errorf("first hash = %q, want ov1", overviews[0].Hash)
+	}
+	if overviews[0].Status != "new" {
+		t.Errorf("status = %q, want new", overviews[0].Status)
+	}
+}
+
 func TestFlashcardStats(t *testing.T) {
 	db := setupTestDB(t)
 

@@ -41,12 +41,14 @@ func (m *mockKB) ReIndex() error                                              { 
 func (m *mockKB) RenderWithTags(src []byte, _ []string) (markdown.RenderResult, error) {
 	return markdown.Render(src, nil, nil, false)
 }
-func (m *mockKB) DueCards(limit int) ([]srs.Card, error)                      { return nil, nil }
+func (m *mockKB) DueCards(notePath string, limit int) ([]srs.Card, error)     { return nil, nil }
 func (m *mockKB) ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error) { return srs.Card{}, nil }
 func (m *mockKB) PreviewCard(hash string) (srs.Previews, error)               { return srs.Previews{}, nil }
 func (m *mockKB) FlashcardStats() (srs.Stats, error)                          { return srs.Stats{}, nil }
 func (m *mockKB) FlashcardsForNote(path string) ([]srs.Card, error)           { return nil, nil }
 func (m *mockKB) NotesWithFlashcards() ([]index.NoteFlashcardCount, error)    { return nil, nil }
+func (m *mockKB) ReviewSummaryForNote(string) (index.ReviewSummary, error)    { return index.ReviewSummary{}, nil }
+func (m *mockKB) CardOverviewsForNote(string) ([]index.CardOverview, error)  { return nil, nil }
 
 func newTestServer(t *testing.T) *Server {
 	t.Helper()

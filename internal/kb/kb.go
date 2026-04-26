@@ -314,8 +314,8 @@ func hasFlashcardsTag(tags []string) bool {
 
 // --- Flashcard API (delegates to srs service) ---
 
-func (kb *KB) DueCards(limit int) ([]srs.Card, error) {
-	return kb.srs.DueCards(limit)
+func (kb *KB) DueCards(notePath string, limit int) ([]srs.Card, error) {
+	return kb.srs.DueCards(notePath, limit)
 }
 
 func (kb *KB) ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error) {
@@ -336,4 +336,12 @@ func (kb *KB) FlashcardsForNote(path string) ([]srs.Card, error) {
 
 func (kb *KB) NotesWithFlashcards() ([]index.NoteFlashcardCount, error) {
 	return kb.srs.NotesWithFlashcards()
+}
+
+func (kb *KB) ReviewSummaryForNote(notePath string) (index.ReviewSummary, error) {
+	return kb.srs.ReviewSummaryForNote(notePath)
+}
+
+func (kb *KB) CardOverviewsForNote(notePath string) ([]index.CardOverview, error) {
+	return kb.srs.CardOverviewsForNote(notePath)
 }

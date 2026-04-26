@@ -39,12 +39,14 @@ type Store interface {
 	AddBookmark(path string) error
 	RemoveBookmark(path string) error
 	RenderWithTags(src []byte, tags []string) (markdown.RenderResult, error)
-	DueCards(limit int) ([]srs.Card, error)
+	DueCards(notePath string, limit int) ([]srs.Card, error)
 	ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error)
 	PreviewCard(hash string) (srs.Previews, error)
 	FlashcardStats() (srs.Stats, error)
 	FlashcardsForNote(path string) ([]srs.Card, error)
 	NotesWithFlashcards() ([]index.NoteFlashcardCount, error)
+	ReviewSummaryForNote(notePath string) (index.ReviewSummary, error)
+	CardOverviewsForNote(notePath string) ([]index.CardOverview, error)
 }
 
 // ReIndexer refreshes the git HEAD and re-indexes changed notes.

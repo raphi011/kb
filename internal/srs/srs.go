@@ -123,6 +123,11 @@ func (s *Service) Stats() (Stats, error) {
 	return s.idx.FlashcardStats(s.now())
 }
 
+// CardOverviewsForNote returns lightweight card summaries for the panel.
+func (s *Service) CardOverviewsForNote(notePath string) ([]index.CardOverview, error) {
+	return s.idx.CardOverviewsForNote(notePath, s.now())
+}
+
 // ReviewSummaryForNote returns rating counts for a note's reviews today.
 func (s *Service) ReviewSummaryForNote(notePath string) (index.ReviewSummary, error) {
 	return s.idx.ReviewSummaryForNote(notePath, s.now())

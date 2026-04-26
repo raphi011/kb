@@ -37,6 +37,13 @@ type FlashcardStats struct {
 	ReviewedToday int `json:"reviewedToday"`
 }
 
+// CardOverview is a lightweight card summary for the flashcard panel.
+type CardOverview struct {
+	Hash            string
+	QuestionPreview string
+	Status          string // "due", "new", or "ok"
+}
+
 // ReviewSummary holds per-rating counts for a review session.
 type ReviewSummary struct {
 	Again    int
@@ -44,6 +51,42 @@ type ReviewSummary struct {
 	Good     int
 	Easy     int
 	Total    int
+}
+
+// CardOverviewsForNote returns a lightweight card list for the flashcard panel.
+func (d *DB) CardOverviewsForNote(notePath string, now time.Time) ([]CardOverview, error) {
+	nowStr := now.Format(time.RFC3339)
+	rows, err := d.db.Query(`
+		SELECT f.card_hash, f.question,
+		       CASE
+		           WHEN s.card_hash IS NULL THEN 'new'
+		           WHEN s.due <= ? THEN 'due'
+		           ELSE 'ok'
+		       END as status
+		FROM flashcards f
+		LEFT JOIN flashcard_state s ON s.card_hash = f.card_hash
+		WHERE f.note_path = ?
+		ORDER BY f.ord`, nowStr, notePath)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var result []CardOverview
+	for rows.Next() {
+		var co CardOverview
+		var question string
+		if err := rows.Scan(&co.Hash, &question, &co.Status); err != nil {
+			return nil, err
+		}
+		if len(question) > 60 {
+			co.QuestionPreview = question[:57] + "..."
+		} else {
+			co.QuestionPreview = question
+		}
+		result = append(result, co)
+	}
+	return result, rows.Err()
 }
 
 // ReviewSummaryForNote returns rating counts for reviews of a note done today.
