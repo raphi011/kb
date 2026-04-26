@@ -1692,6 +1692,17 @@ a.backlink-card, .backlink-card {
   border-left-color: oklch(0.65 0.2 25);
 }
 
+.toast-action {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  margin-left: 8px;
+  padding: 0;
+  text-decoration: underline;
+}
+
 @keyframes toast-in {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
