@@ -167,6 +167,7 @@ func (kb *KB) indexFile(path string, content []byte, timestamps map[string]gitre
 		Body:      doc.Body,
 		Lead:      doc.Lead,
 		WordCount: doc.WordCount,
+		IsMarp:    doc.IsMarp,
 		Created:   ts.Created,
 		Modified:  ts.Modified,
 		Metadata:  doc.Frontmatter,
