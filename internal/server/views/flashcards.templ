@@ -257,13 +257,13 @@ templ FlashcardPanel(data FlashcardPanelData) {
 			}
 			<div class="fc-panel-cards" id="fc-panel-cards">
 				for _, card := range data.Cards {
-					<div
+					<a
 						class={ "fc-panel-card", templ.KV("fc-panel-card-due", card.Status == "due"), templ.KV("fc-panel-card-new", card.Status == "new") }
 						data-hash={ card.Hash }
 						title={ card.QuestionPreview }
 					>
 						{ card.QuestionPreview }
-					</div>
+					</a>
 				}
 			</div>
 		</div>

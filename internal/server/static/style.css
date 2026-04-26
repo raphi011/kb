@@ -1859,6 +1859,7 @@ a.backlink-card, .backlink-card {
 }
 
 .fc-panel-card {
+  display: block;
   padding: 2px 0;
   font-size: 11px;
   font-family: var(--font-ui);
@@ -1867,6 +1868,10 @@ a.backlink-card, .backlink-card {
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.6;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover { color: var(--text-muted); }
 
   &::before {
     content: '\25CB  ';

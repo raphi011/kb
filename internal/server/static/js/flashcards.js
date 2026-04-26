@@ -3,6 +3,18 @@
 let reviewState = null; // { done: 0, total: 0, ratings: {1:0, 2:0, 3:0, 4:0} }
 
 export function initFlashcards() {
+  // Delegated click on panel card items — scroll to card in note
+  document.addEventListener('click', (e) => {
+    const item = e.target.closest('.fc-panel-card');
+    if (!item) return;
+    const hash = item.dataset.hash;
+    if (!hash) return;
+    const target = document.querySelector(`.flashcard[data-card-hash="${hash}"]`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+
   // Delegated click on .flashcard-reveal toggles .flashcard-a[hidden]
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('.flashcard-reveal');
