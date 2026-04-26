@@ -1,3 +1,5 @@
+import { api } from '../lib/api.js';
+import { toast } from '../lib/toast.js';
 import { registry } from '../lib/registry.js';
 
 export function initShare() {
@@ -10,70 +12,46 @@ export function initShare() {
   updateShareIcon();
 }
 
-function handleShareClick(btn) {
+async function handleShareClick(btn) {
   const path = btn.dataset.path;
   const token = btn.dataset.shareToken;
 
   if (token) {
     const url = location.origin + '/s/' + token;
-    copyAndToast(url, path);
+    await navigator.clipboard.writeText(url).catch(() => {});
+    toast('Share link copied!', false, [{ label: 'Revoke', onClick: () => revoke(path) }]);
     return;
   }
 
-  fetch('/api/share/' + encodeURI(path), { method: 'POST' })
-    .then(res => res.json())
-    .then(data => {
-      btn.dataset.shareToken = data.token;
-      btn.classList.add('shared');
-      copyAndToast(data.url, path);
-    });
+  try {
+    const data = await api('POST', `/api/share/${encodeURI(path)}`);
+    btn.dataset.shareToken = data.token;
+    btn.classList.add('shared');
+    await navigator.clipboard.writeText(data.url).catch(() => {});
+    toast('Share link copied!', false, [{ label: 'Revoke', onClick: () => revoke(path) }]);
+  } catch {
+    toast('Failed to share note', true);
+  }
 }
 
-function copyAndToast(url, path) {
-  navigator.clipboard.writeText(url).catch(() => {});
-
-  const container = document.getElementById('toast-container');
-  if (!container) return;
-
-  const toast = document.createElement('div');
-  toast.className = 'toast';
-  toast.appendChild(document.createTextNode('Share link copied! '));
-  const revokeBtn = document.createElement('button');
-  revokeBtn.className = 'toast-action';
-  revokeBtn.textContent = 'Revoke';
-  revokeBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    revoke(path);
-    toast.remove();
-  });
-  toast.appendChild(revokeBtn);
-  container.appendChild(toast);
-}
-
-function revoke(path) {
-  fetch('/api/share/' + encodeURI(path), { method: 'DELETE' })
-    .then(res => {
-      if (!res.ok) return;
-      const btn = document.getElementById('share-btn');
-      if (btn) {
-        btn.dataset.shareToken = '';
-        btn.classList.remove('shared');
-      }
-      const container = document.getElementById('toast-container');
-      if (container) {
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.textContent = 'Share link revoked';
-        container.appendChild(toast);
-      }
-    });
+async function revoke(path) {
+  try {
+    await api('DELETE', `/api/share/${encodeURI(path)}`);
+    const btn = document.getElementById('share-btn');
+    if (btn) {
+      btn.dataset.shareToken = '';
+      btn.classList.remove('shared');
+    }
+    toast('Share link revoked');
+  } catch {
+    toast('Failed to revoke share link', true);
+  }
 }
 
 function updateShareIcon() {
   const btn = document.getElementById('share-btn');
   if (!btn) return;
-  const token = btn.dataset.shareToken;
-  btn.classList.toggle('shared', !!token);
+  btn.classList.toggle('shared', !!btn.dataset.shareToken);
 }
 
 registry.register('#share-btn', { init: updateShareIcon });
