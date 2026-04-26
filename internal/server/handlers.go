@@ -204,10 +204,12 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 		}
 	}
 
+	shareToken, _ := s.store.ShareTokenForNote(note.Path)
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if isHTMX(r) {
-		if err := views.NoteContentInner(breadcrumbs, note, result.HTML, backlinks, headings).Render(r.Context(), w); err != nil {
+		if err := views.NoteContentInner(breadcrumbs, note, result.HTML, backlinks, headings, shareToken).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
 		s.renderTOCForPage(w, r, headings, outLinks, backlinks, fcPanel, nil)
@@ -217,7 +219,7 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 	s.renderFullPage(w, r, views.LayoutParams{
 		Title:          note.Title,
 		Tree:           buildTree(s.noteCache().notes, note.Path),
-		ContentCol:     views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, headings),
+		ContentCol:     views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, headings, shareToken),
 		Headings:       headings,
 		OutgoingLinks:  outLinks,
 		Backlinks:      backlinks,
@@ -240,10 +242,12 @@ func (s *Server) renderMarpNote(w http.ResponseWriter, r *http.Request, note *in
 		slidePanel = &views.SlidePanelData{Slides: doc.Slides}
 	}
 
+	shareToken, _ := s.store.ShareTokenForNote(note.Path)
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if isHTMX(r) {
-		if err := views.MarpNoteContentInner(breadcrumbs, note, string(raw), doc.Slides, baseURL).Render(r.Context(), w); err != nil {
+		if err := views.MarpNoteContentInner(breadcrumbs, note, string(raw), doc.Slides, baseURL, shareToken).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
 		s.renderTOCForPage(w, r, nil, nil, nil, nil, slidePanel)
@@ -253,7 +257,7 @@ func (s *Server) renderMarpNote(w http.ResponseWriter, r *http.Request, note *in
 	s.renderFullPage(w, r, views.LayoutParams{
 		Title:      note.Title,
 		Tree:       buildTree(s.noteCache().notes, note.Path),
-		ContentCol: views.MarpNoteContentCol(breadcrumbs, note, string(raw), doc.Slides, baseURL),
+		ContentCol: views.MarpNoteContentCol(breadcrumbs, note, string(raw), doc.Slides, baseURL, shareToken),
 		SlidePanel: slidePanel,
 	})
 }

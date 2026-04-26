@@ -19,7 +19,7 @@ templ Breadcrumb(segments []BreadcrumbSegment, currentTitle string) {
 	</nav>
 }
 
-templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading) {
+templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading, shareToken string) {
 	if len(headings) > 0 {
 		<details id="mob-toc-details" class="mob-toc" aria-label="Table of contents">
 			<summary class="mob-toc-toggle">On this page</summary>
@@ -33,15 +33,28 @@ templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, hea
 	<article id="article">
 		<div class="article-title-row">
 			<h1 id="article-title">{ note.Title }</h1>
-			<button
-				id="bookmark-btn"
-				class="bookmark-btn"
-				type="button"
-				aria-label="Toggle bookmark"
-				data-path={ note.Path }
-			>
-				<span class="bookmark-icon">&#9734;</span>
-			</button>
+			<div class="article-title-actions">
+				<button
+					id="share-btn"
+					class="share-btn"
+					type="button"
+					aria-label="Share note"
+					title="Share note"
+					data-path={ note.Path }
+					data-share-token={ shareToken }
+				>
+					<span class="share-icon">&#128279;</span>
+				</button>
+				<button
+					id="bookmark-btn"
+					class="bookmark-btn"
+					type="button"
+					aria-label="Toggle bookmark"
+					data-path={ note.Path }
+				>
+					<span class="bookmark-icon">&#9734;</span>
+				</button>
+			</div>
 		</div>
 		<div class="article-meta">
 			<span class="article-meta-text">
@@ -71,7 +84,7 @@ templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, hea
 	</article>
 }
 
-templ MarpArticle(note *index.Note, rawMarkdown string, slides []markdown.SlideInfo, baseURL string) {
+templ MarpArticle(note *index.Note, rawMarkdown string, slides []markdown.SlideInfo, baseURL string, shareToken string) {
 	<article id="article">
 		<div class="article-title-row">
 			<h1 id="article-title">{ note.Title }</h1>
@@ -84,6 +97,17 @@ templ MarpArticle(note *index.Note, rawMarkdown string, slides []markdown.SlideI
 					title="Present fullscreen"
 				>
 					&#9655; Present
+				</button>
+				<button
+					id="share-btn"
+					class="share-btn"
+					type="button"
+					aria-label="Share note"
+					title="Share note"
+					data-path={ note.Path }
+					data-share-token={ shareToken }
+				>
+					<span class="share-icon">&#128279;</span>
 				</button>
 				<button
 					id="bookmark-btn"
@@ -110,16 +134,16 @@ templ MarpArticle(note *index.Note, rawMarkdown string, slides []markdown.SlideI
 	</article>
 }
 
-templ MarpNoteContentInner(segments []BreadcrumbSegment, note *index.Note, rawMarkdown string, slides []markdown.SlideInfo, baseURL string) {
+templ MarpNoteContentInner(segments []BreadcrumbSegment, note *index.Note, rawMarkdown string, slides []markdown.SlideInfo, baseURL string, shareToken string) {
 	@Breadcrumb(segments, note.Title)
 	<div id="content-area">
-		@MarpArticle(note, rawMarkdown, slides, baseURL)
+		@MarpArticle(note, rawMarkdown, slides, baseURL, shareToken)
 	</div>
 }
 
-templ MarpNoteContentCol(segments []BreadcrumbSegment, note *index.Note, rawMarkdown string, slides []markdown.SlideInfo, baseURL string) {
+templ MarpNoteContentCol(segments []BreadcrumbSegment, note *index.Note, rawMarkdown string, slides []markdown.SlideInfo, baseURL string, shareToken string) {
 	<div id="content-col" role="main">
-		@MarpNoteContentInner(segments, note, rawMarkdown, slides, baseURL)
+		@MarpNoteContentInner(segments, note, rawMarkdown, slides, baseURL, shareToken)
 	</div>
 }
 
@@ -154,16 +178,16 @@ templ FolderListing(folderName string, entries []FolderEntry) {
 	</article>
 }
 
-templ NoteContentInner(segments []BreadcrumbSegment, note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading) {
+templ NoteContentInner(segments []BreadcrumbSegment, note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading, shareToken string) {
 	@Breadcrumb(segments, note.Title)
 	<div id="content-area">
-		@NoteArticle(note, noteHTML, backlinks, headings)
+		@NoteArticle(note, noteHTML, backlinks, headings, shareToken)
 	</div>
 }
 
-templ NoteContentCol(segments []BreadcrumbSegment, note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading) {
+templ NoteContentCol(segments []BreadcrumbSegment, note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading, shareToken string) {
 	<div id="content-col" role="main">
-		@NoteContentInner(segments, note, noteHTML, backlinks, headings)
+		@NoteContentInner(segments, note, noteHTML, backlinks, headings, shareToken)
 	</div>
 }
 
