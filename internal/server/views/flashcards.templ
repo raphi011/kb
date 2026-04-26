@@ -8,6 +8,22 @@ import (
 	"github.com/raphi011/kb/internal/srs"
 )
 
+// ReviewCardData holds a card with pre-rendered HTML for display.
+type ReviewCardData struct {
+	srs.Card
+	QuestionHTML string
+	AnswerHTML   string
+}
+
+// FlashcardPanelData holds data for the TOC flashcard panel.
+type FlashcardPanelData struct {
+	NotePath   string
+	DueCount   int
+	TotalCount int
+	Cards      []index.CardOverview
+	ReviewMode bool
+}
+
 func dueLabel(t time.Time) string {
 	d := time.Until(t)
 	switch {
@@ -64,7 +80,7 @@ templ FlashcardDashboardCol(stats index.FlashcardStats) {
 	</div>
 }
 
-templ ReviewCardContent(card srs.Card, previews srs.Previews) {
+templ ReviewCardContent(card ReviewCardData, previews srs.Previews, notePath string) {
 	<div id="content-area">
 		<article id="article">
 			<h1 id="article-title">Review</h1>
@@ -75,16 +91,27 @@ templ ReviewCardContent(card srs.Card, previews srs.Previews) {
 						<span class="fc-card-kind">{ card.Kind }</span>
 						<a class="fc-card-note" href={ templ.SafeURL("/notes/" + card.NotePath) }>{ card.NotePath }</a>
 					</div>
-					<div class="fc-q-text">{ card.Question }</div>
+					<div class="fc-q-text">@templ.Raw(card.QuestionHTML)</div>
 				</div>
 				<div class="fc-answer-section">
-					<button class="fc-show-answer" type="button" onclick="this.parentElement.querySelector('.fc-answer').removeAttribute('hidden');this.remove();">
-						Show answer
-					</button>
+					if card.Kind == "cloze" {
+						<button class="fc-show-answer" type="button" onclick="this.parentElement.querySelector('.fc-answer').removeAttribute('hidden');this.remove();">
+							Rate
+						</button>
+					} else {
+						<button class="fc-show-answer" type="button" onclick="this.parentElement.querySelector('.fc-answer').removeAttribute('hidden');this.remove();">
+							Show answer
+						</button>
+					}
 					<div class="fc-answer" hidden>
-						<div class="fc-a-text">{ card.Answer }</div>
+						if card.Kind != "cloze" {
+							<div class="fc-a-text">@templ.Raw(card.AnswerHTML)</div>
+						}
 						<div class="fc-rating-buttons">
 							<form method="post" action={ templ.SafeURL("/flashcards/review/" + card.CardHash) } hx-post={ "/flashcards/review/" + card.CardHash } hx-target="#content-col" hx-swap="innerHTML transition:true">
+								if notePath != "" {
+									<input type="hidden" name="note" value={ notePath }/>
+								}
 								<button class="fc-rate fc-rate-again" name="rating" value="1" type="submit">
 									Again<span class="fc-rate-due">{ dueLabel(previews.Again) }</span>
 								</button>
@@ -106,30 +133,56 @@ templ ReviewCardContent(card srs.Card, previews srs.Previews) {
 	</div>
 }
 
-templ ReviewCardCol(card srs.Card, previews srs.Previews) {
+templ ReviewCardCol(card ReviewCardData, previews srs.Previews, notePath string) {
 	<div id="content-col" role="main">
-		@ReviewCardContent(card, previews)
+		@ReviewCardContent(card, previews, notePath)
 	</div>
 }
 
-templ ReviewDoneContent(stats index.FlashcardStats) {
+templ ReviewDoneContent(stats index.FlashcardStats, notePath string, summary index.ReviewSummary) {
 	<div id="content-area">
 		<article id="article">
 			<h1 id="article-title">Review Complete</h1>
 			<hr class="article-divider"/>
 			<div class="fc-dashboard">
+				if summary.Total > 0 {
+					<div class="fc-stats">
+						<div class="fc-stat">
+							<span class="fc-stat-num">{ intStr(summary.Again) }</span>
+							<span class="fc-stat-label">Again</span>
+						</div>
+						<div class="fc-stat">
+							<span class="fc-stat-num">{ intStr(summary.Hard) }</span>
+							<span class="fc-stat-label">Hard</span>
+						</div>
+						<div class="fc-stat">
+							<span class="fc-stat-num">{ intStr(summary.Good) }</span>
+							<span class="fc-stat-label">Good</span>
+						</div>
+						<div class="fc-stat">
+							<span class="fc-stat-num">{ intStr(summary.Easy) }</span>
+							<span class="fc-stat-label">Easy</span>
+						</div>
+					</div>
+				}
 				<p class="fc-all-done">All caught up! You reviewed { intStr(stats.ReviewedToday) } cards today.</p>
-				<a class="fc-start-btn" href="/flashcards" hx-get="/flashcards" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true">
-					Back to dashboard
-				</a>
+				if notePath != "" {
+					<a class="fc-start-btn" href={ templ.SafeURL("/notes/" + notePath) } hx-get={ "/notes/" + notePath } hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true">
+						Back to note
+					</a>
+				} else {
+					<a class="fc-start-btn" href="/flashcards" hx-get="/flashcards" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true">
+						Back to dashboard
+					</a>
+				}
 			</div>
 		</article>
 	</div>
 }
 
-templ ReviewDoneCol(stats index.FlashcardStats) {
+templ ReviewDoneCol(stats index.FlashcardStats, notePath string, summary index.ReviewSummary) {
 	<div id="content-col" role="main">
-		@ReviewDoneContent(stats)
+		@ReviewDoneContent(stats, notePath, summary)
 	</div>
 }
 
@@ -153,4 +206,66 @@ templ FlashcardsForNoteContent(notePath string, cards []srs.Card) {
 			}
 		</article>
 	</div>
+}
+
+templ FlashcardPanel(data FlashcardPanelData) {
+	<div class="resize-handle-v" data-resize-target="next"></div>
+	<details
+		class="toc-links-section fc-panel"
+		open
+		aria-label="Flashcards"
+		id="fc-panel"
+		data-total={ intStr(data.TotalCount) }
+		data-due={ intStr(data.DueCount) }
+		data-note={ data.NotePath }
+	>
+		<summary class="toc-links-label">
+			if data.ReviewMode {
+				Reviewing <span class="tl-count" id="fc-panel-progress">0 / { intStr(data.TotalCount) }</span>
+			} else {
+				Flashcards
+				if data.DueCount > 0 {
+					<span class="tl-count fc-panel-due">{ intStr(data.DueCount) } due</span>
+				}
+				<span class="tl-count">{ intStr(data.TotalCount) }</span>
+			}
+		</summary>
+		<div class="toc-links-body fc-panel-body">
+			if data.ReviewMode {
+				<div class="fc-panel-bar-wrap">
+					<div class="fc-panel-bar" id="fc-panel-bar" style="width: 0%"></div>
+				</div>
+				<div class="fc-panel-stats" id="fc-panel-stats">
+					<span class="fc-ps fc-ps-again">Again <strong>0</strong></span>
+					<span class="fc-ps fc-ps-hard">Hard <strong>0</strong></span>
+					<span class="fc-ps fc-ps-good">Good <strong>0</strong></span>
+					<span class="fc-ps fc-ps-easy">Easy <strong>0</strong></span>
+				</div>
+			} else {
+				if data.DueCount > 0 {
+					<a
+						class="fc-panel-review-btn"
+						href={ templ.SafeURL("/flashcards/review?note=" + data.NotePath) }
+						hx-get={ "/flashcards/review?note=" + data.NotePath }
+						hx-target="#content-col"
+						hx-swap="innerHTML transition:true"
+						hx-push-url="true"
+					>Review due cards</a>
+				} else {
+					<span class="fc-panel-all-done">All caught up</span>
+				}
+			}
+			<div class="fc-panel-cards" id="fc-panel-cards">
+				for _, card := range data.Cards {
+					<div
+						class={ "fc-panel-card", templ.KV("fc-panel-card-due", card.Status == "due"), templ.KV("fc-panel-card-new", card.Status == "new") }
+						data-hash={ card.Hash }
+						title={ card.QuestionPreview }
+					>
+						{ card.QuestionPreview }
+					</div>
+				}
+			</div>
+		</div>
+	</details>
 }

@@ -1857,3 +1857,106 @@ a.backlink-card, .backlink-card {
   border-radius: 6px;
   padding: 12px;
 }
+
+/* --- Flashcard TOC panel --- */
+
+.fc-panel-body {
+  padding: 6px 12px 8px;
+}
+
+.fc-panel-review-btn {
+  display: block;
+  text-align: center;
+  padding: 6px 0;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-family: var(--font-ui);
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: background 0.1s;
+
+  &:hover { background: var(--accent-soft); }
+}
+
+.fc-panel-all-done {
+  display: block;
+  text-align: center;
+  padding: 6px 0;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-family: var(--font-ui);
+  color: var(--text-faint);
+}
+
+.fc-panel-due {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.fc-panel-bar-wrap {
+  height: 4px;
+  background: var(--bg-active);
+  border-radius: 2px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.fc-panel-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.fc-panel-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-family: var(--font-ui);
+  color: var(--text-muted);
+}
+
+.fc-ps strong {
+  font-weight: 600;
+}
+
+.fc-panel-card {
+  padding: 2px 0;
+  font-size: 11px;
+  font-family: var(--font-ui);
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.6;
+
+  &::before {
+    content: '\25CB  ';
+    color: var(--text-faint);
+  }
+}
+
+.fc-panel-card-due::before,
+.fc-panel-card-new::before {
+  content: '\25CF  ';
+  color: var(--accent);
+}
+
+.fc-panel-card.fc-panel-card-done::before {
+  content: '\2713  ';
+  color: var(--text-faint);
+}
+
+.fc-panel-card.fc-panel-card-current {
+  color: var(--text);
+  font-weight: 600;
+
+  &::before {
+    content: '\25BA  ';
+    color: var(--accent);
+  }
+}
