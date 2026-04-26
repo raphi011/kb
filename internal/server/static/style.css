@@ -351,7 +351,7 @@ html.zen, body.zen {
 /* ── Sidebar ───────────────────────────────────────────────── */
 
 #sidebar {
-  --tree-row-h: 23px;
+  --tree-row-h: 26px;
   position: sticky;
   top: calc(var(--topbar-height) + env(safe-area-inset-top));
   height: calc(100dvh - var(--topbar-height) - env(safe-area-inset-top));
@@ -536,6 +536,7 @@ html.zen, body.zen {
   top: calc(var(--depth, 0) * var(--tree-row-h));
   z-index: calc(10 - var(--depth, 0));
   background: var(--surface);
+  height: var(--tree-row-h);
   display: flex;
   align-items: center;
   gap: 4px;
