@@ -134,6 +134,7 @@ func (s *Server) registerRoutes() error {
 	s.mux.HandleFunc("GET /calendar", s.handleCalendar)
 	s.mux.HandleFunc("GET /tags", s.handleTags)
 	s.mux.HandleFunc("GET /notes/{path...}", s.handleNote)
+	s.mux.HandleFunc("GET /bookmarks/panel", s.handleBookmarksPanel)
 	s.mux.HandleFunc("PUT /api/bookmarks/{path...}", s.handleBookmarkPut)
 	s.mux.HandleFunc("DELETE /api/bookmarks/{path...}", s.handleBookmarkDelete)
 	s.mux.HandleFunc("POST /api/share/{path...}", s.handleShareCreate)

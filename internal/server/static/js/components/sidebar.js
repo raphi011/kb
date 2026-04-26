@@ -1,5 +1,6 @@
 import { esc } from '../utils.js';
 import { getManifest } from '../lib/manifest.js';
+import { Events } from '../lib/events.js';
 let selectedTags = [];
 let selectedDate = null;
 
@@ -56,9 +57,9 @@ export function initSidebar() {
     }
   }
 
-  document.addEventListener('zk:manifest-changed', () => renderBookmarksPanel());
-
-  renderBookmarksPanel();
+  document.addEventListener(Events.MANIFEST_CHANGED, () => {
+    htmx.ajax('GET', '/bookmarks/panel', { target: '#bookmarks-panel', swap: 'outerHTML' });
+  });
 }
 
 // ── Public API for calendar.js ──────────────────────────────
@@ -189,41 +190,3 @@ function renderFilters() {
   filtersEl.innerHTML = html;
 }
 
-function renderBookmarksPanel() {
-  const panel = document.getElementById('bookmarks-panel');
-  if (!panel) return;
-
-  const bookmarks = getManifest().filter(n => n.bookmarked);
-  const hasBookmarks = bookmarks.length > 0;
-
-  if (hasBookmarks) {
-    panel.innerHTML = `
-      <div class="resize-handle-v" data-resize-target="next"></div>
-      <details class="panel-section sidebar-tags-section" open aria-label="Bookmarks" data-panel="bookmarks">
-        <summary class="panel-label">
-          Bookmarks <span class="panel-count">${bookmarks.length}</span>
-        </summary>
-        <div class="panel-body sidebar-section-body">
-          ${bookmarks.map(n => `
-            <a class="sidebar-panel-item" href="/notes/${esc(n.path)}"
-               hx-get="/notes/${esc(n.path)}"
-               hx-target="#content-col"
-               hx-swap="innerHTML transition:true"
-               hx-push-url="true"
-               data-path="${esc(n.path)}">
-              ${esc(n.title || n.path)}
-            </a>`).join('')}
-        </div>
-      </details>`;
-  } else {
-    panel.innerHTML = `
-      <div class="resize-handle-v" data-resize-target="next"></div>
-      <div class="panel-section sidebar-tags-section">
-        <span class="panel-label">
-          Bookmarks <span class="panel-count">0</span>
-        </span>
-      </div>`;
-  }
-
-  htmx.process(panel);
-}

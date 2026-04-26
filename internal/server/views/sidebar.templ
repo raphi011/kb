@@ -95,3 +95,34 @@ templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFl
 		@TagList(tags)
 	}
 }
+
+type BookmarkEntry struct {
+	Path  string
+	Title string
+}
+
+templ BookmarksPanel(bookmarks []BookmarkEntry) {
+	<div id="bookmarks-panel">
+		<div class="resize-handle-v" data-resize-target="next"></div>
+		if len(bookmarks) > 0 {
+			<details class="panel-section sidebar-tags-section" open aria-label="Bookmarks" data-panel="bookmarks">
+				<summary class="panel-label">
+					Bookmarks <span class="panel-count">{ intStr(len(bookmarks)) }</span>
+				</summary>
+				<div class="panel-body sidebar-section-body">
+					for _, b := range bookmarks {
+						@ContentLink("sidebar-panel-item", "/notes/" + b.Path) {
+							{ b.Title }
+						}
+					}
+				</div>
+			</details>
+		} else {
+			<div class="panel-section sidebar-tags-section">
+				<span class="panel-label">
+					Bookmarks <span class="panel-count">0</span>
+				</span>
+			</div>
+		}
+	</div>
+}

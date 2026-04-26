@@ -450,6 +450,27 @@ func (s *Server) handleBookmarkDelete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (s *Server) handleBookmarksPanel(w http.ResponseWriter, r *http.Request) {
+	cache := s.noteCache()
+	bookmarkedPaths, err := s.store.BookmarkedPaths()
+	if err != nil {
+		slog.Error("bookmarked paths", "error", err)
+		bookmarkedPaths = nil
+	}
+
+	var bookmarks []views.BookmarkEntry
+	for _, path := range bookmarkedPaths {
+		if note := cache.notesByPath[path]; note != nil {
+			bookmarks = append(bookmarks, views.BookmarkEntry{Path: note.Path, Title: note.Title})
+		}
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if err := views.BookmarksPanel(bookmarks).Render(r.Context(), w); err != nil {
+		slog.Error("render bookmarks panel", "error", err)
+	}
+}
+
 func writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(v); err != nil {
