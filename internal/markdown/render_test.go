@@ -266,3 +266,36 @@ func TestRender_WikilinkFragmentAttributes(t *testing.T) {
 		t.Errorf("missing #Channels in href: %s", result.HTML)
 	}
 }
+
+func TestRenderInline_Wikilink(t *testing.T) {
+	src := "A spaced repetition algorithm [[spaced-repetition#FSRS]]"
+	lookup := map[string]string{"spaced-repetition": "notes/spaced-repetition.md"}
+	titleLookup := map[string]string{"notes/spaced-repetition.md": "Spaced Repetition"}
+
+	result := RenderInline(src, lookup, titleLookup)
+
+	if !strings.Contains(result, `class="wikilink"`) {
+		t.Errorf("missing wikilink class in: %s", result)
+	}
+	if !strings.Contains(result, `data-path="notes/spaced-repetition.md"`) {
+		t.Errorf("missing data-path in: %s", result)
+	}
+	if !strings.Contains(result, `data-heading="FSRS"`) {
+		t.Errorf("missing data-heading in: %s", result)
+	}
+	if !strings.Contains(result, "Spaced Repetition") {
+		t.Errorf("missing resolved title in: %s", result)
+	}
+}
+
+func TestRenderInline_NoLookup(t *testing.T) {
+	src := "See [[some-note]]"
+	result := RenderInline(src, nil, nil)
+
+	if !strings.Contains(result, `class="wikilink"`) {
+		t.Errorf("missing wikilink class in: %s", result)
+	}
+	if !strings.Contains(result, "some-note") {
+		t.Errorf("missing target text in: %s", result)
+	}
+}

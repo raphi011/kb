@@ -98,9 +98,14 @@ func (r *wikilinkRenderer) render(w util.BufWriter, src []byte, node ast.Node, e
 
 	_, _ = w.WriteString(`>`)
 
-	// Check if there's an alias: if the child text equals the target, no alias was given.
+	// Check if there's an alias: if the child text equals target or target#fragment,
+	// no alias was given.
 	childText := nodeTextFromWikilink(src, n)
-	hasAlias := !bytes.Equal(childText, n.Target)
+	targetWithFragment := string(n.Target)
+	if len(n.Fragment) > 0 {
+		targetWithFragment += "#" + string(n.Fragment)
+	}
+	hasAlias := string(childText) != string(n.Target) && string(childText) != targetWithFragment
 
 	if hasAlias {
 		return ast.WalkContinue, nil
@@ -185,11 +190,22 @@ func newRenderer(lookup map[string]string, titleLookup map[string]string, hc *he
 }
 
 // RenderInline renders a short markdown string (card question/answer) to
-// inline HTML. Uses GFM but no page-level features (h1 stripping, heading
-// IDs, mermaid, flashcard transformers). Strips the wrapping <p> tag.
-func RenderInline(src string) string {
+// inline HTML. Uses GFM + wikilink parser. No page-level features (h1 stripping,
+// heading IDs, mermaid, flashcard transformers). Strips the wrapping <p> tag.
+func RenderInline(src string, lookup, titleLookup map[string]string) string {
+	resolver := noteResolver{lookup: lookup, titleLookup: titleLookup}
 	md := goldmark.New(
 		goldmark.WithExtensions(extension.GFM),
+		goldmark.WithParserOptions(
+			parser.WithInlineParsers(
+				util.Prioritized(&wikilink.Parser{}, 199),
+			),
+		),
+		goldmark.WithRendererOptions(
+			renderer.WithNodeRenderers(
+				util.Prioritized(&wikilinkRenderer{resolver: resolver}, 199),
+			),
+		),
 	)
 	var buf bytes.Buffer
 	if err := md.Convert([]byte(src), &buf); err != nil {
@@ -203,8 +219,8 @@ func RenderInline(src string) string {
 
 // RenderCardQuestion renders a flashcard question. For cloze cards, it
 // replaces cloze markers with interactive [...] spans after markdown rendering.
-func RenderCardQuestion(question, kind string) string {
-	rendered := RenderInline(question)
+func RenderCardQuestion(question, kind string, lookup, titleLookup map[string]string) string {
+	rendered := RenderInline(question, lookup, titleLookup)
 	if kind == string(FlashcardCloze) {
 		rendered = applyClozeSpans(rendered)
 	}
