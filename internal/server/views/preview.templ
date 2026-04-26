@@ -1,0 +1,13 @@
+package views
+
+// PreviewPopover renders the link hover preview popover content.
+templ PreviewPopover(title string, contentHTML string) {
+	<div class="preview-popover">
+		<div class="preview-title">{ title }</div>
+		if contentHTML != "" {
+			<div class="preview-content prose">
+				@templ.Raw(contentHTML)
+			</div>
+		}
+	</div>
+}

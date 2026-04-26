@@ -1,12 +1,11 @@
 package server
 
 import (
-	"fmt"
-	"html/template"
 	"log/slog"
 	"net/http"
 
 	"github.com/raphi011/kb/internal/markdown"
+	"github.com/raphi011/kb/internal/server/views"
 )
 
 func (s *Server) handlePreview(w http.ResponseWriter, r *http.Request) {
@@ -51,10 +50,7 @@ func (s *Server) handlePreview(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprintf(w, `<div class="preview-popover">`)
-	fmt.Fprintf(w, `<div class="preview-title">%s</div>`, template.HTMLEscapeString(note.Title))
-	if contentHTML != "" {
-		fmt.Fprintf(w, `<div class="preview-content prose">%s</div>`, contentHTML)
+	if err := views.PreviewPopover(note.Title, contentHTML).Render(r.Context(), w); err != nil {
+		slog.Error("render preview", "path", notePath, "error", err)
 	}
-	fmt.Fprintf(w, `</div>`)
 }
