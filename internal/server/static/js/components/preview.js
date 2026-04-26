@@ -3,6 +3,7 @@ let popover = null;
 let hoverTimer = null;
 let graceTimer = null;
 let activeAnchor = null;
+let fetchAbort = null;
 
 function getPopover() {
   if (!popover) {
@@ -17,6 +18,7 @@ function getPopover() {
 }
 
 function dismiss() {
+  if (fetchAbort) { fetchAbort.abort(); fetchAbort = null; }
   clearTimeout(hoverTimer);
   clearTimeout(graceTimer);
   activeAnchor = null;
@@ -64,12 +66,15 @@ async function show(anchor) {
   let html = cache.get(cacheKey);
   if (!html) {
     const url = '/preview/' + encodeURIComponent(path) + (heading ? '?heading=' + encodeURIComponent(heading) : '');
+    if (fetchAbort) fetchAbort.abort();
+    fetchAbort = new AbortController();
     try {
-      const resp = await fetch(url);
+      const resp = await fetch(url, { signal: fetchAbort.signal });
       if (!resp.ok) return;
       html = await resp.text();
       cache.set(cacheKey, html);
-    } catch {
+    } catch (e) {
+      if (e.name === 'AbortError') return;
       return;
     }
   }
