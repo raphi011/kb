@@ -46,8 +46,6 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
 	if len(cards) == 0 {
 		stats, _ := s.store.FlashcardStats()
 		var summary index.ReviewSummary
@@ -71,19 +69,7 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		if isHTMX(r) {
-			if err := views.ReviewDoneContent(stats, notePath, summary).Render(r.Context(), w); err != nil {
-				slog.Error("render component", "error", err)
-			}
-			s.renderTOCForPage(w, r, nil, nil, nil, fcPanel, nil)
-			return
-		}
-		s.renderFullPage(w, r, views.LayoutParams{
-			Title:          "Review Done",
-			Tree:           buildTree(s.noteCache().notes, ""),
-			ContentCol:     views.ReviewDoneCol(stats, notePath, summary),
-			FlashcardPanel: fcPanel,
-		})
+		s.renderContent(w, r, "Review Done", views.ReviewDoneContent(stats, notePath, summary), TOCData{FlashcardPanel: fcPanel})
 		return
 	}
 
@@ -112,20 +98,7 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if isHTMX(r) {
-		if err := views.ReviewCardContent(data, previews, notePath).Render(r.Context(), w); err != nil {
-			slog.Error("render component", "error", err)
-		}
-		s.renderTOCForPage(w, r, nil, nil, nil, fcPanel, nil)
-		return
-	}
-
-	s.renderFullPage(w, r, views.LayoutParams{
-		Title:          "Review",
-		Tree:           buildTree(s.noteCache().notes, ""),
-		ContentCol:     views.ReviewCardCol(data, previews, notePath),
-		FlashcardPanel: fcPanel,
-	})
+	s.renderContent(w, r, "Review", views.ReviewCardContent(data, previews, notePath), TOCData{FlashcardPanel: fcPanel})
 }
 
 func (s *Server) handleFlashcardRate(w http.ResponseWriter, r *http.Request) {
