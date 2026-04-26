@@ -182,7 +182,7 @@ func newRenderer(lookup map[string]string, titleLookup map[string]string, hc *he
 			renderer.WithNodeRenderers(
 				util.Prioritized(&wikilinkRenderer{resolver: resolver}, 199),
 				util.Prioritized(&mermaidNodeRenderer{}, 100),
-				util.Prioritized(&flashcardNodeRenderer{}, 95),
+				util.Prioritized(&flashcardNodeRenderer{lookup: lookup, titleLookup: titleLookup}, 95),
 				util.Prioritized(&externalLinkRenderer{}, 50),
 			),
 		),

@@ -299,3 +299,21 @@ func TestRenderInline_NoLookup(t *testing.T) {
 		t.Errorf("missing target text in: %s", result)
 	}
 }
+
+func TestRender_FlashcardWithWikilink(t *testing.T) {
+	src := []byte("What is FSRS::An algorithm described in [[spaced-repetition]]\n")
+	lookup := map[string]string{"spaced-repetition": "notes/spaced-repetition.md"}
+	titleLookup := map[string]string{"notes/spaced-repetition.md": "Spaced Repetition"}
+
+	result, err := Render(src, lookup, titleLookup, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !strings.Contains(result.HTML, `class="wikilink"`) {
+		t.Errorf("missing wikilink in flashcard HTML: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, "Spaced Repetition") {
+		t.Errorf("missing resolved title in flashcard HTML: %s", result.HTML)
+	}
+}
