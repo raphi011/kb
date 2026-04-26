@@ -59,6 +59,9 @@ function handleKeyNav(e) {
   } else if (e.key === 'ArrowLeft') {
     e.preventDefault();
     showSlide(currentSlide - 1);
+  } else if (e.key === 'f') {
+    e.preventDefault();
+    handlePresent();
   }
 }
 
