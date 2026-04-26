@@ -52,7 +52,7 @@ func (m *mockKB) ShareNote(path string) (string, error) {
 	if token, ok := m.shares[path]; ok {
 		return token, nil
 	}
-	token := "test-token-" + path
+	token := "test-token-" + strings.ReplaceAll(path, "/", "-")
 	m.shares[path] = token
 	return token, nil
 }
@@ -78,6 +78,9 @@ func (m *mockKB) ReIndex() error                                              { 
 func (m *mockKB) ForceReIndex() error                                         { return m.forceReIndexErr }
 func (m *mockKB) RenderWithTags(src []byte, _ []string) (markdown.RenderResult, error) {
 	return markdown.Render(src, nil, nil, false)
+}
+func (m *mockKB) RenderShared(src []byte) (markdown.RenderResult, error) {
+	return markdown.RenderShared(src, nil, nil)
 }
 func (m *mockKB) RenderPreview(src []byte) (markdown.RenderResult, error) {
 	return markdown.RenderPreview(src, nil, nil)
@@ -250,6 +253,97 @@ func TestNewServerRejectsEmptyToken(t *testing.T) {
 	_, err := New(store, store, "", "")
 	if err == nil {
 		t.Error("New() should reject empty token")
+	}
+}
+
+func TestShareAPI(t *testing.T) {
+	srv := newTestServer(t)
+	cookie := &http.Cookie{Name: sessionCookieName, Value: signToken("test-token")}
+
+	// POST to create share
+	req := httptest.NewRequest("POST", "/api/share/notes/hello.md", nil)
+	req.AddCookie(cookie)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("POST share status = %d, want 200, body = %s", w.Code, w.Body.String())
+	}
+	var shareResp struct {
+		Token string `json:"token"`
+		URL   string `json:"url"`
+	}
+	if err := json.Unmarshal(w.Body.Bytes(), &shareResp); err != nil {
+		t.Fatalf("unmarshal share response: %v", err)
+	}
+	if shareResp.Token == "" {
+		t.Error("share token should not be empty")
+	}
+
+	// GET to check share status
+	req = httptest.NewRequest("GET", "/api/share/notes/hello.md", nil)
+	req.AddCookie(cookie)
+	w = httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("GET share status = %d, want 200", w.Code)
+	}
+
+	// DELETE to revoke
+	req = httptest.NewRequest("DELETE", "/api/share/notes/hello.md", nil)
+	req.AddCookie(cookie)
+	w = httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code != http.StatusNoContent {
+		t.Fatalf("DELETE share status = %d, want 204", w.Code)
+	}
+
+	// GET after revoke should 404
+	req = httptest.NewRequest("GET", "/api/share/notes/hello.md", nil)
+	req.AddCookie(cookie)
+	w = httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("GET share after revoke status = %d, want 404", w.Code)
+	}
+}
+
+func TestSharedNotePublicAccess(t *testing.T) {
+	srv := newTestServer(t)
+	cookie := &http.Cookie{Name: sessionCookieName, Value: signToken("test-token")}
+
+	// Create share
+	req := httptest.NewRequest("POST", "/api/share/notes/hello.md", nil)
+	req.AddCookie(cookie)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	var shareResp struct {
+		Token string `json:"token"`
+	}
+	json.Unmarshal(w.Body.Bytes(), &shareResp)
+
+	// Access shared note without auth
+	req = httptest.NewRequest("GET", "/s/"+shareResp.Token, nil)
+	w = httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("shared note status = %d, want 200, body = %s", w.Code, w.Body.String())
+	}
+	body := w.Body.String()
+	if !strings.Contains(body, "shared-view") {
+		t.Error("shared page should have shared-view class")
+	}
+	if !strings.Contains(body, "progress-bar") {
+		t.Error("shared page should have progress bar")
+	}
+}
+
+func TestSharedNoteInvalidToken(t *testing.T) {
+	srv := newTestServer(t)
+	req := httptest.NewRequest("GET", "/s/nonexistent", nil)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("invalid share token status = %d, want 404", w.Code)
 	}
 }
 

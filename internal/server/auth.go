@@ -15,7 +15,7 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path
 
-		if path == "/healthz" || path == "/login" || strings.HasPrefix(path, "/static/") {
+		if path == "/healthz" || path == "/login" || strings.HasPrefix(path, "/static/") || strings.HasPrefix(path, "/s/") {
 			next.ServeHTTP(w, r)
 			return
 		}
