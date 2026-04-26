@@ -1,6 +1,7 @@
 package srs
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/open-spaced-repetition/go-fsrs/v3"
@@ -44,7 +45,7 @@ func New(idx *index.DB) *Service {
 func (s *Service) DueCards(notePath string, limit int) ([]Card, error) {
 	fcs, err := s.idx.DueCards(s.now(), notePath, limit)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("query due cards: %w", err)
 	}
 	cards := make([]Card, len(fcs))
 	for i, fc := range fcs {
@@ -57,7 +58,7 @@ func (s *Service) DueCards(notePath string, limit int) ([]Card, error) {
 func (s *Service) CardByHash(hash string) (Card, error) {
 	fc, err := s.idx.FlashcardByHash(hash)
 	if err != nil {
-		return Card{}, err
+		return Card{}, fmt.Errorf("card by hash: %w", err)
 	}
 	return Card{Flashcard: *fc}, nil
 }
@@ -66,7 +67,7 @@ func (s *Service) CardByHash(hash string) (Card, error) {
 func (s *Service) Preview(hash string) (Previews, error) {
 	fc, err := s.idx.FlashcardByHash(hash)
 	if err != nil {
-		return Previews{}, err
+		return Previews{}, fmt.Errorf("preview card: %w", err)
 	}
 
 	card := toFSRSCard(fc)
@@ -85,7 +86,7 @@ func (s *Service) Preview(hash string) (Previews, error) {
 func (s *Service) Review(hash string, rating fsrs.Rating) (Card, error) {
 	fc, err := s.idx.FlashcardByHash(hash)
 	if err != nil {
-		return Card{}, err
+		return Card{}, fmt.Errorf("review lookup: %w", err)
 	}
 
 	card := toFSRSCard(fc)
@@ -110,7 +111,7 @@ func (s *Service) Review(hash string, rating fsrs.Rating) (Card, error) {
 		now,
 	)
 	if err != nil {
-		return Card{}, err
+		return Card{}, fmt.Errorf("record review: %w", err)
 	}
 
 	// Update the flashcard struct with new state
@@ -129,29 +130,45 @@ func (s *Service) Review(hash string, rating fsrs.Rating) (Card, error) {
 
 // Stats returns flashcard summary counts.
 func (s *Service) Stats() (Stats, error) {
-	return s.idx.FlashcardStats(s.now())
+	stats, err := s.idx.FlashcardStats(s.now())
+	if err != nil {
+		return Stats{}, fmt.Errorf("flashcard stats: %w", err)
+	}
+	return stats, nil
 }
 
 // CardOverviewsForNote returns lightweight card summaries for the panel.
 func (s *Service) CardOverviewsForNote(notePath string) ([]index.CardOverview, error) {
-	return s.idx.CardOverviewsForNote(notePath, s.now())
+	overviews, err := s.idx.CardOverviewsForNote(notePath, s.now())
+	if err != nil {
+		return nil, fmt.Errorf("card overviews: %w", err)
+	}
+	return overviews, nil
 }
 
 // ReviewSummaryForNote returns rating counts for a note's reviews today.
 func (s *Service) ReviewSummaryForNote(notePath string) (index.ReviewSummary, error) {
-	return s.idx.ReviewSummaryForNote(notePath, s.now())
+	summary, err := s.idx.ReviewSummaryForNote(notePath, s.now())
+	if err != nil {
+		return index.ReviewSummary{}, fmt.Errorf("review summary: %w", err)
+	}
+	return summary, nil
 }
 
 // NotesWithFlashcards returns notes that contain flashcards with their card counts.
 func (s *Service) NotesWithFlashcards() ([]index.NoteFlashcardCount, error) {
-	return s.idx.NotesWithFlashcards(s.now())
+	counts, err := s.idx.NotesWithFlashcards(s.now())
+	if err != nil {
+		return nil, fmt.Errorf("notes with flashcards: %w", err)
+	}
+	return counts, nil
 }
 
 // FlashcardsForNote returns all flashcards for a note.
 func (s *Service) FlashcardsForNote(notePath string) ([]Card, error) {
 	fcs, err := s.idx.FlashcardsForNote(notePath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("flashcards for note: %w", err)
 	}
 	cards := make([]Card, len(fcs))
 	for i, fc := range fcs {
