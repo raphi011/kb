@@ -23,6 +23,14 @@ type DiffResult struct {
 	Deleted  []string
 }
 
+// FileCommit represents a single commit that touched a specific file.
+type FileCommit struct {
+	Hash    string
+	Short   string // first 7 chars
+	Message string // first line of commit message
+	Date    time.Time
+}
+
 type Repo struct {
 	repo *git.Repository
 	head *plumbing.Reference
@@ -102,6 +110,37 @@ func (r *Repo) CommitHashes(n int) ([]string, error) {
 		hashes = append(hashes, c.Hash.String())
 	}
 	return hashes, nil
+}
+
+// FileLog returns all commits that modified the given file path, newest first.
+func (r *Repo) FileLog(path string) ([]FileCommit, error) {
+	iter, err := r.repo.Log(&git.LogOptions{
+		From:     r.head.Hash(),
+		FileName: &path,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("git log for %s: %w", path, err)
+	}
+	defer iter.Close()
+
+	var commits []FileCommit
+	err = iter.ForEach(func(c *object.Commit) error {
+		msg := c.Message
+		if idx := strings.IndexByte(msg, '\n'); idx >= 0 {
+			msg = msg[:idx]
+		}
+		commits = append(commits, FileCommit{
+			Hash:    c.Hash.String(),
+			Short:   c.Hash.String()[:7],
+			Message: msg,
+			Date:    c.Author.When,
+		})
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("iterate commits for %s: %w", path, err)
+	}
+	return commits, nil
 }
 
 func (r *Repo) Diff(oldCommitHash string) (*DiffResult, error) {

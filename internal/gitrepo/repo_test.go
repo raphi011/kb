@@ -123,6 +123,51 @@ func TestDiff(t *testing.T) {
 	}
 }
 
+func TestFileLog(t *testing.T) {
+	dir := setupTestRepo(t)
+	repo, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// notes/hello.md was modified in both commits
+	commits, err := repo.FileLog("notes/hello.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(commits) != 2 {
+		t.Fatalf("FileLog returned %d commits, want 2", len(commits))
+	}
+	// newest first
+	if commits[0].Date.Before(commits[1].Date) {
+		t.Error("commits should be newest first")
+	}
+	if commits[0].Short == "" || len(commits[0].Short) != 7 {
+		t.Errorf("Short = %q, want 7-char hash", commits[0].Short)
+	}
+	if commits[0].Message == "" {
+		t.Error("Message should not be empty")
+	}
+
+	// notes/go.md was only in the first commit
+	commits, err = repo.FileLog("notes/go.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(commits) != 1 {
+		t.Fatalf("FileLog for go.md returned %d commits, want 1", len(commits))
+	}
+
+	// nonexistent file should return empty slice, no error
+	commits, err = repo.FileLog("nonexistent.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(commits) != 0 {
+		t.Errorf("FileLog for nonexistent returned %d commits, want 0", len(commits))
+	}
+}
+
 func TestGitLog(t *testing.T) {
 	dir := setupTestRepo(t)
 	repo, err := Open(dir)
