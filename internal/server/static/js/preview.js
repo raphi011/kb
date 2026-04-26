@@ -2,6 +2,7 @@ const cache = new Map();
 let popover = null;
 let hoverTimer = null;
 let graceTimer = null;
+let activeAnchor = null;
 
 function getPopover() {
   if (!popover) {
@@ -18,20 +19,26 @@ function getPopover() {
 function dismiss() {
   clearTimeout(hoverTimer);
   clearTimeout(graceTimer);
+  activeAnchor = null;
   const el = getPopover();
   el.setAttribute('hidden', '');
 }
 
 function position(el, anchor) {
-  const rect = anchor.getBoundingClientRect();
-  const popW = 480;
-  const popH = 340; // max-height + padding estimate
+  // Make measurable (visible but off-screen) to get actual dimensions.
+  el.style.top = '0px';
+  el.style.left = '-9999px';
+  el.removeAttribute('hidden');
+  const popW = el.offsetWidth;
+  const popH = el.offsetHeight;
+  el.setAttribute('hidden', '');
 
+  const rect = anchor.getBoundingClientRect();
   let top = rect.bottom + 8;
   let left = rect.left;
 
   // Flip above if not enough space below.
-  if (top + popH > window.innerHeight) {
+  if (top + popH > window.innerHeight && rect.top - popH - 8 > 0) {
     top = rect.top - popH - 8;
   }
   // Clamp to viewport.
@@ -46,6 +53,8 @@ function position(el, anchor) {
 }
 
 async function show(anchor) {
+  if (activeAnchor !== anchor) return;
+
   const path = anchor.dataset.path;
   if (!path) return;
 
@@ -54,7 +63,7 @@ async function show(anchor) {
 
   let html = cache.get(cacheKey);
   if (!html) {
-    const url = '/preview/' + encodeURI(path) + (heading ? '?heading=' + encodeURIComponent(heading) : '');
+    const url = '/preview/' + encodeURIComponent(path) + (heading ? '?heading=' + encodeURIComponent(heading) : '');
     try {
       const resp = await fetch(url);
       if (!resp.ok) return;
@@ -64,6 +73,9 @@ async function show(anchor) {
       return;
     }
   }
+
+  // Re-check after async fetch — anchor may no longer be active.
+  if (activeAnchor !== anchor) return;
 
   const el = getPopover();
   el.innerHTML = html;
@@ -76,6 +88,8 @@ export function initPreview() {
     const link = e.target.closest('a.wikilink');
     if (!link) return;
     clearTimeout(graceTimer);
+    clearTimeout(hoverTimer);
+    activeAnchor = link;
     hoverTimer = setTimeout(() => show(link), 300);
   }, true);
 

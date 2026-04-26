@@ -1054,6 +1054,11 @@ details[open] > .tree-folder::before {
     padding: 24px;
     text-align: center;
   }
+
+}
+
+.prose > :last-child {
+  margin-bottom: 0;
 }
 
 [data-theme="light"] {
@@ -2118,12 +2123,4 @@ a.backlink-card, .backlink-card {
 }
 .preview-popover .preview-content {
   padding: 8px 16px 12px;
-  font-size: 0.875rem;
-  line-height: 1.6;
-}
-.preview-popover .preview-content p:first-child {
-  margin-top: 0;
-}
-.preview-popover .preview-content p:last-child {
-  margin-bottom: 0;
 }

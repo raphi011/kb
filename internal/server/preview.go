@@ -23,34 +23,28 @@ func (s *Server) handlePreview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	heading := r.URL.Query().Get("heading")
-
-	var contentHTML string
-	if heading != "" {
-		raw, err := s.store.ReadFile(notePath)
-		if err != nil {
-			slog.Error("read file for preview", "path", notePath, "error", err)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
-			return
-		}
-		section := markdown.ExtractHeadingSection(string(raw), heading)
-		if section != "" {
-			result, err := s.store.RenderPreview([]byte(section))
-			if err != nil {
-				slog.Error("render preview section", "path", notePath, "error", err)
-				http.Error(w, "internal server error", http.StatusInternalServerError)
-				return
-			}
-			contentHTML = result.HTML
-		}
+	raw, err := s.store.ReadFile(notePath)
+	if err != nil {
+		slog.Error("read file for preview", "path", notePath, "error", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
 	}
 
-	// Fallback to lead if no heading or heading not found.
-	if contentHTML == "" && note.Lead != "" {
-		result, err := s.store.RenderPreview([]byte(note.Lead))
+	heading := r.URL.Query().Get("heading")
+
+	var section string
+	if heading != "" {
+		section = markdown.ExtractHeadingSection(string(raw), heading)
+	}
+	if section == "" {
+		section = markdown.ExtractIntro(string(raw), 800)
+	}
+
+	var contentHTML string
+	if section != "" {
+		result, err := s.store.RenderPreview([]byte(section))
 		if err != nil {
-			slog.Error("render preview lead", "path", notePath, "error", err)
-			contentHTML = ""
+			slog.Error("render preview", "path", notePath, "error", err)
 		} else {
 			contentHTML = result.HTML
 		}
@@ -60,7 +54,7 @@ func (s *Server) handlePreview(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `<div class="preview-popover">`)
 	fmt.Fprintf(w, `<div class="preview-title">%s</div>`, template.HTMLEscapeString(note.Title))
 	if contentHTML != "" {
-		fmt.Fprintf(w, `<div class="preview-content">%s</div>`, contentHTML)
+		fmt.Fprintf(w, `<div class="preview-content prose">%s</div>`, contentHTML)
 	}
 	fmt.Fprintf(w, `</div>`)
 }

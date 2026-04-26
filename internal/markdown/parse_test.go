@@ -102,6 +102,53 @@ func TestParseMarkdown_Lead(t *testing.T) {
 	}
 }
 
+func TestExtractIntro(t *testing.T) {
+	body := "# Event-Driven Architecture\n\nEDA is a design pattern.\n\nIt decouples producers from consumers.\n\n## Benefits\n\nScalable and resilient.\n"
+	intro := ExtractIntro(body, 800)
+	if !strings.Contains(intro, "EDA is a design pattern") {
+		t.Errorf("missing first paragraph in: %q", intro)
+	}
+	if !strings.Contains(intro, "decouples producers") {
+		t.Errorf("missing second paragraph in: %q", intro)
+	}
+	if strings.Contains(intro, "Benefits") {
+		t.Errorf("should not include next heading in: %q", intro)
+	}
+	if strings.Contains(intro, "Scalable") {
+		t.Errorf("should not include content after next heading in: %q", intro)
+	}
+}
+
+func TestExtractIntro_NoHeading(t *testing.T) {
+	body := "Just a paragraph.\n\nAnother paragraph.\n"
+	intro := ExtractIntro(body, 800)
+	if !strings.Contains(intro, "Just a paragraph") {
+		t.Errorf("missing content in: %q", intro)
+	}
+}
+
+func TestExtractIntro_MaxLen(t *testing.T) {
+	body := "# Title\n\nFirst paragraph.\n\nSecond paragraph that is longer.\n"
+	intro := ExtractIntro(body, 20)
+	if len(intro) > 20 {
+		t.Errorf("intro too long (%d): %q", len(intro), intro)
+	}
+	if !strings.Contains(intro, "First paragraph") {
+		t.Errorf("missing first paragraph in: %q", intro)
+	}
+}
+
+func TestExtractIntro_HeadingInCodeBlock(t *testing.T) {
+	body := "# Title\n\nSome intro text.\n\n```markdown\n## Not a real heading\n```\n\n## Real Heading\n\nAfter.\n"
+	intro := ExtractIntro(body, 800)
+	if !strings.Contains(intro, "Not a real heading") {
+		t.Errorf("should include code block content in: %q", intro)
+	}
+	if strings.Contains(intro, "After.") {
+		t.Errorf("should not include content after real heading in: %q", intro)
+	}
+}
+
 func TestParseMarkdown_WordCount(t *testing.T) {
 	doc := ParseMarkdown("One two three four five.")
 	if doc.WordCount != 5 {
