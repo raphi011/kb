@@ -597,6 +597,15 @@ details[open] > .tree-folder::before {
   flex-shrink: 0;
 }
 
+.sidebar-fc-due {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.sidebar-fc-done {
+  opacity: 0.4;
+}
+
 .sidebar-tag-item {
   display: inline-flex;
   align-items: center;
