@@ -245,3 +245,30 @@
   padding: 6px 14px 8px;
   border-bottom: 1px solid var(--border);
 }
+
+/* ── Git history panel ───────────────────────────────────────── */
+
+.git-commit-item {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 14px;
+  gap: 1px;
+  font-family: var(--font-ui);
+}
+
+.git-commit-date {
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+.git-commit-msg {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.git-commit-item:hover .git-commit-msg {
+  color: var(--text);
+}
