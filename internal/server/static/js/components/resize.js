@@ -2,15 +2,20 @@ import { set } from '../lib/store.js';
 import { registry } from '../lib/registry.js';
 
 let verticalAbort = null;
+let horizontalAbort = null;
 
 export function initResize() {
+  if (horizontalAbort) horizontalAbort.abort();
+  horizontalAbort = new AbortController();
+  const hSignal = horizontalAbort.signal;
+
   // Saved widths are restored in the inline <head> script to prevent FOUC.
-  setupHandle('sidebar-resize', '--sidebar-width', 'sidebar', 120, 360, false);
-  setupHandle('toc-resize', '--toc-width', 'toc-panel', 140, 360, true);
+  setupHandle('sidebar-resize', '--sidebar-width', 'sidebar', 120, 360, false, hSignal);
+  setupHandle('toc-resize', '--toc-width', 'toc-panel', 140, 360, true, hSignal);
   setupVerticalHandles();
 }
 
-function setupHandle(handleId, cssVar, panelId, min, max, invert) {
+function setupHandle(handleId, cssVar, panelId, min, max, invert, signal) {
   const handle = document.getElementById(handleId);
   const panel = document.getElementById(panelId);
   if (!handle || !panel) return;
@@ -40,7 +45,7 @@ function setupHandle(handleId, cssVar, panelId, min, max, invert) {
 
     handle.addEventListener('pointermove', onMove);
     handle.addEventListener('pointerup', onUp);
-  });
+  }, { signal });
 }
 
 // Vertical resize handles: drag the border between two sections.
