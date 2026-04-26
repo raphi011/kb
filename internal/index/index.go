@@ -20,6 +20,7 @@ type Note struct {
 	Body      string
 	Lead      string
 	WordCount int
+	IsMarp    bool
 	Created   time.Time
 	Modified  time.Time
 	Metadata  map[string]any
@@ -79,17 +80,18 @@ func (d *DB) UpsertNote(n Note) error {
 	}
 
 	_, err := d.db.Exec(`
-		INSERT INTO notes (path, title, body, lead, word_count, created, modified, metadata)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO notes (path, title, body, lead, word_count, is_marp, created, modified, metadata)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(path) DO UPDATE SET
 			title = excluded.title,
 			body = excluded.body,
 			lead = excluded.lead,
 			word_count = excluded.word_count,
+			is_marp = excluded.is_marp,
 			created = excluded.created,
 			modified = excluded.modified,
 			metadata = excluded.metadata`,
-		n.Path, n.Title, n.Body, n.Lead, n.WordCount,
+		n.Path, n.Title, n.Body, n.Lead, n.WordCount, n.IsMarp,
 		formatTime(n.Created), formatTime(n.Modified),
 		string(metadataJSON),
 	)
@@ -241,7 +243,7 @@ func (d *DB) GetMeta(key string) (string, error) {
 
 func (d *DB) NoteByPath(path string) (*Note, error) {
 	row := d.db.QueryRow(`
-		SELECT path, title, body, lead, word_count, created, modified, metadata
+		SELECT path, title, body, lead, word_count, is_marp, created, modified, metadata
 		FROM notes WHERE path = ?`, path)
 
 	n, err := scanNote(row)
@@ -286,7 +288,7 @@ func scanNote(row *sql.Row) (*Note, error) {
 		modifiedRaw sql.NullString
 		metadataRaw sql.NullString
 	)
-	if err := row.Scan(&n.Path, &n.Title, &n.Body, &n.Lead, &n.WordCount,
+	if err := row.Scan(&n.Path, &n.Title, &n.Body, &n.Lead, &n.WordCount, &n.IsMarp,
 		&createdRaw, &modifiedRaw, &metadataRaw); err != nil {
 		return nil, err
 	}

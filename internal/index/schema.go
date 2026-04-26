@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS notes (
     body        TEXT NOT NULL,
     lead        TEXT,
     word_count  INTEGER NOT NULL,
+    is_marp     BOOLEAN NOT NULL DEFAULT 0,
     created     DATETIME,
     modified    DATETIME,
     metadata    TEXT

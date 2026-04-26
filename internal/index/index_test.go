@@ -276,6 +276,49 @@ func TestBookmarks_CascadeDelete(t *testing.T) {
 	}
 }
 
+func TestIsMarpPersistence(t *testing.T) {
+	db := testDB(t)
+
+	note := Note{
+		Path:      "presentations/talk.md",
+		Title:     "My Talk",
+		Body:      "# Slide 1\n\n---\n\n# Slide 2",
+		Lead:      "Slide 1",
+		WordCount: 4,
+		IsMarp:    true,
+		Metadata:  map[string]any{"marp": true},
+	}
+
+	if err := db.UpsertNote(note); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := db.NoteByPath("presentations/talk.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !got.IsMarp {
+		t.Error("IsMarp should be true after round-trip")
+	}
+
+	all, err := db.AllNotes()
+	if err != nil {
+		t.Fatal(err)
+	}
+	found := false
+	for _, n := range all {
+		if n.Path == "presentations/talk.md" {
+			found = true
+			if !n.IsMarp {
+				t.Error("IsMarp should be true in AllNotes result")
+			}
+		}
+	}
+	if !found {
+		t.Error("note not found in AllNotes")
+	}
+}
+
 func TestIndexMeta(t *testing.T) {
 	db := testDB(t)
 	if err := db.SetMeta("head_commit", "abc123"); err != nil {

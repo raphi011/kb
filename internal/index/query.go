@@ -10,7 +10,7 @@ import (
 
 func (d *DB) AllNotes() ([]Note, error) {
 	rows, err := d.db.Query(`
-		SELECT n.path, n.title, n.lead, n.word_count,
+		SELECT n.path, n.title, n.lead, n.word_count, n.is_marp,
 		       n.created, n.modified, n.metadata,
 		       COALESCE(GROUP_CONCAT(t.name, char(1)), '') AS tags
 		FROM notes n
@@ -126,7 +126,7 @@ func (d *DB) ActivityDays(year, month int) (map[int]bool, error) {
 
 func (d *DB) NotesByDate(date string) ([]Note, error) {
 	rows, err := d.db.Query(`
-		SELECT n.path, n.title, n.lead, n.word_count,
+		SELECT n.path, n.title, n.lead, n.word_count, n.is_marp,
 		       n.created, n.modified, n.metadata,
 		       COALESCE(GROUP_CONCAT(t.name, char(1)), '') AS tags
 		FROM notes n
@@ -158,7 +158,7 @@ func scanNoteRow(rows interface{ Scan(...any) error }) (*Note, error) {
 		metadataRaw string
 		tagsRaw     string
 	)
-	if err := rows.Scan(&n.Path, &n.Title, &n.Lead, &n.WordCount,
+	if err := rows.Scan(&n.Path, &n.Title, &n.Lead, &n.WordCount, &n.IsMarp,
 		&createdRaw, &modifiedRaw, &metadataRaw, &tagsRaw); err != nil {
 		return nil, err
 	}
