@@ -34,12 +34,19 @@ type noteResolver struct {
 
 func (r noteResolver) ResolveWikilink(n *wikilink.Node) ([]byte, error) {
 	target := string(n.Target)
+	var dest string
 	if r.lookup != nil {
 		if path, ok := r.lookup[target]; ok {
-			return []byte("/notes/" + path), nil
+			dest = "/notes/" + path
 		}
 	}
-	return append([]byte("/notes/"), n.Target...), nil
+	if dest == "" {
+		dest = "/notes/" + target
+	}
+	if len(n.Fragment) > 0 {
+		dest += "#" + string(n.Fragment)
+	}
+	return []byte(dest), nil
 }
 
 // wikilinkRenderer renders [[wiki-links]] with title resolution.
@@ -73,19 +80,33 @@ func (r *wikilinkRenderer) render(w util.BufWriter, src []byte, node ast.Node, e
 
 	_, _ = w.WriteString(`<a href="`)
 	_, _ = w.Write(util.URLEscape(dest, true))
-	_, _ = w.WriteString(`">`)
+	_, _ = w.WriteString(`" class="wikilink"`)
+
+	// data-path: the resolved note path (without /notes/ prefix)
+	target := string(n.Target)
+	notePath := target
+	if r.resolver.lookup != nil {
+		if path, ok := r.resolver.lookup[target]; ok {
+			notePath = path
+		}
+	}
+	_, _ = fmt.Fprintf(w, ` data-path="%s"`, html.EscapeString(notePath))
+
+	if len(n.Fragment) > 0 {
+		_, _ = fmt.Fprintf(w, ` data-heading="%s"`, html.EscapeString(string(n.Fragment)))
+	}
+
+	_, _ = w.WriteString(`>`)
 
 	// Check if there's an alias: if the child text equals the target, no alias was given.
 	childText := nodeTextFromWikilink(src, n)
 	hasAlias := !bytes.Equal(childText, n.Target)
 
 	if hasAlias {
-		// Let goldmark render the alias children.
 		return ast.WalkContinue, nil
 	}
 
 	// No alias — resolve title and write it directly.
-	target := string(n.Target)
 	path := ""
 	if r.resolver.lookup != nil {
 		path = r.resolver.lookup[target]
