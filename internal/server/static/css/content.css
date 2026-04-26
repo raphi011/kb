@@ -19,7 +19,7 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-.content-empty, .content-error {
+.content-error {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -92,7 +92,7 @@
 /* ── Article ───────────────────────────────────────────────── */
 
 #article {
-  max-width: 680px;
+  max-width: min(680px, 95%);
   margin: 0 auto;
   padding: 36px 32px 80px;
 
@@ -203,7 +203,7 @@
   overflow-wrap: break-word;
   min-width: 0;
 
-  h1, h2, h3, h4, h5, h6 {
+  :is(h1, h2, h3, h4, h5, h6) {
     font-family: var(--font-prose);
     font-weight: 600;
     color: var(--text);
