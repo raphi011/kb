@@ -219,11 +219,19 @@ func (kb *KB) indexFile(path string, content []byte, timestamps map[string]gitre
 // --- Query API (delegates to index) ---
 
 func (kb *KB) Search(q string, tags []string) ([]index.Note, error) {
-	return kb.idx.Search(q, tags)
+	notes, err := kb.idx.Search(q, tags)
+	if err != nil {
+		return nil, fmt.Errorf("search %q: %w", q, err)
+	}
+	return notes, nil
 }
 
 func (kb *KB) NoteByPath(path string) (*index.Note, error) {
-	return kb.idx.NoteByPath(path)
+	note, err := kb.idx.NoteByPath(path)
+	if err != nil {
+		return nil, fmt.Errorf("note by path %q: %w", path, err)
+	}
+	return note, nil
 }
 
 func (kb *KB) AllNotes() ([]index.Note, error) {
@@ -235,19 +243,35 @@ func (kb *KB) AllTags() ([]index.Tag, error) {
 }
 
 func (kb *KB) OutgoingLinks(path string) ([]index.Link, error) {
-	return kb.idx.OutgoingLinks(path)
+	links, err := kb.idx.OutgoingLinks(path)
+	if err != nil {
+		return nil, fmt.Errorf("outgoing links %q: %w", path, err)
+	}
+	return links, nil
 }
 
 func (kb *KB) Backlinks(path string) ([]index.Link, error) {
-	return kb.idx.Backlinks(path)
+	links, err := kb.idx.Backlinks(path)
+	if err != nil {
+		return nil, fmt.Errorf("backlinks %q: %w", path, err)
+	}
+	return links, nil
 }
 
 func (kb *KB) ActivityDays(year, month int) (map[int]bool, error) {
-	return kb.idx.ActivityDays(year, month)
+	days, err := kb.idx.ActivityDays(year, month)
+	if err != nil {
+		return nil, fmt.Errorf("activity days %d-%02d: %w", year, month, err)
+	}
+	return days, nil
 }
 
 func (kb *KB) NotesByDate(date string) ([]index.Note, error) {
-	return kb.idx.NotesByDate(date)
+	notes, err := kb.idx.NotesByDate(date)
+	if err != nil {
+		return nil, fmt.Errorf("notes by date %q: %w", date, err)
+	}
+	return notes, nil
 }
 
 func (kb *KB) BookmarkedPaths() ([]string, error) {
@@ -255,31 +279,56 @@ func (kb *KB) BookmarkedPaths() ([]string, error) {
 }
 
 func (kb *KB) AddBookmark(path string) error {
-	return kb.idx.AddBookmark(path)
+	if err := kb.idx.AddBookmark(path); err != nil {
+		return fmt.Errorf("add bookmark %q: %w", path, err)
+	}
+	return nil
 }
 
 func (kb *KB) RemoveBookmark(path string) error {
-	return kb.idx.RemoveBookmark(path)
+	if err := kb.idx.RemoveBookmark(path); err != nil {
+		return fmt.Errorf("remove bookmark %q: %w", path, err)
+	}
+	return nil
 }
 
 func (kb *KB) ShareNote(path string) (string, error) {
-	return kb.idx.ShareNote(path)
+	token, err := kb.idx.ShareNote(path)
+	if err != nil {
+		return "", fmt.Errorf("share note %q: %w", path, err)
+	}
+	return token, nil
 }
 
 func (kb *KB) UnshareNote(path string) error {
-	return kb.idx.UnshareNote(path)
+	if err := kb.idx.UnshareNote(path); err != nil {
+		return fmt.Errorf("unshare note %q: %w", path, err)
+	}
+	return nil
 }
 
 func (kb *KB) ShareTokenForNote(path string) (string, error) {
-	return kb.idx.ShareTokenForNote(path)
+	token, err := kb.idx.ShareTokenForNote(path)
+	if err != nil {
+		return "", fmt.Errorf("share token for %q: %w", path, err)
+	}
+	return token, nil
 }
 
 func (kb *KB) NotePathForShareToken(token string) (string, error) {
-	return kb.idx.NotePathForShareToken(token)
+	path, err := kb.idx.NotePathForShareToken(token)
+	if err != nil {
+		return "", fmt.Errorf("note for share token %q: %w", token, err)
+	}
+	return path, nil
 }
 
 func (kb *KB) ReadFile(path string) ([]byte, error) {
-	return kb.repo.ReadBlob(path)
+	data, err := kb.repo.ReadBlob(path)
+	if err != nil {
+		return nil, fmt.Errorf("read file %q: %w", path, err)
+	}
+	return data, nil
 }
 
 func shortSHA(s string) string {
@@ -312,7 +361,7 @@ func (kb *KB) Render(src []byte) (markdown.RenderResult, error) {
 func (kb *KB) RenderWithTags(src []byte, tags []string) (markdown.RenderResult, error) {
 	notes, err := kb.idx.AllNotes()
 	if err != nil {
-		return markdown.RenderResult{}, err
+		return markdown.RenderResult{}, fmt.Errorf("render: %w", err)
 	}
 	lookup := make(map[string]string, len(notes)*2)
 	titleLookup := make(map[string]string, len(notes))
@@ -324,13 +373,17 @@ func (kb *KB) RenderWithTags(src []byte, tags []string) (markdown.RenderResult, 
 		titleLookup[n.Path] = n.Title
 	}
 	flashcardsEnabled := hasFlashcardsTag(tags)
-	return markdown.Render(src, lookup, titleLookup, flashcardsEnabled)
+	result, err := markdown.Render(src, lookup, titleLookup, flashcardsEnabled)
+	if err != nil {
+		return markdown.RenderResult{}, fmt.Errorf("render: %w", err)
+	}
+	return result, nil
 }
 
 func (kb *KB) RenderShared(src []byte) (markdown.RenderResult, error) {
 	notes, err := kb.idx.AllNotes()
 	if err != nil {
-		return markdown.RenderResult{}, err
+		return markdown.RenderResult{}, fmt.Errorf("render: %w", err)
 	}
 	lookup := make(map[string]string, len(notes)*2)
 	titleLookup := make(map[string]string, len(notes))
@@ -341,13 +394,17 @@ func (kb *KB) RenderShared(src []byte) (markdown.RenderResult, error) {
 		lookup[strings.TrimSuffix(n.Path, ".md")] = n.Path
 		titleLookup[n.Path] = n.Title
 	}
-	return markdown.RenderShared(src, lookup, titleLookup)
+	result, err := markdown.RenderShared(src, lookup, titleLookup)
+	if err != nil {
+		return markdown.RenderResult{}, fmt.Errorf("render: %w", err)
+	}
+	return result, nil
 }
 
 func (kb *KB) RenderPreview(src []byte) (markdown.RenderResult, error) {
 	notes, err := kb.idx.AllNotes()
 	if err != nil {
-		return markdown.RenderResult{}, err
+		return markdown.RenderResult{}, fmt.Errorf("render: %w", err)
 	}
 	lookup := make(map[string]string, len(notes)*2)
 	titleLookup := make(map[string]string, len(notes))
@@ -358,7 +415,11 @@ func (kb *KB) RenderPreview(src []byte) (markdown.RenderResult, error) {
 		lookup[strings.TrimSuffix(n.Path, ".md")] = n.Path
 		titleLookup[n.Path] = n.Title
 	}
-	return markdown.RenderPreview(src, lookup, titleLookup)
+	result, err := markdown.RenderPreview(src, lookup, titleLookup)
+	if err != nil {
+		return markdown.RenderResult{}, fmt.Errorf("render: %w", err)
+	}
+	return result, nil
 }
 
 func hasFlashcardsTag(tags []string) bool {
@@ -373,19 +434,35 @@ func hasFlashcardsTag(tags []string) bool {
 // --- Flashcard API (delegates to srs service) ---
 
 func (kb *KB) DueCards(notePath string, limit int) ([]srs.Card, error) {
-	return kb.srs.DueCards(notePath, limit)
+	cards, err := kb.srs.DueCards(notePath, limit)
+	if err != nil {
+		return nil, fmt.Errorf("due cards %q: %w", notePath, err)
+	}
+	return cards, nil
 }
 
 func (kb *KB) CardByHash(hash string) (srs.Card, error) {
-	return kb.srs.CardByHash(hash)
+	card, err := kb.srs.CardByHash(hash)
+	if err != nil {
+		return srs.Card{}, fmt.Errorf("card by hash %q: %w", hash, err)
+	}
+	return card, nil
 }
 
 func (kb *KB) ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error) {
-	return kb.srs.Review(hash, rating)
+	card, err := kb.srs.Review(hash, rating)
+	if err != nil {
+		return srs.Card{}, fmt.Errorf("review card %q: %w", hash, err)
+	}
+	return card, nil
 }
 
 func (kb *KB) PreviewCard(hash string) (srs.Previews, error) {
-	return kb.srs.Preview(hash)
+	previews, err := kb.srs.Preview(hash)
+	if err != nil {
+		return srs.Previews{}, fmt.Errorf("preview card %q: %w", hash, err)
+	}
+	return previews, nil
 }
 
 func (kb *KB) FlashcardStats() (srs.Stats, error) {
@@ -393,7 +470,11 @@ func (kb *KB) FlashcardStats() (srs.Stats, error) {
 }
 
 func (kb *KB) FlashcardsForNote(path string) ([]srs.Card, error) {
-	return kb.srs.FlashcardsForNote(path)
+	cards, err := kb.srs.FlashcardsForNote(path)
+	if err != nil {
+		return nil, fmt.Errorf("flashcards for note %q: %w", path, err)
+	}
+	return cards, nil
 }
 
 func (kb *KB) NotesWithFlashcards() ([]index.NoteFlashcardCount, error) {
@@ -401,9 +482,17 @@ func (kb *KB) NotesWithFlashcards() ([]index.NoteFlashcardCount, error) {
 }
 
 func (kb *KB) ReviewSummaryForNote(notePath string) (index.ReviewSummary, error) {
-	return kb.srs.ReviewSummaryForNote(notePath)
+	summary, err := kb.srs.ReviewSummaryForNote(notePath)
+	if err != nil {
+		return index.ReviewSummary{}, fmt.Errorf("review summary %q: %w", notePath, err)
+	}
+	return summary, nil
 }
 
 func (kb *KB) CardOverviewsForNote(notePath string) ([]index.CardOverview, error) {
-	return kb.srs.CardOverviewsForNote(notePath)
+	overviews, err := kb.srs.CardOverviewsForNote(notePath)
+	if err != nil {
+		return nil, fmt.Errorf("card overviews %q: %w", notePath, err)
+	}
+	return overviews, nil
 }
