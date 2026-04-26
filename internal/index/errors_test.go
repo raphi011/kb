@@ -1,6 +1,7 @@
 package index
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 )
@@ -24,5 +25,31 @@ func TestMapDBError_WrappedPassThrough(t *testing.T) {
 	err := mapDBError(wrapped)
 	if err != wrapped {
 		t.Errorf("wrapped non-sqlite error should pass through")
+	}
+}
+
+func TestAddBookmark_NonexistentNote_ReturnsErrNotFound(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	err = db.AddBookmark("nonexistent/note.md")
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("AddBookmark(nonexistent) = %v, want ErrNotFound", err)
+	}
+}
+
+func TestShareNote_NonexistentNote_ReturnsErrNotFound(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	_, err = db.ShareNote("nonexistent/note.md")
+	if !errors.Is(err, ErrNotFound) {
+		t.Errorf("ShareNote(nonexistent) = %v, want ErrNotFound", err)
 	}
 }
