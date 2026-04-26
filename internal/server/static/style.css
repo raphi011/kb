@@ -1684,6 +1684,29 @@ a.backlink-card, .backlink-card {
   to { opacity: 0; }
 }
 
+/* ── Shared view ──────────────────────────────────────────── */
+
+.shared-view {
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
+}
+
+.shared-article {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 48px 32px 80px;
+}
+
+.shared-article h1 {
+  font-family: var(--font-prose);
+  font-size: 26px;
+  font-weight: normal;
+  color: var(--text);
+  margin-bottom: 24px;
+  line-height: 1.25;
+}
+
 /* ── Mobile ────────────────────────────────────────────────── */
 
 @media (max-width: 850px) {
@@ -2056,6 +2079,7 @@ a.backlink-card, .backlink-card {
 .slide-panel-body {
   max-height: 300px;
   overflow-y: auto;
+  padding: 2px 0 4px;
 }
 
 .slide-panel-cards {
@@ -2066,27 +2090,28 @@ a.backlink-card, .backlink-card {
 .slide-panel-item {
   display: flex;
   align-items: baseline;
-  gap: 0.5rem;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.8rem;
-  color: var(--fg-muted);
+  gap: 6px;
+  padding: 2px 14px;
+  font-size: 11px;
+  font-family: var(--font-prose);
+  color: var(--text-muted);
   text-decoration: none;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-radius: 3px;
+  line-height: 1.65;
+  transition: color 0.1s, background 0.1s;
 }
 
 .slide-panel-item:hover {
   background: var(--bg-hover);
-  color: var(--fg);
+  color: var(--accent);
 }
 
 .slide-panel-item-active {
   background: var(--bg-active);
   color: var(--fg);
-  font-weight: 600;
 }
 
 .slide-panel-num {
@@ -2094,6 +2119,7 @@ a.backlink-card, .backlink-card {
   font-variant-numeric: tabular-nums;
   min-width: 1.5em;
   text-align: right;
+  font-size: 11px;
 }
 
 /* --- Wikilink preview popover --- */
