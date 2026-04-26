@@ -5,78 +5,83 @@ import (
 	"github.com/raphi011/kb/internal/markdown"
 )
 
-templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []index.Link, oob bool, calYear int, calMonth int, activeDays map[int]bool) {
+templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []index.Link, oob bool, calYear int, calMonth int, activeDays map[int]bool, flashcardPanel *FlashcardPanelData) {
 	<aside
 		id="toc-panel"
 		if oob {
 			hx-swap-oob="true"
 		}
 	>
-		if calYear > 0 {
-			@Calendar(calYear, calMonth, activeDays, 0)
+		if flashcardPanel == nil || !flashcardPanel.ReviewMode {
+			if calYear > 0 {
+				@Calendar(calYear, calMonth, activeDays, 0)
+				<div class="resize-handle-v" data-resize-target="next"></div>
+			}
+			<div id="toc-header"><span>On this page</span></div>
+			if len(headings) > 0 {
+				<div id="toc-inner">
+					for _, h := range headings {
+						<a class={ "toc-item", templ.KV("h1", h.Level == 1), templ.KV("h3", h.Level == 3) } href={ templ.SafeURL("#" + h.ID) }>{ h.Text }</a>
+					}
+				</div>
+			} else {
+				<div id="toc-inner">
+					<span class="toc-empty">No headings</span>
+				</div>
+			}
 			<div class="resize-handle-v" data-resize-target="next"></div>
-		}
-		<div id="toc-header"><span>On this page</span></div>
-		if len(headings) > 0 {
-			<div id="toc-inner">
-				for _, h := range headings {
-					<a class={ "toc-item", templ.KV("h1", h.Level == 1), templ.KV("h3", h.Level == 3) } href={ templ.SafeURL("#" + h.ID) }>{ h.Text }</a>
-				}
-			</div>
-		} else {
-			<div id="toc-inner">
-				<span class="toc-empty">No headings</span>
-			</div>
-		}
-		<div class="resize-handle-v" data-resize-target="next"></div>
-		if len(outgoing) > 0 {
-			<details class="panel-section toc-links-section" open aria-label="Outgoing links">
-				<summary class="panel-label">Links <span class="panel-count">{ lenStr(outgoing) }</span></summary>
-				<div class="panel-body toc-links-body">
-					for _, link := range outgoing {
-						if link.External {
-							<a class="toc-link-item toc-link-out" href={ templ.SafeURL(link.TargetPath) } target="_blank" rel="noopener">
-								if link.Title != "" {
-									{ link.Title }
-								} else {
-									{ link.TargetPath }
+			if len(outgoing) > 0 {
+				<details class="panel-section toc-links-section" open aria-label="Outgoing links">
+					<summary class="panel-label">Links <span class="panel-count">{ lenStr(outgoing) }</span></summary>
+					<div class="panel-body toc-links-body">
+						for _, link := range outgoing {
+							if link.External {
+								<a class="toc-link-item toc-link-out" href={ templ.SafeURL(link.TargetPath) } target="_blank" rel="noopener">
+									if link.Title != "" {
+										{ link.Title }
+									} else {
+										{ link.TargetPath }
+									}
+								</a>
+							} else if link.TargetPath != "" {
+								@ContentLink("toc-link-item toc-link-out", "/notes/" + link.TargetPath) {
+									if link.Title != "" {
+										{ link.Title }
+									} else {
+										{ link.TargetPath }
+									}
 								}
-							</a>
-						} else if link.TargetPath != "" {
-							@ContentLink("toc-link-item toc-link-out", "/notes/" + link.TargetPath) {
-								if link.Title != "" {
-									{ link.Title }
-								} else {
-									{ link.TargetPath }
-								}
+							} else {
+								<span class="toc-link-item toc-link-out">{ link.Title }</span>
 							}
-						} else {
-							<span class="toc-link-item toc-link-out">{ link.Title }</span>
 						}
-					}
+					</div>
+				</details>
+			} else {
+				<div class="panel-section panel-empty">
+					<span class="panel-label">Links <span class="panel-count">0</span></span>
 				</div>
-			</details>
-		} else {
-			<div class="panel-section panel-empty">
-				<span class="panel-label">Links <span class="panel-count">0</span></span>
-			</div>
+			}
+			<div class="resize-handle-v" data-resize-target="next"></div>
+			if len(backlinks) > 0 {
+				<details class="panel-section toc-links-section" open aria-label="Backlinks">
+					<summary class="panel-label">Backlinks <span class="panel-count">{ lenStr(backlinks) }</span></summary>
+					<div class="panel-body toc-links-body">
+						for _, link := range backlinks {
+							@ContentLink("toc-link-item toc-link-in", "/notes/" + link.SourcePath) {
+								{ link.SourceTitle }
+							}
+						}
+					</div>
+				</details>
+			} else {
+				<div class="panel-section panel-empty">
+					<span class="panel-label">Backlinks <span class="panel-count">0</span></span>
+				</div>
+			}
 		}
-		<div class="resize-handle-v" data-resize-target="next"></div>
-		if len(backlinks) > 0 {
-			<details class="panel-section toc-links-section" open aria-label="Backlinks">
-				<summary class="panel-label">Backlinks <span class="panel-count">{ lenStr(backlinks) }</span></summary>
-				<div class="panel-body toc-links-body">
-					for _, link := range backlinks {
-						@ContentLink("toc-link-item toc-link-in", "/notes/" + link.SourcePath) {
-							{ link.SourceTitle }
-						}
-					}
-				</div>
-			</details>
-		} else {
-			<div class="panel-section panel-empty">
-				<span class="panel-label">Backlinks <span class="panel-count">0</span></span>
-			</div>
+		if flashcardPanel != nil {
+			@FlashcardPanel(*flashcardPanel)
 		}
 	</aside>
 }

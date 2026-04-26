@@ -108,7 +108,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		if err := views.FolderContentInner(nil, "Knowledge Base", entries).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, nil, nil, nil)
+		s.renderTOCForPage(w, r, nil, nil, nil, nil)
 		return
 	}
 
@@ -178,23 +178,45 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 	}
 	breadcrumbs := buildBreadcrumbs(note.Path)
 
+	var fcPanel *views.FlashcardPanelData
+	for _, tag := range note.Tags {
+		if tag == "flashcards" || strings.HasPrefix(tag, "flashcards/") {
+			if overviews, err := s.store.CardOverviewsForNote(note.Path); err == nil {
+				dueCount := 0
+				for _, c := range overviews {
+					if c.Status == "due" || c.Status == "new" {
+						dueCount++
+					}
+				}
+				fcPanel = &views.FlashcardPanelData{
+					NotePath:   note.Path,
+					DueCount:   dueCount,
+					TotalCount: len(overviews),
+					Cards:      overviews,
+				}
+			}
+			break
+		}
+	}
+
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if isHTMX(r) {
 		if err := views.NoteContentInner(breadcrumbs, note, result.HTML, backlinks, headings).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, headings, outLinks, backlinks)
+		s.renderTOCForPage(w, r, headings, outLinks, backlinks, fcPanel)
 		return
 	}
 
 	s.renderFullPage(w, r, views.LayoutParams{
-		Title:         note.Title,
-		Tree:          buildTree(s.noteCache().notes, note.Path),
-		ContentCol:    views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, headings),
-		Headings:      headings,
-		OutgoingLinks: outLinks,
-		Backlinks:     backlinks,
+		Title:          note.Title,
+		Tree:           buildTree(s.noteCache().notes, note.Path),
+		ContentCol:     views.NoteContentCol(breadcrumbs, note, result.HTML, backlinks, headings),
+		Headings:       headings,
+		OutgoingLinks:  outLinks,
+		Backlinks:      backlinks,
+		FlashcardPanel: fcPanel,
 	})
 }
 
@@ -240,7 +262,7 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 		if err := views.FolderContentInner(breadcrumbs, folderName, entries).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, nil, nil, nil)
+		s.renderTOCForPage(w, r, nil, nil, nil, nil)
 		return
 	}
 
@@ -373,9 +395,9 @@ func (s *Server) handleTags(w http.ResponseWriter, r *http.Request) {
 }
 
 // renderTOCForPage renders the TOC panel as an OOB swap for HTMX requests.
-func (s *Server) renderTOCForPage(w http.ResponseWriter, r *http.Request, headings []markdown.Heading, outLinks []index.Link, backlinks []index.Link) {
+func (s *Server) renderTOCForPage(w http.ResponseWriter, r *http.Request, headings []markdown.Heading, outLinks []index.Link, backlinks []index.Link, fcPanel *views.FlashcardPanelData) {
 	calYear, calMonth, activeDays := s.calendarData()
-	if err := views.TOCPanel(headings, outLinks, backlinks, true, calYear, calMonth, activeDays).Render(r.Context(), w); err != nil {
+	if err := views.TOCPanel(headings, outLinks, backlinks, true, calYear, calMonth, activeDays, fcPanel).Render(r.Context(), w); err != nil {
 		slog.Error("render component", "error", err)
 	}
 }
@@ -423,7 +445,7 @@ func (s *Server) renderError(w http.ResponseWriter, r *http.Request, code int, m
 		if err := views.ErrorContentInner(code, message).Render(r.Context(), w); err != nil {
 			slog.Error("render error component", "error", err)
 		}
-		s.renderTOCForPage(w, r, nil, nil, nil)
+		s.renderTOCForPage(w, r, nil, nil, nil, nil)
 		return
 	}
 	s.renderFullPage(w, r, views.LayoutParams{

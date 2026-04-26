@@ -6,6 +6,8 @@ import (
 	"strconv"
 
 	"github.com/open-spaced-repetition/go-fsrs/v3"
+	"github.com/raphi011/kb/internal/index"
+	"github.com/raphi011/kb/internal/markdown"
 	"github.com/raphi011/kb/internal/server/views"
 )
 
@@ -23,7 +25,7 @@ func (s *Server) handleFlashcardDashboard(w http.ResponseWriter, r *http.Request
 		if err := views.FlashcardDashboardContent(stats).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, nil, nil, nil)
+		s.renderTOCForPage(w, r, nil, nil, nil, nil)
 		return
 	}
 
@@ -35,7 +37,9 @@ func (s *Server) handleFlashcardDashboard(w http.ResponseWriter, r *http.Request
 }
 
 func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
-	cards, err := s.store.DueCards(1)
+	notePath := r.URL.Query().Get("note")
+
+	cards, err := s.store.DueCards(notePath, 1)
 	if err != nil {
 		slog.Error("due cards", "error", err)
 		s.renderError(w, r, http.StatusInternalServerError, "Failed to load cards")
@@ -46,17 +50,39 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 
 	if len(cards) == 0 {
 		stats, _ := s.store.FlashcardStats()
+		var summary index.ReviewSummary
+		if notePath != "" {
+			summary, _ = s.store.ReviewSummaryForNote(notePath)
+		}
+		var fcPanel *views.FlashcardPanelData
+		if notePath != "" {
+			if overviews, err := s.store.CardOverviewsForNote(notePath); err == nil {
+				dueCount := 0
+				for _, c := range overviews {
+					if c.Status == "due" || c.Status == "new" {
+						dueCount++
+					}
+				}
+				fcPanel = &views.FlashcardPanelData{
+					NotePath:   notePath,
+					DueCount:   dueCount,
+					TotalCount: len(overviews),
+					Cards:      overviews,
+				}
+			}
+		}
 		if isHTMX(r) {
-			if err := views.ReviewDoneContent(stats).Render(r.Context(), w); err != nil {
+			if err := views.ReviewDoneContent(stats, notePath, summary).Render(r.Context(), w); err != nil {
 				slog.Error("render component", "error", err)
 			}
-			s.renderTOCForPage(w, r, nil, nil, nil)
+			s.renderTOCForPage(w, r, nil, nil, nil, fcPanel)
 			return
 		}
 		s.renderFullPage(w, r, views.LayoutParams{
-			Title:      "Review Done",
-			Tree:       buildTree(s.noteCache().notes, ""),
-			ContentCol: views.ReviewDoneCol(stats),
+			Title:          "Review Done",
+			Tree:           buildTree(s.noteCache().notes, ""),
+			ContentCol:     views.ReviewDoneCol(stats, notePath, summary),
+			FlashcardPanel: fcPanel,
 		})
 		return
 	}
@@ -67,18 +93,37 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 		slog.Error("preview card", "error", err)
 	}
 
+	data := views.ReviewCardData{
+		Card:         card,
+		QuestionHTML: markdown.RenderCardQuestion(card.Question, card.Kind),
+		AnswerHTML:   markdown.RenderInline(card.Answer),
+	}
+
+	var fcPanel *views.FlashcardPanelData
+	if notePath != "" {
+		if overviews, err := s.store.CardOverviewsForNote(notePath); err == nil {
+			fcPanel = &views.FlashcardPanelData{
+				NotePath:   notePath,
+				TotalCount: len(overviews),
+				Cards:      overviews,
+				ReviewMode: true,
+			}
+		}
+	}
+
 	if isHTMX(r) {
-		if err := views.ReviewCardContent(card, previews).Render(r.Context(), w); err != nil {
+		if err := views.ReviewCardContent(data, previews, notePath).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
-		s.renderTOCForPage(w, r, nil, nil, nil)
+		s.renderTOCForPage(w, r, nil, nil, nil, fcPanel)
 		return
 	}
 
 	s.renderFullPage(w, r, views.LayoutParams{
-		Title:      "Review",
-		Tree:       buildTree(s.noteCache().notes, ""),
-		ContentCol: views.ReviewCardCol(card, previews),
+		Title:          "Review",
+		Tree:           buildTree(s.noteCache().notes, ""),
+		ContentCol:     views.ReviewCardCol(data, previews, notePath),
+		FlashcardPanel: fcPanel,
 	})
 }
 
@@ -96,6 +141,13 @@ func (s *Server) handleFlashcardRate(w http.ResponseWriter, r *http.Request) {
 		slog.Error("review card", "hash", hash, "error", err)
 		http.Error(w, "review failed", http.StatusInternalServerError)
 		return
+	}
+
+	// Forward the note filter to the next card fetch.
+	if note := r.FormValue("note"); note != "" {
+		q := r.URL.Query()
+		q.Set("note", note)
+		r.URL.RawQuery = q.Encode()
 	}
 
 	// HTMX: swap in the next card
