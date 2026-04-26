@@ -74,12 +74,6 @@ templ FlashcardDashboardContent(stats index.FlashcardStats) {
 	</div>
 }
 
-templ FlashcardDashboardCol(stats index.FlashcardStats) {
-	<div id="content-col" role="main">
-		@FlashcardDashboardContent(stats)
-	</div>
-}
-
 templ ReviewCardContent(card ReviewCardData, previews srs.Previews, notePath string) {
 	<div id="content-area">
 		<article id="article">
@@ -133,12 +127,6 @@ templ ReviewCardContent(card ReviewCardData, previews srs.Previews, notePath str
 	</div>
 }
 
-templ ReviewCardCol(card ReviewCardData, previews srs.Previews, notePath string) {
-	<div id="content-col" role="main">
-		@ReviewCardContent(card, previews, notePath)
-	</div>
-}
-
 templ ReviewDoneContent(stats index.FlashcardStats, notePath string, summary index.ReviewSummary) {
 	<div id="content-area">
 		<article id="article">
@@ -177,12 +165,6 @@ templ ReviewDoneContent(stats index.FlashcardStats, notePath string, summary ind
 				}
 			</div>
 		</article>
-	</div>
-}
-
-templ ReviewDoneCol(stats index.FlashcardStats, notePath string, summary index.ReviewSummary) {
-	<div id="content-col" role="main">
-		@ReviewDoneContent(stats, notePath, summary)
 	</div>
 }
 

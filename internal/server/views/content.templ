@@ -141,12 +141,6 @@ templ MarpNoteContentInner(segments []BreadcrumbSegment, note *index.Note, rawMa
 	</div>
 }
 
-templ MarpNoteContentCol(segments []BreadcrumbSegment, note *index.Note, rawMarkdown string, slides []markdown.SlideInfo, baseURL string, shareToken string) {
-	<div id="content-col" role="main">
-		@MarpNoteContentInner(segments, note, rawMarkdown, slides, baseURL, shareToken)
-	</div>
-}
-
 templ FolderListing(folderName string, entries []FolderEntry) {
 	<article id="article">
 		<h1>{ folderName }<span class="folder-slash">/</span></h1>
@@ -185,30 +179,10 @@ templ NoteContentInner(segments []BreadcrumbSegment, note *index.Note, noteHTML 
 	</div>
 }
 
-templ NoteContentCol(segments []BreadcrumbSegment, note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading, shareToken string) {
-	<div id="content-col" role="main">
-		@NoteContentInner(segments, note, noteHTML, backlinks, headings, shareToken)
-	</div>
-}
-
 templ FolderContentInner(segments []BreadcrumbSegment, folderName string, entries []FolderEntry) {
 	@Breadcrumb(segments, folderName)
 	<div id="content-area">
 		@FolderListing(folderName, entries)
-	</div>
-}
-
-templ FolderContentCol(segments []BreadcrumbSegment, folderName string, entries []FolderEntry) {
-	<div id="content-col" role="main">
-		@FolderContentInner(segments, folderName, entries)
-	</div>
-}
-
-templ EmptyContentCol() {
-	<div id="content-col" role="main">
-		<div id="content-area">
-			<div class="content-empty">Select a note to read it.</div>
-		</div>
 	</div>
 }
 
@@ -221,8 +195,3 @@ templ ErrorContentInner(code int, message string) {
 	</div>
 }
 
-templ ErrorContentCol(code int, message string) {
-	<div id="content-col" role="main">
-		@ErrorContentInner(code, message)
-	</div>
-}
