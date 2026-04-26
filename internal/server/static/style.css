@@ -1899,3 +1899,99 @@ a.backlink-card, .backlink-card {
     color: var(--accent);
   }
 }
+
+/* --- Marp slides --- */
+
+#marp-container {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--bg-secondary);
+}
+
+#marp-container svg[data-marpit-svg] {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.marp-fullscreen {
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: none;
+  border-radius: 0;
+}
+
+.marp-fullscreen svg[data-marpit-svg] {
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+.article-title-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.marp-present-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--fg);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s;
+}
+
+.marp-present-btn:hover {
+  background: var(--bg-hover);
+}
+
+.slide-panel-body {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.slide-panel-cards {
+  display: flex;
+  flex-direction: column;
+}
+
+.slide-panel-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: 3px;
+}
+
+.slide-panel-item:hover {
+  background: var(--bg-hover);
+  color: var(--fg);
+}
+
+.slide-panel-item-active {
+  background: var(--bg-active);
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.slide-panel-num {
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 1.5em;
+  text-align: right;
+}

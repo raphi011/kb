@@ -2,6 +2,7 @@ import { initToc } from './toc.js';
 import { initResize } from './resize.js';
 import { navigateTo, fetchContent, isPathChange, updateTreeActive } from './navigation.js';
 import { onReviewCardSettled } from './flashcards.js';
+import { onMarpSwap } from './marp.js';
 
 export function initHTMXHooks() {
   // Allow htmx to swap error responses (4xx/5xx) into the content area.
@@ -44,6 +45,7 @@ export function initHTMXHooks() {
     initResize();
     onReviewCardSettled();
     rerenderMermaid();
+    onMarpSwap();
     window.scrollTo(0, 0);
   });
 
