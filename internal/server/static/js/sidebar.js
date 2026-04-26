@@ -205,7 +205,7 @@ function renderBookmarksPanel() {
         </summary>
         <div class="panel-body sidebar-section-body">
           ${bookmarks.map(n => `
-            <a class="tree-item" href="/notes/${esc(n.path)}"
+            <a class="sidebar-panel-item" href="/notes/${esc(n.path)}"
                hx-get="/notes/${esc(n.path)}"
                hx-target="#content-col"
                hx-swap="innerHTML transition:true"

@@ -571,7 +571,7 @@ details[open] > .tree-folder::before {
   max-height: 30vh;
 }
 
-.sidebar-fc-item {
+.sidebar-panel-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -591,22 +591,12 @@ details[open] > .tree-folder::before {
   &:hover { background: var(--bg-hover); color: var(--text); }
 }
 
-.sidebar-fc-count {
-  font-size: 9px;
-  background: var(--bg-active);
-  border-radius: 8px;
-  padding: 0 5px;
-  color: var(--text-faint);
-  font-weight: 400;
-  flex-shrink: 0;
-}
-
-.sidebar-fc-due {
+.sidebar-panel-item .panel-count.due {
   background: var(--accent-soft);
   color: var(--accent);
 }
 
-.sidebar-fc-done {
+.sidebar-panel-item .panel-count.done {
   opacity: 0.4;
 }
 

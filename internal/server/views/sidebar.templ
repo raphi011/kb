@@ -71,7 +71,7 @@ templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFl
 			<div class="panel-body sidebar-section-body">
 				for _, nfc := range flashcardNotes {
 					<a
-						class="sidebar-fc-item"
+						class="sidebar-panel-item"
 						href={ templ.SafeURL("/flashcards/review?note=" + nfc.NotePath) }
 						hx-get={ "/flashcards/review?note=" + nfc.NotePath }
 						hx-target="#content-col"
@@ -81,9 +81,9 @@ templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFl
 					>
 						{ nfc.NoteTitle }
 						if nfc.DueCount > 0 {
-							<span class="sidebar-fc-count sidebar-fc-due">{ intStr(nfc.DueCount) }</span>
+							<span class="panel-count due">{ intStr(nfc.DueCount) }</span>
 						} else {
-							<span class="sidebar-fc-count sidebar-fc-done">{ intStr(nfc.CardCount) }</span>
+							<span class="panel-count done">{ intStr(nfc.CardCount) }</span>
 						}
 					</a>
 				}
