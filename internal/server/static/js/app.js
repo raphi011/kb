@@ -12,7 +12,7 @@ import { initLightbox } from './components/lightbox.js';
 import { initFlashcards } from './components/flashcards.js';
 import { initMarp } from './components/marp.js';
 import { initToast } from './toast.js';
-import { recordVisit } from './history.js';
+import { recordVisit } from './navigation.js';
 import { initPreview } from './components/preview.js';
 import { restorePanels } from './panels.js';
 

@@ -1,4 +1,5 @@
-import { recordVisit } from './history.js';
+const STORAGE_KEY = 'zk-recent';
+const MAX_ENTRIES = 20;
 
 let currentPath = location.pathname;
 
@@ -35,4 +36,19 @@ export function updateTreeActive() {
       parent = parent.parentElement;
     }
   }
+}
+
+export function recordVisit(path) {
+  const recent = getRecentPaths();
+  const idx = recent.indexOf(path);
+  if (idx > -1) recent.splice(idx, 1);
+  recent.unshift(path);
+  if (recent.length > MAX_ENTRIES) recent.length = MAX_ENTRIES;
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(recent)); }
+  catch { /* storage full */ }
+}
+
+export function getRecentPaths() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch { return []; }
 }

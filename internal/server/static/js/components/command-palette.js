@@ -1,5 +1,5 @@
 import { esc, fuzzyMatch } from '../utils.js';
-import { getRecentPaths } from '../history.js';
+import { getRecentPaths } from '../navigation.js';
 import { getManifest, findByPath } from '../manifest.js';
 import { navigateTo } from '../navigation.js';
 
