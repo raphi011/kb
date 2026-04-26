@@ -103,21 +103,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	if isHTMX(r) {
-		if err := views.FolderContentInner(nil, "Knowledge Base", entries).Render(r.Context(), w); err != nil {
-			slog.Error("render component", "error", err)
-		}
-		s.renderTOCForPage(w, r, nil, nil, nil, nil, nil)
-		return
-	}
-
-	s.renderFullPage(w, r, views.LayoutParams{
-		Title:      "Knowledge Base",
-		Tree:       buildTree(cache.notes, ""),
-		ContentCol: views.FolderContentCol(nil, "Knowledge Base", entries),
-	})
+	s.renderContent(w, r, "Knowledge Base", views.FolderContentInner(nil, "Knowledge Base", entries), TOCData{})
 }
 
 func (s *Server) handleNote(w http.ResponseWriter, r *http.Request) {
@@ -299,21 +285,7 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 	}
 	breadcrumbs := buildBreadcrumbs(folderPath + "/placeholder")
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	if isHTMX(r) {
-		if err := views.FolderContentInner(breadcrumbs, folderName, entries).Render(r.Context(), w); err != nil {
-			slog.Error("render component", "error", err)
-		}
-		s.renderTOCForPage(w, r, nil, nil, nil, nil, nil)
-		return
-	}
-
-	s.renderFullPage(w, r, views.LayoutParams{
-		Title:      folderName,
-		Tree:       buildTree(cache.notes, ""),
-		ContentCol: views.FolderContentCol(breadcrumbs, folderName, entries),
-	})
+	s.renderContent(w, r, folderName, views.FolderContentInner(breadcrumbs, folderName, entries), TOCData{})
 }
 
 func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
