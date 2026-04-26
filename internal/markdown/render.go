@@ -385,6 +385,165 @@ func (r *mermaidNodeRenderer) render(w util.BufWriter, _ []byte, node ast.Node, 
 	return ast.WalkContinue, nil
 }
 
+// --- Shared-mode renderers ---
+
+// sharedWikilinkRenderer renders [[wiki-links]] as plain text spans (no link).
+// Uses the same alias/title resolution logic as wikilinkRenderer.
+type sharedWikilinkRenderer struct {
+	resolver noteResolver
+}
+
+func (r *sharedWikilinkRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
+	reg.Register(wikilink.Kind, r.render)
+}
+
+func (r *sharedWikilinkRenderer) render(w util.BufWriter, src []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	n, ok := node.(*wikilink.Node)
+	if !ok {
+		return ast.WalkStop, fmt.Errorf("unexpected node %T", node)
+	}
+
+	if !entering {
+		_, _ = w.WriteString("</span>")
+		return ast.WalkContinue, nil
+	}
+
+	_, _ = w.WriteString(`<span class="wikilink-text">`)
+
+	// Check if there's an alias.
+	childText := nodeTextFromWikilink(src, n)
+	targetWithFragment := string(n.Target)
+	if len(n.Fragment) > 0 {
+		targetWithFragment += "#" + string(n.Fragment)
+	}
+	hasAlias := string(childText) != string(n.Target) && string(childText) != targetWithFragment
+
+	if hasAlias {
+		return ast.WalkContinue, nil
+	}
+
+	// No alias — resolve title.
+	target := string(n.Target)
+	path := ""
+	if r.resolver.lookup != nil {
+		path = r.resolver.lookup[target]
+	}
+	title := ""
+	if path != "" && r.resolver.titleLookup != nil {
+		title = r.resolver.titleLookup[path]
+	}
+	if title != "" {
+		_, _ = w.WriteString(html.EscapeString(title))
+	} else {
+		_, _ = w.Write(util.EscapeHTML(n.Target))
+	}
+	return ast.WalkSkipChildren, nil
+}
+
+// sharedLinkRenderer renders external links normally but strips internal links
+// (href starting with "/") to plain text spans.
+type sharedLinkRenderer struct{}
+
+func (r *sharedLinkRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
+	reg.Register(ast.KindLink, r.renderLink)
+}
+
+func (r *sharedLinkRenderer) renderLink(w util.BufWriter, _ []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
+	n := node.(*ast.Link)
+	dest := string(n.Destination)
+	external := strings.HasPrefix(dest, "http://") || strings.HasPrefix(dest, "https://")
+
+	if !external {
+		// Internal link — render as plain text span.
+		if entering {
+			_, _ = w.WriteString(`<span>`)
+		} else {
+			_, _ = w.WriteString(`</span>`)
+		}
+		return ast.WalkContinue, nil
+	}
+
+	if entering {
+		_, _ = w.WriteString(`<a href="`)
+		_, _ = w.Write(util.EscapeHTML(n.Destination))
+		_, _ = w.WriteString(`" target="_blank" rel="noopener"`)
+		if n.Title != nil {
+			_, _ = w.WriteString(` title="`)
+			_, _ = w.Write(util.EscapeHTML(n.Title))
+			_, _ = w.WriteString(`"`)
+		}
+		_, _ = w.WriteString(`>`)
+	} else {
+		_, _ = w.WriteString(`</a>`)
+	}
+	return ast.WalkContinue, nil
+}
+
+// imageStripper removes *ast.Image nodes from the document tree.
+// TODO: support images in shared notes (inline base64 or scoped auth)
+type imageStripper struct{}
+
+func (t *imageStripper) Transform(doc *ast.Document, _ text.Reader, _ parser.Context) {
+	var images []*ast.Image
+	_ = ast.Walk(doc, func(node ast.Node, entering bool) (ast.WalkStatus, error) {
+		if !entering {
+			return ast.WalkContinue, nil
+		}
+		if img, ok := node.(*ast.Image); ok {
+			images = append(images, img)
+		}
+		return ast.WalkContinue, nil
+	})
+	for _, img := range images {
+		parent := img.Parent()
+		if parent != nil {
+			parent.RemoveChild(parent, img)
+		}
+	}
+}
+
+// RenderShared renders markdown for shared/public note views. Wikilinks become
+// plain text, images are stripped, internal links become plain text, external
+// links are preserved.
+func RenderShared(src []byte, lookup map[string]string, titleLookup map[string]string) (RenderResult, error) {
+	resolver := noteResolver{lookup: lookup, titleLookup: titleLookup}
+	hc := &headingCollector{}
+	md := goldmark.New(
+		goldmark.WithExtensions(
+			extension.GFM,
+			highlighting.NewHighlighting(
+				highlighting.WithStyle("dracula"),
+				highlighting.WithFormatOptions(chromahtml.WithClasses(true)),
+			),
+		),
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
+			parser.WithInlineParsers(
+				util.Prioritized(&wikilink.Parser{}, 199),
+			),
+			parser.WithASTTransformers(
+				util.Prioritized(&h1Stripper{}, 101),
+				util.Prioritized(hc, 102),
+				util.Prioritized(&mermaidTransformer{}, 100),
+				util.Prioritized(&imageStripper{}, 98),
+			),
+		),
+		goldmark.WithRendererOptions(
+			gmhtml.WithUnsafe(),
+			renderer.WithNodeRenderers(
+				util.Prioritized(&sharedWikilinkRenderer{resolver: resolver}, 199),
+				util.Prioritized(&mermaidNodeRenderer{}, 100),
+				util.Prioritized(&sharedLinkRenderer{}, 50),
+			),
+		),
+	)
+	var buf bytes.Buffer
+	if err := md.Convert(src, &buf); err != nil {
+		return RenderResult{}, fmt.Errorf("render shared: %w", err)
+	}
+	return RenderResult{HTML: buf.String(), Headings: hc.headings}, nil
+}
+
 // --- External link renderer ---
 
 type externalLinkRenderer struct{}

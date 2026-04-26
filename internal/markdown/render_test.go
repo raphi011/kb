@@ -300,6 +300,95 @@ func TestRenderInline_NoLookup(t *testing.T) {
 	}
 }
 
+func TestRenderShared_WikilinkBecomesPlainText(t *testing.T) {
+	lookup := map[string]string{"chezmoi": "notes/tools/chezmoi.md"}
+	titleLookup := map[string]string{"notes/tools/chezmoi.md": "Chezmoi Setup Guide"}
+	result, err := RenderShared([]byte("See [[chezmoi]]."), lookup, titleLookup)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(result.HTML, "<a ") {
+		t.Errorf("shared mode should not contain links for wikilinks: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, "Chezmoi Setup Guide") {
+		t.Errorf("shared mode should preserve wikilink title text: %s", result.HTML)
+	}
+}
+
+func TestRenderShared_WikilinkAliasPreserved(t *testing.T) {
+	lookup := map[string]string{"chezmoi": "notes/tools/chezmoi.md"}
+	titleLookup := map[string]string{"notes/tools/chezmoi.md": "Chezmoi Setup Guide"}
+	result, err := RenderShared([]byte("See [[chezmoi|my dotfiles]]."), lookup, titleLookup)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(result.HTML, "<a ") {
+		t.Errorf("shared mode should not contain wikilink anchors: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, "my dotfiles") {
+		t.Errorf("alias text should be preserved: %s", result.HTML)
+	}
+}
+
+func TestRenderShared_InternalLinkBecomesPlainText(t *testing.T) {
+	result, err := RenderShared([]byte("See [my note](/notes/foo.md)."), nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(result.HTML, `href="/notes/`) {
+		t.Errorf("internal links should be stripped: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, "my note") {
+		t.Errorf("link text should be preserved: %s", result.HTML)
+	}
+}
+
+func TestRenderShared_ExternalLinkPreserved(t *testing.T) {
+	result, err := RenderShared([]byte("[Go](https://go.dev) is great."), nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, `href="https://go.dev"`) {
+		t.Errorf("external links should be preserved: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, `target="_blank"`) {
+		t.Errorf("external links should open in new tab: %s", result.HTML)
+	}
+}
+
+func TestRenderShared_ImagesStripped(t *testing.T) {
+	result, err := RenderShared([]byte("Before\n\n![alt text](image.png)\n\nAfter"), nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(result.HTML, "<img") {
+		t.Errorf("images should be stripped in shared mode: %s", result.HTML)
+	}
+	if !strings.Contains(result.HTML, "Before") || !strings.Contains(result.HTML, "After") {
+		t.Errorf("surrounding text should remain: %s", result.HTML)
+	}
+}
+
+func TestRenderShared_CodeBlocksPreserved(t *testing.T) {
+	result, err := RenderShared([]byte("```go\nfunc main() {}\n```\n"), nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, "chroma") {
+		t.Errorf("syntax highlighting should work in shared mode: %s", result.HTML)
+	}
+}
+
+func TestRenderShared_MermaidPreserved(t *testing.T) {
+	result, err := RenderShared([]byte("```mermaid\ngraph TD\n  A --> B\n```\n"), nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(result.HTML, `class="mermaid"`) {
+		t.Errorf("mermaid should render in shared mode: %s", result.HTML)
+	}
+}
+
 func TestRender_FlashcardWithWikilink(t *testing.T) {
 	src := []byte("What is FSRS::An algorithm described in [[spaced-repetition]]\n")
 	lookup := map[string]string{"spaced-repetition": "notes/spaced-repetition.md"}
