@@ -3,6 +3,7 @@ package server
 import (
 	"crypto/subtle"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -451,6 +452,10 @@ func (s *Server) handleBookmarkPut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := s.store.AddBookmark(path); err != nil {
+		if errors.Is(err, index.ErrNotFound) {
+			http.NotFound(w, r)
+			return
+		}
 		slog.Error("add bookmark", "path", path, "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return

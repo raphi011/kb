@@ -43,9 +43,26 @@ func (m *mockKB) ReadFile(path string) ([]byte, error) {
 }
 func (m *mockKB) Render(src []byte) (markdown.RenderResult, error) { return markdown.Render(src, nil, nil, false) }
 func (m *mockKB) BookmarkedPaths() ([]string, error)                          { return nil, nil }
-func (m *mockKB) AddBookmark(path string) error                               { return nil }
+func (m *mockKB) AddBookmark(path string) error {
+	for _, n := range m.notes {
+		if n.Path == path {
+			return nil
+		}
+	}
+	return index.ErrNotFound
+}
 func (m *mockKB) RemoveBookmark(path string) error                            { return nil }
 func (m *mockKB) ShareNote(path string) (string, error) {
+	found := false
+	for _, n := range m.notes {
+		if n.Path == path {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return "", index.ErrNotFound
+	}
 	if m.shares == nil {
 		m.shares = map[string]string{}
 	}
@@ -344,6 +361,32 @@ func TestSharedNoteInvalidToken(t *testing.T) {
 	srv.ServeHTTP(w, req)
 	if w.Code != http.StatusNotFound {
 		t.Fatalf("invalid share token status = %d, want 404", w.Code)
+	}
+}
+
+func TestBookmarkPut_NonexistentNote(t *testing.T) {
+	srv := newTestServer(t)
+	cookie := &http.Cookie{Name: sessionCookieName, Value: signToken("test-token")}
+
+	req := httptest.NewRequest("PUT", "/api/bookmarks/nonexistent/note.md", nil)
+	req.AddCookie(cookie)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code != http.StatusNotFound {
+		t.Errorf("bookmark nonexistent note status = %d, want 404", w.Code)
+	}
+}
+
+func TestShareCreate_NonexistentNote(t *testing.T) {
+	srv := newTestServer(t)
+	cookie := &http.Cookie{Name: sessionCookieName, Value: signToken("test-token")}
+
+	req := httptest.NewRequest("POST", "/api/share/nonexistent/note.md", nil)
+	req.AddCookie(cookie)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code != http.StatusNotFound {
+		t.Errorf("share nonexistent note status = %d, want 404", w.Code)
 	}
 }
 

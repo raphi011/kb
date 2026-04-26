@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -152,6 +153,10 @@ func (s *Server) handleFlashcardRate(w http.ResponseWriter, r *http.Request) {
 
 	rating := fsrs.Rating(ratingInt)
 	if _, err := s.store.ReviewCard(hash, rating); err != nil {
+		if errors.Is(err, index.ErrNotFound) {
+			http.NotFound(w, r)
+			return
+		}
 		slog.Error("review card", "hash", hash, "error", err)
 		http.Error(w, "review failed", http.StatusInternalServerError)
 		return
@@ -172,6 +177,10 @@ func (s *Server) handleFlashcardsForNote(w http.ResponseWriter, r *http.Request)
 	notePath := r.PathValue("path")
 	cards, err := s.store.FlashcardsForNote(notePath)
 	if err != nil {
+		if errors.Is(err, index.ErrNotFound) {
+			http.NotFound(w, r)
+			return
+		}
 		slog.Error("flashcards for note", "path", notePath, "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return

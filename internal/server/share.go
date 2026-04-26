@@ -2,9 +2,11 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 
+	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/server/views"
 )
 
@@ -14,12 +16,12 @@ func (s *Server) handleShareCreate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing path", http.StatusBadRequest)
 		return
 	}
-	if _, err := s.store.NoteByPath(path); err != nil {
-		http.NotFound(w, r)
-		return
-	}
 	token, err := s.store.ShareNote(path)
 	if err != nil {
+		if errors.Is(err, index.ErrNotFound) {
+			http.NotFound(w, r)
+			return
+		}
 		slog.Error("share note", "path", path, "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
