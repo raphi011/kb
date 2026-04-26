@@ -516,7 +516,7 @@ Replace with:
 	s.renderContent(w, r, note.Title, inner, toc, note.Path)
 ```
 
-Note: this also fixes a latent bug where `renderNote`'s full-page path didn't pass `NotePath` to `LayoutParams`, meaning the git history panel wouldn't appear on direct page loads.
+Note: `renderNote` already passes `NotePath` to `LayoutParams` — this refactor just consolidates the branching logic.
 
 - [ ] **Step 4: Refactor renderMarpNote to use renderContent**
 
@@ -938,11 +938,246 @@ git commit -m "refactor: adopt ArticlePage in NoteArticle, MarpArticle, FolderLi
 
 ---
 
-### Task 11: PanelSection adoption — SKIPPED
+### Task 11: Extend PanelSection and adopt in sidebar/TOC panels
 
-**Assessment:** `PanelSection` currently renders a fixed `class="panel-section"` with no support for additional CSS classes. Every existing panel adds domain-specific classes (`sidebar-tags-section`, `toc-links-section`, `server-tree`, etc.), custom badge IDs (`fc-due-badge`), and custom body classes (`sidebar-tags-body`, `sidebar-section-body`). Adopting `PanelSection` would require extending `PanelProps` with `Class`, `BodyClass`, and custom badge support — adding complexity for minimal gain.
+**Files:**
+- Modify: `internal/server/views/panel.templ` (add Class, BodyClass to PanelProps)
+- Modify: `internal/server/views/toc.templ` (outgoing links, backlinks, git history)
+- Modify: `internal/server/views/sidebar.templ` (bookmarks, tags)
 
-**Decision:** Skip. Note in the future-improvements doc update (Task 14) that PanelSection adoption was evaluated and deferred because the component API needs extension first.
+Panels with heavy custom logic (sidebar flashcards with JS-driven badge, fc-panel with progress bar, slide-panel with card list) are NOT candidates — their internal structure diverges too far from PanelSection.
+
+- [ ] **Step 1: Extend PanelProps with Class and BodyClass**
+
+In `internal/server/views/panel.templ`, update `PanelProps`:
+
+```go
+type PanelProps struct {
+	Label     string
+	Count     int
+	ID        string // data-panel value for localStorage persistence
+	Open      bool
+	Class     string // additional CSS classes on <details>
+	BodyClass string // additional CSS classes on panel-body <div>
+}
+```
+
+Update the `PanelSection` template to use them:
+
+```go
+templ PanelSection(p PanelProps) {
+	<div class="resize-handle-v" data-resize-target="next"></div>
+	<details class={ "panel-section", templ.KV(p.Class, p.Class != "") } open?={ p.Open } aria-label={ p.Label } data-panel={ p.ID }>
+		<summary class="section-label panel-label">
+			{ p.Label } <span class="panel-count">{ intStr(p.Count) }</span>
+		</summary>
+		<div class={ "panel-body", templ.KV(p.BodyClass, p.BodyClass != "") }>
+			{ children... }
+		</div>
+	</details>
+}
+```
+
+- [ ] **Step 2: Refactor TOC outgoing links to use PanelSection**
+
+In `toc.templ`, replace the outgoing links block (lines 96-127):
+
+From:
+```go
+			<div class="resize-handle-v" data-resize-target="next"></div>
+			if len(outgoing) > 0 {
+				<details class="panel-section toc-links-section" open aria-label="Outgoing links" data-panel="links">
+					<summary class="section-label panel-label">Links <span class="panel-count">{ lenStr(outgoing) }</span></summary>
+					<div class="panel-body toc-links-body">
+						...
+					</div>
+				</details>
+			} else {
+				<div class="panel-section panel-empty">
+					<span class="section-label panel-label">Links <span class="panel-count">0</span></span>
+				</div>
+			}
+```
+
+To:
+```go
+			if len(outgoing) > 0 {
+				@PanelSection(PanelProps{Label: "Links", Count: len(outgoing), ID: "links", Open: true, Class: "toc-links-section", BodyClass: "toc-links-body"}) {
+					for _, link := range outgoing {
+						if link.External {
+							<a class="list-item toc-link-item toc-link-out" href={ templ.SafeURL(link.TargetPath) } target="_blank" rel="noopener">
+								if link.Title != "" {
+									{ link.Title }
+								} else {
+									{ link.TargetPath }
+								}
+							</a>
+						} else if link.TargetPath != "" {
+							@ContentLink("list-item toc-link-item toc-link-out", "/notes/" + link.TargetPath) {
+								if link.Title != "" {
+									{ link.Title }
+								} else {
+									{ link.TargetPath }
+								}
+							}
+						} else {
+							<span class="list-item toc-link-item toc-link-out">{ link.Title }</span>
+						}
+					}
+				}
+			} else {
+				<div class="panel-section panel-empty">
+					<span class="section-label panel-label">Links <span class="panel-count">0</span></span>
+				</div>
+			}
+```
+
+Note: the `resize-handle-v` is removed because `PanelSection` already renders one. The empty-state `<div>` stays as-is — it's a non-interactive label, not a collapsible panel.
+
+- [ ] **Step 3: Refactor TOC backlinks to use PanelSection**
+
+Same pattern. Replace the backlinks block (lines 128-144):
+
+From:
+```go
+			<div class="resize-handle-v" data-resize-target="next"></div>
+			if len(backlinks) > 0 {
+				<details class="panel-section toc-links-section" open aria-label="Backlinks" data-panel="backlinks">
+					<summary class="section-label panel-label">Backlinks <span class="panel-count">{ lenStr(backlinks) }</span></summary>
+					<div class="panel-body toc-links-body">
+						...
+					</div>
+				</details>
+			} else {
+				<div class="panel-section panel-empty">
+					<span class="section-label panel-label">Backlinks <span class="panel-count">0</span></span>
+				</div>
+			}
+```
+
+To:
+```go
+			if len(backlinks) > 0 {
+				@PanelSection(PanelProps{Label: "Backlinks", Count: len(backlinks), ID: "backlinks", Open: true, Class: "toc-links-section", BodyClass: "toc-links-body"}) {
+					for _, link := range backlinks {
+						@ContentLink("list-item toc-link-item toc-link-in", "/notes/" + link.SourcePath) {
+							{ link.SourceTitle }
+						}
+					}
+				}
+			} else {
+				<div class="panel-section panel-empty">
+					<span class="section-label panel-label">Backlinks <span class="panel-count">0</span></span>
+				</div>
+			}
+```
+
+- [ ] **Step 4: Refactor sidebar BookmarksPanel to use PanelSection**
+
+In `sidebar.templ`, replace the `BookmarksPanel` component (lines 104-128):
+
+From:
+```go
+templ BookmarksPanel(bookmarks []BookmarkEntry) {
+	<div id="bookmarks-panel">
+		<div class="resize-handle-v" data-resize-target="next"></div>
+		if len(bookmarks) > 0 {
+			<details class="panel-section sidebar-tags-section" open aria-label="Bookmarks" data-panel="bookmarks">
+				<summary class="section-label panel-label">
+					Bookmarks <span class="panel-count">{ intStr(len(bookmarks)) }</span>
+				</summary>
+				<div class="panel-body sidebar-section-body">
+					for _, b := range bookmarks {
+						@ContentLink("list-item sidebar-panel-item", "/notes/" + b.Path) {
+							{ b.Title }
+						}
+					</div>
+				</details>
+			} else {
+				<div class="panel-section sidebar-tags-section">
+					<span class="section-label panel-label">
+						Bookmarks <span class="panel-count">0</span>
+					</span>
+				</div>
+			}
+		</div>
+	}
+```
+
+To:
+```go
+templ BookmarksPanel(bookmarks []BookmarkEntry) {
+	<div id="bookmarks-panel">
+		if len(bookmarks) > 0 {
+			@PanelSection(PanelProps{Label: "Bookmarks", Count: len(bookmarks), ID: "bookmarks", Open: true, Class: "sidebar-tags-section", BodyClass: "sidebar-section-body"}) {
+				for _, b := range bookmarks {
+					@ContentLink("list-item sidebar-panel-item", "/notes/" + b.Path) {
+						{ b.Title }
+					}
+				}
+			}
+		} else {
+			<div class="panel-section sidebar-tags-section">
+				<span class="section-label panel-label">
+					Bookmarks <span class="panel-count">0</span>
+				</span>
+			</div>
+		}
+	</div>
+}
+```
+
+- [ ] **Step 5: Refactor sidebar TagList to use PanelSection**
+
+In `sidebar.templ`, replace `TagList` (lines 40-54):
+
+From:
+```go
+templ TagList(tags []index.Tag) {
+	<div class="resize-handle-v server-tree" data-resize-target="next"></div>
+	<details class="panel-section sidebar-tags-section server-tree" open aria-label="Tags" data-panel="tags">
+		<summary class="section-label panel-label">
+			Tags <span class="panel-count">{ lenStr(tags) }</span>
+		</summary>
+		<div class="panel-body sidebar-tags-body">
+			for _, tag := range tags {
+				<span class="list-item sidebar-tag-item" data-tag={ tag.Name }>
+					{ tag.Name } <span class="tag-count">{ intStr(tag.NoteCount) }</span>
+				</span>
+			}
+		</div>
+	</details>
+}
+```
+
+To:
+```go
+templ TagList(tags []index.Tag) {
+	@PanelSection(PanelProps{Label: "Tags", Count: len(tags), ID: "tags", Open: true, Class: "sidebar-tags-section server-tree", BodyClass: "sidebar-tags-body"}) {
+		for _, tag := range tags {
+			<span class="list-item sidebar-tag-item" data-tag={ tag.Name }>
+				{ tag.Name } <span class="tag-count">{ intStr(tag.NoteCount) }</span>
+			</span>
+		}
+	}
+}
+```
+
+Note: `PanelSection` adds its own `resize-handle-v`, so the explicit one is removed. However, TagList's handle had an extra `server-tree` class. Check if this matters — it's used to hide the handle when search results replace the tree. If the `server-tree` class on the resize handle is needed for show/hide logic, the handle inside `PanelSection` won't have it. **Check**: grep for `.server-tree` CSS/JS usage to decide.
+
+If `server-tree` on the resize handle is required, keep `TagList` as-is (don't adopt PanelSection for this one). The bookmarks and TOC panels are the primary wins.
+
+- [ ] **Step 6: Run templ generate and verify build**
+
+Run: `cd /Users/raphaelgruber/Git/kb && go generate ./... && go build ./... && go test ./...`
+Expected: SUCCESS
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add internal/server/views/panel.templ internal/server/views/toc.templ internal/server/views/sidebar.templ
+git commit -m "refactor: extend PanelSection with Class/BodyClass, adopt in TOC and sidebar panels"
+```
 
 ---
 
