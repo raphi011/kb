@@ -13,14 +13,10 @@ import { initKeys } from './keys.js';
 import './components/toc.js';
 import './components/resize.js';
 import './components/lightbox.js';
-import './components/preview.js';
 import './components/marp.js';
 import './components/flashcards.js';
 import './components/bookmark.js';
 import './components/share.js';
-import './components/sidebar.js';
-import './components/calendar.js';
-import './components/command-palette.js';
 
 // ── One-time global setup ───────────────────────────────────
 
@@ -32,7 +28,6 @@ import { initFlashcards } from './components/flashcards.js';
 import { initMarp } from './components/marp.js';
 import { initBookmarks } from './components/bookmark.js';
 import { initShare } from './components/share.js';
-import { initLightbox } from './components/lightbox.js';
 import { initPreview } from './components/preview.js';
 
 initTheme();
@@ -44,7 +39,6 @@ initFlashcards();
 initMarp();
 initBookmarks();
 initShare();
-initLightbox();
 initPreview();
 
 // ── Registry: initial page ──────────────────────────────────

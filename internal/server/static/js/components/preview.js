@@ -1,5 +1,3 @@
-import { registry } from '../lib/registry.js';
-
 const cache = new Map();
 let popover = null;
 let hoverTimer = null;
@@ -103,4 +101,3 @@ export function initPreview() {
   }, true);
 }
 
-registry.register('#content-area', { init: initPreview });
