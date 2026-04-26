@@ -8,7 +8,7 @@ templ SearchResults(notes []index.Note) {
 	<ul class="search-results" role="list">
 		for _, note := range notes {
 			<li>
-				@ContentLink("result-item", "/notes/" + note.Path) {
+				@ContentLink("list-item result-item", "/notes/" + note.Path) {
 					<div class="result-title">{ note.Title }</div>
 				}
 			</li>

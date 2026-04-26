@@ -382,9 +382,7 @@ a.backlink-card, .backlink-card {
   border: 1px solid var(--border);
   border-radius: 4px;
   margin-bottom: 6px;
-  cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
-  text-decoration: none;
 
   &:hover { border-color: var(--accent); background: var(--accent-soft); }
 
@@ -430,7 +428,6 @@ a.backlink-card, .backlink-card {
   gap: 10px;
   font-family: var(--font-ui);
   font-size: 13px;
-  text-decoration: none;
   color: var(--text);
   padding: 7px 10px;
   border-radius: 4px;
@@ -475,12 +472,9 @@ a.backlink-card, .backlink-card {
 .settings-btn {
   padding: 6px 14px;
   border-radius: 5px;
-  border: 1px solid var(--border);
   background: var(--surface);
   color: var(--fg);
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--duration-base);
 }
 
 .settings-btn:hover { background: var(--border); }

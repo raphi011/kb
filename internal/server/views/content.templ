@@ -72,7 +72,7 @@ templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, hea
 			<section id="backlinks-section">
 				<h4>Referenced by</h4>
 				for _, link := range backlinks {
-					@ContentLink("backlink-card", "/notes/" + link.SourcePath) {
+					@ContentLink("list-item backlink-card", "/notes/" + link.SourcePath) {
 						<span class="backlink-card-title">{ link.SourceTitle }</span>
 						if backlinkDir(link.SourcePath) != "" {
 							<span class="backlink-card-path"><span>{ backlinkDir(link.SourcePath) }</span></span>
@@ -150,11 +150,11 @@ templ FolderListing(folderName string, entries []FolderEntry) {
 				for _, entry := range entries {
 					<li class="folder-entry">
 						if entry.IsDir {
-							@ContentLink("folder-link folder-link--dir", "/notes/" + entry.Path + "/") {
+							@ContentLink("list-item folder-link folder-link--dir", "/notes/" + entry.Path + "/") {
 								<span class="folder-icon">&#9656;</span>{ entry.Name }/
 							}
 						} else {
-							@ContentLink("folder-link", "/notes/" + entry.Path) {
+							@ContentLink("list-item folder-link", "/notes/" + entry.Path) {
 								<span class="folder-icon">&#9702;</span>
 								if entry.Title != "" {
 									{ entry.Title }

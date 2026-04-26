@@ -78,7 +78,7 @@ function renderResults(query, container) {
     const visitedSet = new Set(visitedPaths);
 
     if (visited.length) {
-      html += '<div class="cmd-group-label">Recent</div>';
+      html += '<div class="section-label cmd-group-label">Recent</div>';
       visited.forEach(n => { html += itemHtml(n); });
     }
 
@@ -88,7 +88,7 @@ function renderResults(query, container) {
       .slice(0, 5);
 
     if (modified.length) {
-      html += '<div class="cmd-group-label">Recently modified</div>';
+      html += '<div class="section-label cmd-group-label">Recently modified</div>';
       modified.forEach(n => { html += itemHtml(n); });
     }
   } else {
@@ -101,7 +101,7 @@ function renderResults(query, container) {
     scored.sort((a, b) => b.score - a.score);
 
     if (scored.length) {
-      html += '<div class="cmd-group-label">Notes</div>';
+      html += '<div class="section-label cmd-group-label">Notes</div>';
       scored.slice(0, 20).forEach(({ note }) => { html += itemHtml(note, q); });
     } else {
       html = '<div class="cmd-empty">No results</div>';
@@ -117,7 +117,7 @@ function itemHtml(note, query) {
   const display = note.title || note.path;
   const title = query ? fuzzyHighlight(display, query) : esc(display);
   const tags = note.tags.map(t => '#' + t).join(' ');
-  return `<div class="cmd-item" data-href="/notes/${encodeURI(note.path)}">
+  return `<div class="list-item cmd-item" data-href="/notes/${encodeURI(note.path)}">
     <span class="cmd-label">${title}</span>
     <span class="cmd-sub">${esc(tags)}</span>
   </div>`;

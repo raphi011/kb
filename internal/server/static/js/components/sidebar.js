@@ -153,7 +153,7 @@ function render() {
     container.innerHTML = '<div class="sidebar-empty">No results</div>';
   } else {
     container.innerHTML = results.map(n => `
-      <a class="result-item" href="/notes/${encodeURI(n.path)}"
+      <a class="list-item result-item" href="/notes/${encodeURI(n.path)}"
          hx-get="/notes/${encodeURI(n.path)}"
          hx-target="#content-col"
          hx-swap="innerHTML transition:true"

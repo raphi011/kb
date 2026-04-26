@@ -1,2 +1,64 @@
-/* ── Reusable component base classes ─────────────────────────
-   Populated in Task 4. Import order matters — after layout, before views. */
+/* ── Reusable component base classes ─────────────────────────── */
+
+/* Button base — settings, calendar nav, flashcard rating, topbar toggles */
+.btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  padding: var(--space-3) var(--space-5);
+  transition: background var(--duration-base), color var(--duration-base),
+              border-color var(--duration-base);
+
+  &:hover { color: var(--text); border-color: var(--text-muted); }
+  &:disabled { opacity: 0.5; cursor: default; }
+}
+
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: oklch(1 0 0);
+
+  &:hover { opacity: 0.9; }
+}
+
+/* Interactive list row — tree items, sidebar panels, TOC links, folder links, etc. */
+.list-item {
+  display: block;
+  padding: var(--space-1) var(--space-4);
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-radius: var(--radius-sm);
+  transition: background var(--duration-fast), color var(--duration-fast);
+
+  &:hover { background: var(--bg-hover); color: var(--text); }
+  &.active { color: var(--text); background: var(--bg-active); }
+}
+
+/* Section label — panel summaries, TOC header, calendar month, mobile TOC toggle */
+.section-label {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-family: var(--font-ui);
+  font-weight: 600;
+}

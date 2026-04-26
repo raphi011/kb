@@ -119,10 +119,7 @@
 }
 
 .panel-label {
-  font-size: 9px;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-faint);
   padding: 3px 12px;
   display: flex;
   align-items: center;
@@ -130,8 +127,6 @@
   cursor: pointer;
   user-select: none;
   list-style: none;
-  font-family: var(--font-ui);
-  font-weight: 600;
   flex-shrink: 0;
 
   &::-webkit-details-marker { display: none; }
@@ -167,12 +162,10 @@
   font-size: 12px;
   font-family: var(--font-ui);
   color: var(--text-muted);
-  cursor: pointer;
   line-height: 1.55;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: background 0.1s, color 0.1s;
   text-decoration: none;
   list-style: none;
   user-select: none;
@@ -214,7 +207,7 @@ details[open] > .tree-folder::before {
 .tree-item {
   padding-left: 22px;
   border-left: 2px solid transparent;
-  transition: background 0.1s, color 0.1s, border-color 0.15s;
+  transition: background var(--duration-fast), color var(--duration-fast), border-color var(--duration-base);
 }
 
 .tree-item.active {
@@ -260,13 +253,10 @@ details[open] > .tree-folder::before {
   font-size: 12px;
   font-family: var(--font-ui);
   color: var(--text-muted);
-  cursor: pointer;
   line-height: 1.55;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-decoration: none;
-  transition: background 0.1s, color 0.1s;
 
   &:hover { background: var(--bg-hover); color: var(--text); }
 }
@@ -288,7 +278,6 @@ details[open] > .tree-folder::before {
   font-size: 11px;
   font-family: var(--font-ui);
   color: var(--text-muted);
-  cursor: pointer;
   white-space: nowrap;
   background: var(--bg);
   border-radius: 3px;
@@ -318,10 +307,7 @@ details[open] > .tree-folder::before {
 }
 
 .result-item {
-  display: block;
   padding: 5px 10px;
-  cursor: pointer;
-  text-decoration: none;
   color: inherit;
   border-bottom: 1px solid oklch(from var(--border) l c h / 0.4);
 

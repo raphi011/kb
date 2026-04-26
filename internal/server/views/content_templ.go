@@ -368,7 +368,7 @@ func NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, head
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = ContentLink("backlink-card", "/notes/"+link.SourcePath).Render(templ.WithChildren(ctx, templ_7745c5c3_Var19), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = ContentLink("list-item backlink-card", "/notes/"+link.SourcePath).Render(templ.WithChildren(ctx, templ_7745c5c3_Var19), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -684,7 +684,7 @@ func FolderListing(folderName string, entries []FolderEntry) templ.Component {
 						}
 						return nil
 					})
-					templ_7745c5c3_Err = ContentLink("folder-link folder-link--dir", "/notes/"+entry.Path+"/").Render(templ.WithChildren(ctx, templ_7745c5c3_Var36), templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = ContentLink("list-item folder-link folder-link--dir", "/notes/"+entry.Path+"/").Render(templ.WithChildren(ctx, templ_7745c5c3_Var36), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -728,7 +728,7 @@ func FolderListing(folderName string, entries []FolderEntry) templ.Component {
 						}
 						return nil
 					})
-					templ_7745c5c3_Err = ContentLink("folder-link", "/notes/"+entry.Path).Render(templ.WithChildren(ctx, templ_7745c5c3_Var38), templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = ContentLink("list-item folder-link", "/notes/"+entry.Path).Render(templ.WithChildren(ctx, templ_7745c5c3_Var38), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

@@ -58,16 +58,8 @@
 
   #mob-menu-btn {
     display: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
     color: var(--text-muted);
     font-size: 18px;
-    height: 28px;
-    width: 28px;
-    align-items: center;
-    justify-content: center;
     flex-shrink: 0;
 
     &:hover { color: var(--text); }
@@ -126,17 +118,8 @@
   }
 
   #theme-toggle {
-    background: none;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    color: var(--text-muted);
-    cursor: pointer;
     font-size: 16px;
-    height: 28px;
-    width: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     outline: none;
     transition: color var(--duration-base), border-color var(--duration-base);
     -webkit-tap-highlight-color: transparent;
@@ -147,17 +130,8 @@
   }
 
   #zen-toggle {
-    background: none;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    color: var(--text-muted);
-    cursor: pointer;
     font-size: 16px;
-    height: 28px;
-    width: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     outline: none;
     transition: color var(--duration-base), border-color var(--duration-base);
 

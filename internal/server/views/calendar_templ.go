@@ -119,7 +119,7 @@ func Calendar(year, month int, activeDays map[int]bool, selectedDay int) templ.C
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"calendar\"><div class=\"cal-header\"><button class=\"cal-nav\" aria-label=\"Previous month\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"calendar\"><div class=\"cal-header\"><button class=\"btn btn-icon cal-nav\" aria-label=\"Previous month\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -132,20 +132,20 @@ func Calendar(year, month int, activeDays map[int]bool, selectedDay int) templ.C
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-target=\"#calendar\" hx-swap=\"outerHTML transition:true\" hx-sync=\"closest #calendar:replace\">&lsaquo;</button> <span class=\"cal-month-label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" hx-target=\"#calendar\" hx-swap=\"outerHTML transition:true\" hx-sync=\"closest #calendar:replace\">&lsaquo;</button> <span class=\"section-label cal-month-label\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(monthLabel(year, month))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/calendar.templ`, Line: 104, Col: 58}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/calendar.templ`, Line: 104, Col: 72}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span> <button class=\"cal-nav\" aria-label=\"Next month\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</span> <button class=\"btn btn-icon cal-nav\" aria-label=\"Next month\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

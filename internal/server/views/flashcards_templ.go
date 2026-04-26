@@ -124,7 +124,7 @@ func FlashcardDashboardContent(stats index.FlashcardStats) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if stats.DueToday > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<a class=\"fc-start-btn\" href=\"/flashcards/review\" hx-get=\"/flashcards/review\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\">Start review</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<a class=\"btn btn-primary fc-start-btn\" href=\"/flashcards/review\" hx-get=\"/flashcards/review\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\">Start review</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -305,7 +305,7 @@ func ReviewCardContent(card ReviewCardData, previews srs.Previews, notePath stri
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<button class=\"fc-rate fc-rate-again\" name=\"rating\" value=\"1\" type=\"submit\">Again<span class=\"fc-rate-due\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<button class=\"btn fc-rate fc-rate-again\" name=\"rating\" value=\"1\" type=\"submit\">Again<span class=\"fc-rate-due\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -318,7 +318,7 @@ func ReviewCardContent(card ReviewCardData, previews srs.Previews, notePath stri
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</span></button> <button class=\"fc-rate fc-rate-hard\" name=\"rating\" value=\"2\" type=\"submit\">Hard<span class=\"fc-rate-due\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</span></button> <button class=\"btn fc-rate fc-rate-hard\" name=\"rating\" value=\"2\" type=\"submit\">Hard<span class=\"fc-rate-due\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -331,7 +331,7 @@ func ReviewCardContent(card ReviewCardData, previews srs.Previews, notePath stri
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</span></button> <button class=\"fc-rate fc-rate-good\" name=\"rating\" value=\"3\" type=\"submit\">Good<span class=\"fc-rate-due\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</span></button> <button class=\"btn fc-rate fc-rate-good\" name=\"rating\" value=\"3\" type=\"submit\">Good<span class=\"fc-rate-due\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -344,7 +344,7 @@ func ReviewCardContent(card ReviewCardData, previews srs.Previews, notePath stri
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span></button> <button class=\"fc-rate fc-rate-easy\" name=\"rating\" value=\"4\" type=\"submit\">Easy<span class=\"fc-rate-due\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</span></button> <button class=\"btn fc-rate fc-rate-easy\" name=\"rating\" value=\"4\" type=\"submit\">Easy<span class=\"fc-rate-due\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -466,14 +466,14 @@ func ReviewDoneContent(stats index.FlashcardStats, notePath string, summary inde
 			return templ_7745c5c3_Err
 		}
 		if notePath != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<a class=\"fc-start-btn\" href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "<a class=\"btn btn-primary fc-start-btn\" href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var24 templ.SafeURL
 			templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/notes/" + notePath))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/flashcards.templ`, Line: 158, Col: 71}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/flashcards.templ`, Line: 158, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 			if templ_7745c5c3_Err != nil {
@@ -486,7 +486,7 @@ func ReviewDoneContent(stats index.FlashcardStats, notePath string, summary inde
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs("/notes/" + notePath)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/flashcards.templ`, Line: 158, Col: 103}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/flashcards.templ`, Line: 158, Col: 119}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 			if templ_7745c5c3_Err != nil {
@@ -497,7 +497,7 @@ func ReviewDoneContent(stats index.FlashcardStats, notePath string, summary inde
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<a class=\"fc-start-btn\" href=\"/flashcards\" hx-get=\"/flashcards\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\">Back to dashboard</a>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "<a class=\"btn btn-primary fc-start-btn\" href=\"/flashcards\" hx-get=\"/flashcards\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\">Back to dashboard</a>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -676,7 +676,7 @@ func FlashcardPanel(data FlashcardPanelData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "\"><summary class=\"panel-label\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "\"><summary class=\"section-label panel-label\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -751,7 +751,7 @@ func FlashcardPanel(data FlashcardPanelData) templ.Component {
 			}
 		} else {
 			if data.DueCount > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<a class=\"fc-panel-review-btn\" href=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 66, "<a class=\"btn btn-primary fc-panel-review-btn\" href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -793,7 +793,7 @@ func FlashcardPanel(data FlashcardPanelData) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, card := range data.Cards {
-			var templ_7745c5c3_Var40 = []any{"fc-panel-card", templ.KV("fc-panel-card-due", card.Status == "due"), templ.KV("fc-panel-card-new", card.Status == "new")}
+			var templ_7745c5c3_Var40 = []any{"list-item fc-panel-card", templ.KV("fc-panel-card-due", card.Status == "due"), templ.KV("fc-panel-card-new", card.Status == "new")}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var40...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

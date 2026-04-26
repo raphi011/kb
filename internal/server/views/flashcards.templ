@@ -63,7 +63,7 @@ templ FlashcardDashboardContent(stats index.FlashcardStats) {
 					</div>
 				</div>
 				if stats.DueToday > 0 {
-					<a class="fc-start-btn" href="/flashcards/review" hx-get="/flashcards/review" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true">
+					<a class="btn btn-primary fc-start-btn" href="/flashcards/review" hx-get="/flashcards/review" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true">
 						Start review
 					</a>
 				} else {
@@ -106,16 +106,16 @@ templ ReviewCardContent(card ReviewCardData, previews srs.Previews, notePath str
 								if notePath != "" {
 									<input type="hidden" name="note" value={ notePath }/>
 								}
-								<button class="fc-rate fc-rate-again" name="rating" value="1" type="submit">
+								<button class="btn fc-rate fc-rate-again" name="rating" value="1" type="submit">
 									Again<span class="fc-rate-due">{ dueLabel(previews.Again) }</span>
 								</button>
-								<button class="fc-rate fc-rate-hard" name="rating" value="2" type="submit">
+								<button class="btn fc-rate fc-rate-hard" name="rating" value="2" type="submit">
 									Hard<span class="fc-rate-due">{ dueLabel(previews.Hard) }</span>
 								</button>
-								<button class="fc-rate fc-rate-good" name="rating" value="3" type="submit">
+								<button class="btn fc-rate fc-rate-good" name="rating" value="3" type="submit">
 									Good<span class="fc-rate-due">{ dueLabel(previews.Good) }</span>
 								</button>
-								<button class="fc-rate fc-rate-easy" name="rating" value="4" type="submit">
+								<button class="btn fc-rate fc-rate-easy" name="rating" value="4" type="submit">
 									Easy<span class="fc-rate-due">{ dueLabel(previews.Easy) }</span>
 								</button>
 							</form>
@@ -155,11 +155,11 @@ templ ReviewDoneContent(stats index.FlashcardStats, notePath string, summary ind
 				}
 				<p class="fc-all-done">All caught up! You reviewed { intStr(stats.ReviewedToday) } cards today.</p>
 				if notePath != "" {
-					<a class="fc-start-btn" href={ templ.SafeURL("/notes/" + notePath) } hx-get={ "/notes/" + notePath } hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true">
+					<a class="btn btn-primary fc-start-btn" href={ templ.SafeURL("/notes/" + notePath) } hx-get={ "/notes/" + notePath } hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true">
 						Back to note
 					</a>
 				} else {
-					<a class="fc-start-btn" href="/flashcards" hx-get="/flashcards" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true">
+					<a class="btn btn-primary fc-start-btn" href="/flashcards" hx-get="/flashcards" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true">
 						Back to dashboard
 					</a>
 				}
@@ -201,7 +201,7 @@ templ FlashcardPanel(data FlashcardPanelData) {
 		data-due={ intStr(data.DueCount) }
 		data-note={ data.NotePath }
 	>
-		<summary class="panel-label">
+		<summary class="section-label panel-label">
 			if data.ReviewMode {
 				Reviewing <span class="panel-count" id="fc-panel-progress">0 / { intStr(data.TotalCount) }</span>
 			} else {
@@ -226,7 +226,7 @@ templ FlashcardPanel(data FlashcardPanelData) {
 			} else {
 				if data.DueCount > 0 {
 					<a
-						class="fc-panel-review-btn"
+						class="btn btn-primary fc-panel-review-btn"
 						href={ templ.SafeURL("/flashcards/review?note=" + data.NotePath) }
 						hx-get={ "/flashcards/review?note=" + data.NotePath }
 						hx-target="#content-col"
@@ -240,7 +240,7 @@ templ FlashcardPanel(data FlashcardPanelData) {
 			<div class="fc-panel-cards" id="fc-panel-cards">
 				for _, card := range data.Cards {
 					<a
-						class={ "fc-panel-card", templ.KV("fc-panel-card-due", card.Status == "due"), templ.KV("fc-panel-card-new", card.Status == "new") }
+						class={ "list-item fc-panel-card", templ.KV("fc-panel-card-due", card.Status == "due"), templ.KV("fc-panel-card-new", card.Status == "new") }
 						data-hash={ card.Hash }
 						title={ card.QuestionPreview }
 					>

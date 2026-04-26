@@ -17,7 +17,7 @@ templ TreeNode(node *FileNode, depth int) {
 		</details>
 	} else {
 		<a
-			class={ "tree-item", templ.KV("active", node.IsActive) }
+			class={ "list-item tree-item", templ.KV("active", node.IsActive) }
 			href={ templ.SafeURL("/notes/" + node.Path) }
 			hx-get={ "/notes/" + node.Path }
 			hx-target="#content-col"
@@ -40,12 +40,12 @@ templ Tree(nodes []*FileNode) {
 templ TagList(tags []index.Tag) {
 	<div class="resize-handle-v server-tree" data-resize-target="next"></div>
 	<details class="panel-section sidebar-tags-section server-tree" open aria-label="Tags" data-panel="tags">
-		<summary class="panel-label">
+		<summary class="section-label panel-label">
 			Tags <span class="panel-count">{ lenStr(tags) }</span>
 		</summary>
 		<div class="panel-body sidebar-tags-body">
 			for _, tag := range tags {
-				<span class="sidebar-tag-item" data-tag={ tag.Name }>
+				<span class="list-item sidebar-tag-item" data-tag={ tag.Name }>
 					{ tag.Name } <span class="tag-count">{ intStr(tag.NoteCount) }</span>
 				</span>
 			}
@@ -66,13 +66,13 @@ templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFl
 	if len(flashcardNotes) > 0 {
 		<div class="resize-handle-v server-tree" data-resize-target="next"></div>
 		<details class="panel-section sidebar-tags-section server-tree" open aria-label="Flashcards" data-panel="flashcards">
-			<summary class="panel-label">
+			<summary class="section-label panel-label">
 				Flashcards <span id="fc-due-badge" class="panel-count"></span>
 			</summary>
 			<div class="panel-body sidebar-section-body">
 				for _, nfc := range flashcardNotes {
 					<a
-						class="sidebar-panel-item"
+						class="list-item sidebar-panel-item"
 						href={ templ.SafeURL("/flashcards/review?note=" + nfc.NotePath) }
 						hx-get={ "/flashcards/review?note=" + nfc.NotePath }
 						hx-target="#content-col"
@@ -106,12 +106,12 @@ templ BookmarksPanel(bookmarks []BookmarkEntry) {
 		<div class="resize-handle-v" data-resize-target="next"></div>
 		if len(bookmarks) > 0 {
 			<details class="panel-section sidebar-tags-section" open aria-label="Bookmarks" data-panel="bookmarks">
-				<summary class="panel-label">
+				<summary class="section-label panel-label">
 					Bookmarks <span class="panel-count">{ intStr(len(bookmarks)) }</span>
 				</summary>
 				<div class="panel-body sidebar-section-body">
 					for _, b := range bookmarks {
-						@ContentLink("sidebar-panel-item", "/notes/" + b.Path) {
+						@ContentLink("list-item sidebar-panel-item", "/notes/" + b.Path) {
 							{ b.Title }
 						}
 					}
@@ -119,7 +119,7 @@ templ BookmarksPanel(bookmarks []BookmarkEntry) {
 			</details>
 		} else {
 			<div class="panel-section sidebar-tags-section">
-				<span class="panel-label">
+				<span class="section-label panel-label">
 					Bookmarks <span class="panel-count">0</span>
 				</span>
 			</div>

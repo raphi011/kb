@@ -13,7 +13,7 @@ type SlidePanelData struct {
 templ SlidePanel(data SlidePanelData) {
 	<div class="resize-handle-v" data-resize-target="next"></div>
 	<details class="panel-section slide-panel" open aria-label="Slides" id="slide-panel" data-panel="slides">
-		<summary class="panel-label">
+		<summary class="section-label panel-label">
 			Slides <span class="panel-count">{ intStr(len(data.Slides)) }</span>
 		</summary>
 		<div class="panel-body slide-panel-body">
@@ -45,7 +45,7 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 				@Calendar(calYear, calMonth, activeDays, 0)
 				<div class="resize-handle-v" data-resize-target="next"></div>
 			}
-			<div id="toc-header"><span>On this page</span></div>
+			<div id="toc-header"><span class="section-label">On this page</span></div>
 			if len(headings) > 0 {
 				<div id="toc-inner">
 					for _, h := range headings {
@@ -60,11 +60,11 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 			<div class="resize-handle-v" data-resize-target="next"></div>
 			if len(outgoing) > 0 {
 				<details class="panel-section toc-links-section" open aria-label="Outgoing links" data-panel="links">
-					<summary class="panel-label">Links <span class="panel-count">{ lenStr(outgoing) }</span></summary>
+					<summary class="section-label panel-label">Links <span class="panel-count">{ lenStr(outgoing) }</span></summary>
 					<div class="panel-body toc-links-body">
 						for _, link := range outgoing {
 							if link.External {
-								<a class="toc-link-item toc-link-out" href={ templ.SafeURL(link.TargetPath) } target="_blank" rel="noopener">
+								<a class="list-item toc-link-item toc-link-out" href={ templ.SafeURL(link.TargetPath) } target="_blank" rel="noopener">
 									if link.Title != "" {
 										{ link.Title }
 									} else {
@@ -72,7 +72,7 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 									}
 								</a>
 							} else if link.TargetPath != "" {
-								@ContentLink("toc-link-item toc-link-out", "/notes/" + link.TargetPath) {
+								@ContentLink("list-item toc-link-item toc-link-out", "/notes/" + link.TargetPath) {
 									if link.Title != "" {
 										{ link.Title }
 									} else {
@@ -80,23 +80,23 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 									}
 								}
 							} else {
-								<span class="toc-link-item toc-link-out">{ link.Title }</span>
+								<span class="list-item toc-link-item toc-link-out">{ link.Title }</span>
 							}
 						}
 					</div>
 				</details>
 			} else {
 				<div class="panel-section panel-empty">
-					<span class="panel-label">Links <span class="panel-count">0</span></span>
+					<span class="section-label panel-label">Links <span class="panel-count">0</span></span>
 				</div>
 			}
 			<div class="resize-handle-v" data-resize-target="next"></div>
 			if len(backlinks) > 0 {
 				<details class="panel-section toc-links-section" open aria-label="Backlinks" data-panel="backlinks">
-					<summary class="panel-label">Backlinks <span class="panel-count">{ lenStr(backlinks) }</span></summary>
+					<summary class="section-label panel-label">Backlinks <span class="panel-count">{ lenStr(backlinks) }</span></summary>
 					<div class="panel-body toc-links-body">
 						for _, link := range backlinks {
-							@ContentLink("toc-link-item toc-link-in", "/notes/" + link.SourcePath) {
+							@ContentLink("list-item toc-link-item toc-link-in", "/notes/" + link.SourcePath) {
 								{ link.SourceTitle }
 							}
 						}
@@ -104,7 +104,7 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 				</details>
 			} else {
 				<div class="panel-section panel-empty">
-					<span class="panel-label">Backlinks <span class="panel-count">0</span></span>
+					<span class="section-label panel-label">Backlinks <span class="panel-count">0</span></span>
 				</div>
 			}
 		}

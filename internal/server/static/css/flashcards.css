@@ -63,13 +63,9 @@
 .fc-start-btn {
   display: inline-block;
   padding: 10px 24px;
-  background: var(--accent);
-  color: oklch(1 0 0);
   border-radius: var(--radius-lg);
-  text-decoration: none;
   font-weight: 600;
 }
-.fc-start-btn:hover { opacity: 0.9; }
 .fc-all-done { color: var(--text-muted); }
 
 /* Review card */
@@ -118,7 +114,6 @@
   border-radius: var(--radius-lg);
   background: var(--surface);
   color: var(--text);
-  cursor: pointer;
   font-size: 13px;
   display: flex;
   flex-direction: column;
@@ -152,7 +147,6 @@
   padding: 6px 0;
   margin-bottom: 6px;
   font-size: 12px;
-  font-family: var(--font-ui);
   color: var(--accent);
   text-decoration: none;
   border: 1px solid var(--border);
@@ -207,7 +201,6 @@
 }
 
 .fc-panel-card {
-  display: block;
   padding: 2px 0;
   font-size: 11px;
   font-family: var(--font-ui);
@@ -216,8 +209,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.6;
-  cursor: pointer;
-  text-decoration: none;
 
   &:hover { color: var(--text-muted); }
 

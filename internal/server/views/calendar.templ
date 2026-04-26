@@ -94,16 +94,16 @@ templ Calendar(year, month int, activeDays map[int]bool, selectedDay int) {
 	<div id="calendar">
 		<div class="cal-header">
 			<button
-				class="cal-nav"
+				class="btn btn-icon cal-nav"
 				aria-label="Previous month"
 				hx-get={ calendarNavURL(prevMonth(year, month)) }
 				hx-target="#calendar"
 				hx-swap="outerHTML transition:true"
 				hx-sync="closest #calendar:replace"
 			>&lsaquo;</button>
-			<span class="cal-month-label">{ monthLabel(year, month) }</span>
+			<span class="section-label cal-month-label">{ monthLabel(year, month) }</span>
 			<button
-				class="cal-nav"
+				class="btn btn-icon cal-nav"
 				aria-label="Next month"
 				hx-get={ calendarNavURL(nextMonth(year, month)) }
 				hx-target="#calendar"

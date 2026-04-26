@@ -99,7 +99,7 @@ func TreeNode(node *FileNode, depth int) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			var templ_7745c5c3_Var5 = []any{"tree-item", templ.KV("active", node.IsActive)}
+			var templ_7745c5c3_Var5 = []any{"list-item tree-item", templ.KV("active", node.IsActive)}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -243,7 +243,7 @@ func TagList(tags []index.Tag) templ.Component {
 			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"panel-section sidebar-tags-section server-tree\" open aria-label=\"Tags\" data-panel=\"tags\"><summary class=\"panel-label\">Tags <span class=\"panel-count\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"panel-section sidebar-tags-section server-tree\" open aria-label=\"Tags\" data-panel=\"tags\"><summary class=\"section-label panel-label\">Tags <span class=\"panel-count\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -261,14 +261,14 @@ func TagList(tags []index.Tag) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, tag := range tags {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<span class=\"sidebar-tag-item\" data-tag=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<span class=\"list-item sidebar-tag-item\" data-tag=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(tag.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 48, Col: 54}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 48, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -357,12 +357,12 @@ func Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFla
 			return templ_7745c5c3_Err
 		}
 		if len(flashcardNotes) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"panel-section sidebar-tags-section server-tree\" open aria-label=\"Flashcards\" data-panel=\"flashcards\"><summary class=\"panel-label\">Flashcards <span id=\"fc-due-badge\" class=\"panel-count\"></span></summary><div class=\"panel-body sidebar-section-body\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"panel-section sidebar-tags-section server-tree\" open aria-label=\"Flashcards\" data-panel=\"flashcards\"><summary class=\"section-label panel-label\">Flashcards <span id=\"fc-due-badge\" class=\"panel-count\"></span></summary><div class=\"panel-body sidebar-section-body\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			for _, nfc := range flashcardNotes {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<a class=\"sidebar-panel-item\" href=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<a class=\"list-item sidebar-panel-item\" href=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -506,7 +506,7 @@ func BookmarksPanel(bookmarks []BookmarkEntry) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if len(bookmarks) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<details class=\"panel-section sidebar-tags-section\" open aria-label=\"Bookmarks\" data-panel=\"bookmarks\"><summary class=\"panel-label\">Bookmarks <span class=\"panel-count\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<details class=\"panel-section sidebar-tags-section\" open aria-label=\"Bookmarks\" data-panel=\"bookmarks\"><summary class=\"section-label panel-label\">Bookmarks <span class=\"panel-count\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -547,7 +547,7 @@ func BookmarksPanel(bookmarks []BookmarkEntry) templ.Component {
 					}
 					return nil
 				})
-				templ_7745c5c3_Err = ContentLink("sidebar-panel-item", "/notes/"+b.Path).Render(templ.WithChildren(ctx, templ_7745c5c3_Var27), templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = ContentLink("list-item sidebar-panel-item", "/notes/"+b.Path).Render(templ.WithChildren(ctx, templ_7745c5c3_Var27), templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -557,7 +557,7 @@ func BookmarksPanel(bookmarks []BookmarkEntry) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"panel-section sidebar-tags-section\"><span class=\"panel-label\">Bookmarks <span class=\"panel-count\">0</span></span></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"panel-section sidebar-tags-section\"><span class=\"section-label panel-label\">Bookmarks <span class=\"panel-count\">0</span></span></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
