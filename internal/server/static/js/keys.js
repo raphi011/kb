@@ -82,6 +82,17 @@ function handleKey(e) {
       navigateNote(-1);
       break;
 
+    // ── Flashcard review ──────────────────────
+    case 'r': {
+      e.preventDefault();
+      const panel = document.getElementById('fc-panel');
+      if (panel && !document.querySelector('.fc-review-card')) {
+        const note = panel.dataset.note;
+        if (note) navigateTo('/flashcards/review?note=' + encodeURIComponent(note));
+      }
+      break;
+    }
+
     // ── Browser history ────────────────────────
     case 'H':
       e.preventDefault();
