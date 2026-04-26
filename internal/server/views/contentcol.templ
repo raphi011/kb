@@ -1,0 +1,17 @@
+package views
+
+// ContentCol wraps content in the #content-col div for full-page renders.
+// Called from handlers: views.ContentCol(inner) where inner is a templ.Component.
+templ ContentCol(inner templ.Component) {
+	<div id="content-col" role="main">
+		@inner
+	</div>
+}
+
+// ContentArea wraps content in the standard #content-area div.
+// Used in templ composition: @ContentArea() { @NoteArticle(...) }
+templ ContentArea() {
+	<div id="content-area">
+		{ children... }
+	</div>
+}
