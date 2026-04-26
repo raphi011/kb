@@ -19,6 +19,29 @@ templ Breadcrumb(segments []BreadcrumbSegment, currentTitle string) {
 	</nav>
 }
 
+templ VersionBanner(date string, message string, notePath string) {
+	<div class="version-banner">
+		<span>Viewing version from { date } — "{ message }"</span>
+		@ContentLink("version-banner-link", "/notes/" + notePath) {
+			Return to current
+		}
+	</div>
+}
+
+templ VersionNoteContent(segments []BreadcrumbSegment, title string, commitDate string, commitMsg string, notePath string, noteHTML string, headings []markdown.Heading) {
+	@Breadcrumb(segments, title)
+	@VersionBanner(commitDate, commitMsg, notePath)
+	<div id="content-area">
+		<article id="article">
+			<h1 id="article-title">{ title }</h1>
+			<hr class="article-divider"/>
+			<div class="prose">
+				@templ.Raw(noteHTML)
+			</div>
+		</article>
+	</div>
+}
+
 templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading, shareToken string) {
 	if len(headings) > 0 {
 		<details id="mob-toc-details" class="mob-toc" aria-label="Table of contents">

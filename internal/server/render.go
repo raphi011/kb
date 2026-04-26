@@ -17,6 +17,7 @@ type TOCData struct {
 	Backlinks      []index.Link
 	FlashcardPanel *views.FlashcardPanelData
 	SlidePanel     *views.SlidePanelData
+	NotePath       string
 }
 
 // renderContent handles the HTMX-vs-full-page branching that every page handler needs.
@@ -43,13 +44,14 @@ func (s *Server) renderContent(w http.ResponseWriter, r *http.Request, title str
 		Backlinks:      toc.Backlinks,
 		FlashcardPanel: toc.FlashcardPanel,
 		SlidePanel:     toc.SlidePanel,
+		NotePath:       toc.NotePath,
 	})
 }
 
 // renderTOC renders the TOC panel as an OOB swap for HTMX requests.
 func (s *Server) renderTOC(w http.ResponseWriter, r *http.Request, toc TOCData) {
 	calYear, calMonth, activeDays := s.calendarData()
-	if err := views.TOCPanel(toc.Headings, toc.OutgoingLinks, toc.Backlinks, true, calYear, calMonth, activeDays, toc.FlashcardPanel, toc.SlidePanel).Render(r.Context(), w); err != nil {
+	if err := views.TOCPanel(toc.Headings, toc.OutgoingLinks, toc.Backlinks, true, calYear, calMonth, activeDays, toc.FlashcardPanel, toc.SlidePanel, toc.NotePath).Render(r.Context(), w); err != nil {
 		slog.Error("render TOC", "error", err)
 	}
 }

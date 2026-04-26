@@ -200,6 +200,7 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 		OutgoingLinks:  outLinks,
 		Backlinks:      backlinks,
 		FlashcardPanel: fcPanel,
+		NotePath:       note.Path,
 	}
 
 	if isHTMX(r) {
@@ -218,6 +219,7 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 		OutgoingLinks:  toc.OutgoingLinks,
 		Backlinks:      toc.Backlinks,
 		FlashcardPanel: toc.FlashcardPanel,
+		NotePath:       note.Path,
 	})
 }
 
@@ -240,7 +242,7 @@ func (s *Server) renderMarpNote(w http.ResponseWriter, r *http.Request, note *in
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	toc := TOCData{SlidePanel: slidePanel}
+	toc := TOCData{SlidePanel: slidePanel, NotePath: note.Path}
 
 	if isHTMX(r) {
 		if err := views.MarpNoteContentInner(breadcrumbs, note, string(raw), doc.Slides, baseURL, shareToken).Render(r.Context(), w); err != nil {
@@ -255,6 +257,7 @@ func (s *Server) renderMarpNote(w http.ResponseWriter, r *http.Request, note *in
 		Tree:       buildTree(s.noteCache().notes, note.Path),
 		ContentCol: views.ContentCol(views.MarpNoteContentInner(breadcrumbs, note, string(raw), doc.Slides, baseURL, shareToken)),
 		SlidePanel: slidePanel,
+		NotePath:   note.Path,
 	})
 }
 

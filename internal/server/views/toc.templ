@@ -1,6 +1,7 @@
 package views
 
 import (
+	"github.com/raphi011/kb/internal/gitrepo"
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
 )
@@ -33,7 +34,41 @@ templ SlidePanel(data SlidePanelData) {
 	</details>
 }
 
-templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []index.Link, oob bool, calYear int, calMonth int, activeDays map[int]bool, flashcardPanel *FlashcardPanelData, slidePanel *SlidePanelData) {
+templ GitHistoryPanel(notePath string) {
+	<div class="resize-handle-v" data-resize-target="next"></div>
+	<details class="panel-section" aria-label="Git history" data-panel="git-history">
+		<summary class="section-label panel-label">History</summary>
+		<div
+			class="panel-body"
+			hx-get={ "/api/git/history/" + notePath }
+			hx-trigger="toggle from:closest details once"
+			hx-swap="innerHTML"
+		>
+			<span class="toc-empty">Loading…</span>
+		</div>
+	</details>
+}
+
+templ GitHistoryItems(commits []gitrepo.FileCommit, notePath string) {
+	if len(commits) == 0 {
+		<span class="toc-empty">No history</span>
+	} else {
+		for _, c := range commits {
+			<a
+				class="list-item git-commit-item"
+				hx-get={ "/api/git/version/" + c.Hash + "/" + notePath }
+				hx-target="#content-col"
+				hx-swap="innerHTML transition:true"
+				hx-push-url="false"
+			>
+				<span class="git-commit-date">{ c.Date.Format("Jan 2, 2006") }</span>
+				<span class="git-commit-msg">{ c.Message }</span>
+			</a>
+		}
+	}
+}
+
+templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []index.Link, oob bool, calYear int, calMonth int, activeDays map[int]bool, flashcardPanel *FlashcardPanelData, slidePanel *SlidePanelData, notePath string) {
 	<aside
 		id="toc-panel"
 		if oob {
@@ -106,6 +141,9 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 				<div class="panel-section panel-empty">
 					<span class="section-label panel-label">Backlinks <span class="panel-count">0</span></span>
 				</div>
+			}
+			if notePath != "" {
+				@GitHistoryPanel(notePath)
 			}
 		}
 		if flashcardPanel != nil {

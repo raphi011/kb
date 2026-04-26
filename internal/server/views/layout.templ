@@ -21,6 +21,7 @@ type LayoutParams struct {
 	ActiveDays     map[int]bool
 	FlashcardPanel *FlashcardPanelData // nil = don't show
 	SlidePanel     *SlidePanelData
+	NotePath       string
 }
 
 // FileNode represents a file or directory in the sidebar tree.
@@ -95,7 +96,7 @@ templ Layout(p LayoutParams) {
 			<div id="main">
 				@p.ContentCol
 				<div class="resize-handle" id="toc-resize"></div>
-				@TOCPanel(p.Headings, p.OutgoingLinks, p.Backlinks, false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel)
+				@TOCPanel(p.Headings, p.OutgoingLinks, p.Backlinks, false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel, p.NotePath)
 			</div>
 		</div>
 		<dialog id="cmd-dialog">
