@@ -109,51 +109,63 @@ func (d *DB) UpsertNote(n Note) error {
 		formatTime(n.Created), formatTime(n.Modified),
 		string(metadataJSON),
 	)
-	return err
+	if err != nil {
+		return fmt.Errorf("upsert note: %w", mapDBError(err))
+	}
+	return nil
 }
 
 func (d *DB) DeleteNote(path string) error {
 	_, err := d.db.Exec("DELETE FROM notes WHERE path = ?", path)
-	return err
+	if err != nil {
+		return fmt.Errorf("delete note: %w", err)
+	}
+	return nil
 }
 
 func (d *DB) SetTags(path string, tags []string) error {
 	tx, err := d.db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("set tags begin: %w", err)
 	}
 	defer tx.Rollback()
 
 	if _, err := tx.Exec("DELETE FROM tags WHERE path = ?", path); err != nil {
-		return err
+		return fmt.Errorf("delete tags: %w", err)
 	}
 	for _, tag := range tags {
 		if _, err := tx.Exec("INSERT INTO tags (name, path) VALUES (?, ?)", tag, path); err != nil {
-			return err
+			return fmt.Errorf("insert tag: %w", mapDBError(err))
 		}
 	}
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("set tags commit: %w", err)
+	}
+	return nil
 }
 
 func (d *DB) SetLinks(path string, links []Link) error {
 	tx, err := d.db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("set links begin: %w", err)
 	}
 	defer tx.Rollback()
 
 	if _, err := tx.Exec("DELETE FROM links WHERE source_path = ?", path); err != nil {
-		return err
+		return fmt.Errorf("delete links: %w", err)
 	}
 	for _, l := range links {
 		if _, err := tx.Exec(
 			"INSERT INTO links (source_path, target_path, title, external) VALUES (?, ?, ?, ?)",
 			path, l.TargetPath, l.Title, l.External,
 		); err != nil {
-			return err
+			return fmt.Errorf("insert link: %w", mapDBError(err))
 		}
 	}
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("set links commit: %w", err)
+	}
+	return nil
 }
 
 // ResolveLinks updates target_path for non-external links by matching
@@ -243,7 +255,10 @@ func (d *DB) SetMeta(key, value string) error {
 		"INSERT INTO index_meta (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
 		key, value,
 	)
-	return err
+	if err != nil {
+		return fmt.Errorf("set meta %q: %w", key, err)
+	}
+	return nil
 }
 
 func (d *DB) GetMeta(key string) (string, error) {
@@ -265,12 +280,12 @@ func (d *DB) NoteByPath(path string) (*Note, error) {
 		return nil, ErrNotFound
 	}
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("query note %q: %w", path, err)
 	}
 
 	tags, err := d.tagsForPath(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("tags for note %q: %w", path, err)
 	}
 	n.Tags = tags
 

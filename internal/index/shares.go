@@ -24,7 +24,7 @@ func (d *DB) ShareNote(path string) (string, error) {
 		return existing, nil
 	}
 	if err != sql.ErrNoRows {
-		return "", err
+		return "", fmt.Errorf("query existing share: %w", err)
 	}
 
 	token, err := generateToken()
@@ -33,7 +33,7 @@ func (d *DB) ShareNote(path string) (string, error) {
 	}
 	_, err = d.db.Exec("INSERT INTO shared_notes (token, note_path) VALUES (?, ?)", token, path)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("insert share: %w", mapDBError(err))
 	}
 	return token, nil
 }
@@ -41,7 +41,10 @@ func (d *DB) ShareNote(path string) (string, error) {
 // UnshareNote revokes the share link for the given note path.
 func (d *DB) UnshareNote(path string) error {
 	_, err := d.db.Exec("DELETE FROM shared_notes WHERE note_path = ?", path)
-	return err
+	if err != nil {
+		return fmt.Errorf("delete share: %w", err)
+	}
+	return nil
 }
 
 // ShareTokenForNote returns the share token for a note, or empty string if not shared.
@@ -51,7 +54,10 @@ func (d *DB) ShareTokenForNote(path string) (string, error) {
 	if err == sql.ErrNoRows {
 		return "", nil
 	}
-	return token, err
+	if err != nil {
+		return "", fmt.Errorf("query share token: %w", err)
+	}
+	return token, nil
 }
 
 // NotePathForShareToken returns the note path for a share token.
@@ -61,5 +67,8 @@ func (d *DB) NotePathForShareToken(token string) (string, error) {
 	if err == sql.ErrNoRows {
 		return "", ErrNotFound
 	}
-	return path, err
+	if err != nil {
+		return "", fmt.Errorf("query note for token: %w", err)
+	}
+	return path, nil
 }

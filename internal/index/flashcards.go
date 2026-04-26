@@ -2,6 +2,7 @@ package index
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/raphi011/kb/internal/markdown"
@@ -68,7 +69,7 @@ func (d *DB) CardOverviewsForNote(notePath string, now time.Time) ([]CardOvervie
 		WHERE f.note_path = ?
 		ORDER BY f.ord`, nowStr, notePath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("query card overviews: %w", err)
 	}
 	defer rows.Close()
 
@@ -77,7 +78,7 @@ func (d *DB) CardOverviewsForNote(notePath string, now time.Time) ([]CardOvervie
 		var co CardOverview
 		var question string
 		if err := rows.Scan(&co.Hash, &question, &co.Status); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("scan card overview: %w", err)
 		}
 		if len(question) > 60 {
 			co.QuestionPreview = question[:57] + "..."
@@ -98,7 +99,7 @@ func (d *DB) ReviewSummaryForNote(notePath string, now time.Time) (ReviewSummary
 		WHERE f.note_path = ? AND r.reviewed_at >= ?
 		GROUP BY r.rating`, notePath, todayStart)
 	if err != nil {
-		return ReviewSummary{}, err
+		return ReviewSummary{}, fmt.Errorf("query review summary: %w", err)
 	}
 	defer rows.Close()
 
@@ -106,7 +107,7 @@ func (d *DB) ReviewSummaryForNote(notePath string, now time.Time) (ReviewSummary
 	for rows.Next() {
 		var rating, count int
 		if err := rows.Scan(&rating, &count); err != nil {
-			return s, err
+			return s, fmt.Errorf("scan review summary: %w", err)
 		}
 		switch rating {
 		case 1:
@@ -128,7 +129,7 @@ func (d *DB) ReviewSummaryForNote(notePath string, now time.Time) (ReviewSummary
 func (d *DB) UpsertFlashcards(notePath string, cards []markdown.ParsedCard) error {
 	tx, err := d.db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("upsert flashcards begin: %w", err)
 	}
 	defer tx.Rollback()
 
@@ -141,14 +142,14 @@ func (d *DB) UpsertFlashcards(notePath string, cards []markdown.ParsedCard) erro
 	// Delete cards that are no longer present.
 	rows, err := tx.Query("SELECT card_hash FROM flashcards WHERE note_path = ?", notePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("query existing flashcards: %w", err)
 	}
 	var toDelete []string
 	for rows.Next() {
 		var h string
 		if err := rows.Scan(&h); err != nil {
 			rows.Close()
-			return err
+			return fmt.Errorf("scan flashcard hash: %w", err)
 		}
 		if !newHashes[h] {
 			toDelete = append(toDelete, h)
@@ -158,7 +159,7 @@ func (d *DB) UpsertFlashcards(notePath string, cards []markdown.ParsedCard) erro
 
 	for _, h := range toDelete {
 		if _, err := tx.Exec("DELETE FROM flashcards WHERE card_hash = ?", h); err != nil {
-			return err
+			return fmt.Errorf("delete flashcard: %w", err)
 		}
 	}
 
@@ -180,17 +181,23 @@ func (d *DB) UpsertFlashcards(notePath string, cards []markdown.ParsedCard) erro
 			c.Hash, notePath, string(c.Kind), c.Question, c.Answer, reversed, c.Ord,
 		)
 		if err != nil {
-			return err
+			return fmt.Errorf("upsert flashcard: %w", mapDBError(err))
 		}
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("upsert flashcards commit: %w", err)
+	}
+	return nil
 }
 
 // DeleteFlashcardsForNote removes all flashcards for a note path.
 func (d *DB) DeleteFlashcardsForNote(notePath string) error {
 	_, err := d.db.Exec("DELETE FROM flashcards WHERE note_path = ?", notePath)
-	return err
+	if err != nil {
+		return fmt.Errorf("delete flashcards for note: %w", err)
+	}
+	return nil
 }
 
 // DueCards returns flashcards that are due for review.
@@ -219,7 +226,7 @@ func (d *DB) DueCards(now time.Time, notePath string, limit int) ([]Flashcard, e
 
 	rows, err := d.db.Query(query, args...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("query due cards: %w", err)
 	}
 	defer rows.Close()
 	return scanFlashcards(rows)
@@ -242,7 +249,7 @@ func (d *DB) FlashcardByHash(hash string) (*Flashcard, error) {
 		if err == sql.ErrNoRows {
 			return nil, ErrNotFound
 		}
-		return nil, err
+		return nil, fmt.Errorf("query flashcard %q: %w", hash, err)
 	}
 	return &fc, nil
 }
@@ -251,7 +258,7 @@ func (d *DB) FlashcardByHash(hash string) (*Flashcard, error) {
 func (d *DB) RecordReview(hash string, due time.Time, stability, difficulty, elapsedDays, scheduledDays float64, reps, lapses, state int, rating int, stateBefore int, now time.Time) error {
 	tx, err := d.db.Begin()
 	if err != nil {
-		return err
+		return fmt.Errorf("record review begin: %w", err)
 	}
 	defer tx.Rollback()
 
@@ -271,7 +278,7 @@ func (d *DB) RecordReview(hash string, due time.Time, stability, difficulty, ela
 		hash, due.Format(time.RFC3339), stability, difficulty, elapsedDays, scheduledDays, reps, lapses, state, now.Format(time.RFC3339),
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("upsert flashcard state: %w", mapDBError(err))
 	}
 
 	_, err = tx.Exec(`
@@ -280,10 +287,13 @@ func (d *DB) RecordReview(hash string, due time.Time, stability, difficulty, ela
 		hash, now.Format(time.RFC3339), rating, elapsedDays, scheduledDays, stateBefore,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("insert review: %w", mapDBError(err))
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("record review commit: %w", err)
+	}
+	return nil
 }
 
 // FlashcardsForNote returns all flashcards for a specific note.
@@ -299,7 +309,7 @@ func (d *DB) FlashcardsForNote(notePath string) ([]Flashcard, error) {
 		WHERE f.note_path = ?
 		ORDER BY f.ord`, notePath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("query flashcards for note: %w", err)
 	}
 	defer rows.Close()
 	return scanFlashcards(rows)
@@ -325,7 +335,7 @@ func (d *DB) NotesWithFlashcards(now time.Time) ([]NoteFlashcardCount, error) {
 		GROUP BY f.note_path
 		ORDER BY n.title`, nowStr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("query notes with flashcards: %w", err)
 	}
 	defer rows.Close()
 
@@ -333,7 +343,7 @@ func (d *DB) NotesWithFlashcards(now time.Time) ([]NoteFlashcardCount, error) {
 	for rows.Next() {
 		var nfc NoteFlashcardCount
 		if err := rows.Scan(&nfc.NotePath, &nfc.NoteTitle, &nfc.CardCount, &nfc.DueCount); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("scan note flashcard count: %w", err)
 		}
 		result = append(result, nfc)
 	}
@@ -352,14 +362,14 @@ func (d *DB) FlashcardStats(now time.Time) (FlashcardStats, error) {
 		LEFT JOIN flashcard_state s ON s.card_hash = f.card_hash
 		WHERE s.card_hash IS NULL`).Scan(&stats.New)
 	if err != nil {
-		return stats, err
+		return stats, fmt.Errorf("count new flashcards: %w", err)
 	}
 
 	// Learning: cards in state 1 (Learning) or 3 (Relearning)
 	err = d.db.QueryRow(`
 		SELECT COUNT(*) FROM flashcard_state WHERE state IN (1, 3)`).Scan(&stats.Learning)
 	if err != nil {
-		return stats, err
+		return stats, fmt.Errorf("count learning flashcards: %w", err)
 	}
 
 	// Due today: all cards due now (including new)
@@ -368,14 +378,14 @@ func (d *DB) FlashcardStats(now time.Time) (FlashcardStats, error) {
 		LEFT JOIN flashcard_state s ON s.card_hash = f.card_hash
 		WHERE s.card_hash IS NULL OR s.due <= ?`, nowStr).Scan(&stats.DueToday)
 	if err != nil {
-		return stats, err
+		return stats, fmt.Errorf("count due flashcards: %w", err)
 	}
 
 	// Reviewed today
 	err = d.db.QueryRow(`
 		SELECT COUNT(*) FROM flashcard_reviews WHERE reviewed_at >= ?`, todayStart).Scan(&stats.ReviewedToday)
 	if err != nil {
-		return stats, err
+		return stats, fmt.Errorf("count reviewed flashcards: %w", err)
 	}
 
 	return stats, nil
