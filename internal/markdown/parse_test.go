@@ -167,3 +167,33 @@ func TestParseMarkdown_IsMarp(t *testing.T) {
 		})
 	}
 }
+
+func TestParseMarkdown_MarpSlides(t *testing.T) {
+	input := "---\nmarp: true\ntheme: gaia\n---\n\n# First Slide\n\nContent.\n\n---\n\n## Second Slide\n\nMore content.\n"
+	doc := ParseMarkdown(input)
+
+	if !doc.IsMarp {
+		t.Fatal("IsMarp should be true")
+	}
+	if len(doc.Slides) != 2 {
+		t.Fatalf("Slides = %d, want 2", len(doc.Slides))
+	}
+	if doc.Slides[0].Title != "First Slide" {
+		t.Errorf("Slides[0].Title = %q, want %q", doc.Slides[0].Title, "First Slide")
+	}
+	if doc.Slides[1].Title != "Second Slide" {
+		t.Errorf("Slides[1].Title = %q, want %q", doc.Slides[1].Title, "Second Slide")
+	}
+}
+
+func TestParseMarkdown_NonMarpNoSlides(t *testing.T) {
+	input := "---\ntitle: Regular\n---\n\n# Hello\n\n---\n\nDivider used as separator.\n"
+	doc := ParseMarkdown(input)
+
+	if doc.IsMarp {
+		t.Fatal("IsMarp should be false")
+	}
+	if len(doc.Slides) != 0 {
+		t.Errorf("Slides = %d, want 0 for non-Marp note", len(doc.Slides))
+	}
+}
