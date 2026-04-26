@@ -15,6 +15,7 @@ import { initMarp } from './marp.js';
 import { initToast } from './toast.js';
 import { recordVisit } from './history.js';
 import { initPreview } from './preview.js';
+import { restorePanels } from './panels.js';
 
 initTheme();
 initResize();
@@ -32,6 +33,7 @@ initFlashcards();
 initMarp();
 initToast();
 initPreview();
+restorePanels();
 
 // Record initial page load if it's a note.
 if (location.pathname.startsWith('/notes/')) {
