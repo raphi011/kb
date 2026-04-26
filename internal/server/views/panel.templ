@@ -15,7 +15,7 @@ templ PanelSection(p PanelProps) {
 		<summary class="section-label panel-label">
 			{ p.Label } <span class="panel-count">{ intStr(p.Count) }</span>
 		</summary>
-		<div class="panel-body">
+		<div class="panel-body scrollable">
 			{ children... }
 		</div>
 	</details>

@@ -82,13 +82,13 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 			}
 			<div id="toc-header"><span class="section-label">On this page</span></div>
 			if len(headings) > 0 {
-				<div id="toc-inner">
+				<div id="toc-inner" class="scrollable">
 					for _, h := range headings {
 						<a class={ "toc-item", templ.KV("h1", h.Level == 1), templ.KV("h3", h.Level == 3) } href={ templ.SafeURL("#" + h.ID) }>{ h.Text }</a>
 					}
 				</div>
 			} else {
-				<div id="toc-inner">
+				<div id="toc-inner" class="scrollable">
 					<span class="toc-empty">No headings</span>
 				</div>
 			}

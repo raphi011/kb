@@ -55,7 +55,7 @@ templ TagList(tags []index.Tag) {
 
 templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFlashcardCount) {
 	<div id="active-filters"></div>
-	<div id="sidebar-inner">
+	<div id="sidebar-inner" class="scrollable">
 		if len(nodes) > 0 {
 			<div class="server-tree">
 				@Tree(nodes)
