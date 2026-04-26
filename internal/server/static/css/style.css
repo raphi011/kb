@@ -1,1 +1,13 @@
-@import './all.css';
+@import url('https://fonts.googleapis.com/css2?family=Commit+Mono:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap');
+
+@import './tokens.css';
+@import './base.css';
+@import './layout.css';
+@import './components.css';
+@import './sidebar.css';
+@import './content.css';
+@import './toc.css';
+@import './flashcards.css';
+@import './dialogs.css';
+@import './marp.css';
+@import './responsive.css';

@@ -1,0 +1,47 @@
+/* ── Reset ─────────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  background: var(--bg);
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--topbar-height) + env(safe-area-inset-top) + 8px);
+}
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+a { text-decoration: none; color: inherit; }
+
+/* ── View Transitions (htmx transition:true) ─────────────── */
+
+@view-transition { navigation: auto; }
+
+#content-col { view-transition-name: content; }
+#toc-panel   { view-transition-name: toc; }
+
+::view-transition-old(content),
+::view-transition-new(content) {
+  animation-duration: 0.15s;
+  animation-timing-function: ease;
+}
+
+::view-transition-old(content) { animation-name: fade-out; }
+::view-transition-new(content) { animation-name: fade-in; }
+
+::view-transition-old(toc),
+::view-transition-new(toc) {
+  animation-duration: 0.12s;
+  animation-timing-function: ease;
+}
+
+::view-transition-old(toc) { animation-name: fade-out; }
+::view-transition-new(toc) { animation-name: fade-in; }
+
+@keyframes fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }

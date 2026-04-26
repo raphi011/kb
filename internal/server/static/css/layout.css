@@ -1,0 +1,248 @@
+/* ── Progress bar ──────────────────────────────────────────── */
+
+#progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  width: 0%;
+  z-index: 1000;
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* ── Navigation loader (HTMX in-flight indicator) ─────────── */
+
+.nav-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background: var(--accent);
+  z-index: 1001;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.htmx-request .nav-loader,
+.htmx-request.nav-loader {
+  opacity: 1;
+  width: 30%;
+  animation: nav-load 1.5s ease-in-out infinite;
+}
+
+@keyframes nav-load {
+  0%   { width: 10%; left: 0; }
+  50%  { width: 40%; left: 30%; }
+  100% { width: 10%; left: 90%; }
+}
+
+/* ── Topbar ────────────────────────────────────────────────── */
+
+#topbar {
+  position: sticky;
+  top: 0;
+  min-height: var(--topbar-height);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: env(safe-area-inset-top) calc(12px + env(safe-area-inset-right)) 0 calc(12px + env(safe-area-inset-left));
+  height: var(--topbar-height);
+  gap: 10px;
+  flex-shrink: 0;
+  z-index: 100;
+
+  #mob-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: var(--text-muted);
+    font-size: 18px;
+    height: 28px;
+    width: 28px;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    &:hover { color: var(--text); }
+  }
+
+  #logo {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-family: var(--font-ui);
+    color: var(--text-muted);
+    text-decoration: none;
+    flex-shrink: 0;
+
+    .logo-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    strong { color: var(--text); }
+  }
+
+  #topbar-spacer { flex: 1; }
+
+  #cmd-trigger {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    height: 28px;
+    padding: 0 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: var(--font-prose);
+    min-width: 200px;
+    transition: border-color 0.15s;
+
+    &:hover { border-color: var(--accent); color: var(--text); }
+
+    kbd {
+      margin-left: auto;
+      font-size: 10px;
+      font-family: var(--font-ui);
+      background: var(--bg-active);
+      padding: 1px 4px;
+      border-radius: 3px;
+      color: var(--text-faint);
+    }
+  }
+
+  #theme-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    height: 28px;
+    width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+    transition: color 0.15s, border-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+
+    &:hover { color: var(--accent); border-color: var(--accent); }
+    &:focus-visible { color: var(--accent); border-color: var(--accent); }
+    &:focus:not(:focus-visible) { color: var(--text-muted); border-color: var(--border); }
+  }
+
+  #zen-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    height: 28px;
+    width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+    transition: color 0.15s, border-color 0.15s;
+
+    &:hover { color: var(--accent); border-color: var(--accent); }
+  }
+}
+
+/* ── Sidebar backdrop (mobile) ─────────────────────────────── */
+
+#sidebar-backdrop {
+  position: fixed;
+  top: calc(var(--topbar-height) + env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: oklch(0.15 0.01 70 / 0.5);
+  z-index: 199;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s;
+}
+
+/* ── Zen mode ─────────────────────────────────────────────── */
+
+html.zen, body.zen {
+  --sidebar-width: 0px !important;
+  --toc-width: 0px !important;
+
+  #sidebar, #toc-panel { overflow: hidden; }
+  .resize-handle { display: none; }
+}
+
+/* ── Layout ────────────────────────────────────────────────── */
+
+#layout {
+  display: flex;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ── Resize handles ────────────────────────────────────────── */
+
+.resize-handle {
+  width: 1px;
+  flex-shrink: 0;
+  background: var(--border);
+  cursor: col-resize;
+  position: relative;
+  z-index: 10;
+  transition: background 0.15s, width 0.15s;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -3px;
+    right: -3px;
+  }
+
+  &:hover, &.dragging {
+    background: var(--accent);
+    width: 2px;
+  }
+}
+
+.resize-handle-v {
+  height: 1px;
+  flex-shrink: 0;
+  background: var(--border);
+  cursor: row-resize;
+  position: relative;
+  transition: background 0.15s, height 0.15s;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -3px;
+    bottom: -3px;
+  }
+
+  &:hover, &.dragging {
+    background: var(--accent);
+    height: 2px;
+  }
+}

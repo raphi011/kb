@@ -1,0 +1,57 @@
+/* ── Mobile ────────────────────────────────────────────────── */
+
+@media (max-width: 850px) {
+  #topbar {
+    #mob-menu-btn { display: flex; }
+    #cmd-trigger { min-width: 0; flex: 1; font-size: 12px; }
+  }
+  #topbar #zen-toggle { display: none; }
+
+  #sidebar {
+    position: fixed;
+    top: calc(var(--topbar-height) + env(safe-area-inset-top));
+    left: 0;
+    bottom: 0;
+    height: auto;
+    align-self: auto;
+    width: 70% !important;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+    box-shadow: 4px 0 20px oklch(0.15 0.02 70 / 0.15);
+
+    &.mob-open { transform: translateX(0); }
+  }
+
+  #sidebar-backdrop.mob-open { opacity: 1; visibility: visible; }
+
+  .resize-handle { display: none; }
+  #toc-panel { display: none; }
+  .mob-toc { display: block; }
+
+  #article { padding: 20px 18px 60px; }
+  #breadcrumb { padding: 0 14px; font-size: 10px; }
+
+  .tree-item, .tree-folder { padding-top: 5px; padding-bottom: 5px; }
+  .result-item { padding: 10px 12px; }
+  .sidebar-tag-item { padding: 2px 8px; }
+  .filter-chip { padding: 3px 10px 3px 11px; font-size: 12px; }
+
+  #cmd-dialog[open] {
+    padding-top: 20px;
+
+    #cmd-box { width: 95vw; }
+  }
+}
+
+@media (max-width: 400px) {
+  #article {
+    #article-title { font-size: 20px; }
+
+    h2 { font-size: 16px; }
+  }
+
+  .prose {
+    p, li { font-size: 14px; }
+  }
+}

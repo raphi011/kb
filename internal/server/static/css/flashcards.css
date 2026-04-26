@@ -1,0 +1,249 @@
+/* --- Flashcards --- */
+
+/* Inline flashcard (rendered inside notes) */
+.flashcard {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+.flashcard-q { font-weight: 600; margin-bottom: 8px; }
+.flashcard-reveal {
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 12px;
+  color: var(--text);
+  font-size: 13px;
+}
+.flashcard-reveal:hover { background: var(--bg-hover); }
+
+/* Cloze deletions */
+.cloze {
+  cursor: pointer;
+  user-select: none;
+}
+
+.cloze-hint {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 3px;
+  padding: 0 4px;
+  font-weight: 600;
+  font-size: 0.9em;
+}
+
+.cloze-hint:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.cloze.revealed .cloze-hint { display: none; }
+
+.cloze-answer {
+  background: var(--accent-soft);
+  border-radius: 3px;
+  padding: 0 4px;
+  font-weight: 600;
+}
+
+/* Dashboard */
+.fc-dashboard { text-align: center; padding: 24px 0; }
+.fc-stats {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 24px;
+}
+.fc-stat { display: flex; flex-direction: column; align-items: center; }
+.fc-stat-num { font-size: 28px; font-weight: 700; }
+.fc-stat-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.fc-start-btn {
+  display: inline-block;
+  padding: 10px 24px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.fc-start-btn:hover { opacity: 0.9; }
+.fc-all-done { color: var(--text-muted); }
+
+/* Review card */
+.fc-review-card { max-width: 640px; margin: 0 auto; }
+.fc-card-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.fc-card-kind {
+  background: var(--surface);
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+.fc-q-text { font-size: 18px; line-height: 1.5; margin-bottom: 16px; }
+.fc-a-text { font-size: 16px; line-height: 1.5; margin-bottom: 16px; padding: 12px; background: var(--surface); border-radius: 6px; }
+
+.fc-show-answer {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 14px;
+  cursor: pointer;
+  text-align: center;
+}
+.fc-show-answer:hover { background: var(--bg-hover); }
+
+.fc-rating-buttons form {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+.fc-rate {
+  flex: 1;
+  padding: 10px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.fc-rate:hover { background: var(--bg-hover); }
+.fc-rate-again { border-color: #e74c3c; }
+.fc-rate-hard { border-color: #f39c12; }
+.fc-rate-good { border-color: #27ae60; }
+.fc-rate-easy { border-color: #3498db; }
+.fc-rate-due { font-size: 11px; color: var(--text-muted); }
+
+/* Note flashcard list */
+.fc-note-cards { display: flex; flex-direction: column; gap: 12px; }
+.fc-note-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+/* --- Flashcard TOC panel --- */
+
+.fc-panel-body {
+  padding: 6px 12px 8px;
+}
+
+.fc-panel-review-btn {
+  display: block;
+  text-align: center;
+  padding: 6px 0;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-family: var(--font-ui);
+  color: var(--accent);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: background 0.1s;
+
+  &:hover { background: var(--accent-soft); }
+}
+
+.fc-panel-all-done {
+  display: block;
+  text-align: center;
+  padding: 6px 0;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-family: var(--font-ui);
+  color: var(--text-faint);
+}
+
+.fc-panel-due {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.fc-panel-bar-wrap {
+  height: 4px;
+  background: var(--bg-active);
+  border-radius: 2px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.fc-panel-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.fc-panel-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-family: var(--font-ui);
+  color: var(--text-muted);
+}
+
+.fc-ps strong {
+  font-weight: 600;
+}
+
+.fc-panel-card {
+  display: block;
+  padding: 2px 0;
+  font-size: 11px;
+  font-family: var(--font-ui);
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.6;
+  cursor: pointer;
+  text-decoration: none;
+
+  &:hover { color: var(--text-muted); }
+
+  &::before {
+    content: '\25CB  ';
+    color: var(--text-faint);
+  }
+}
+
+.fc-panel-card-due::before,
+.fc-panel-card-new::before {
+  content: '\25CF  ';
+  color: var(--accent);
+}
+
+.fc-panel-card.fc-panel-card-done::before {
+  content: '\2713  ';
+  color: var(--text-faint);
+}
+
+.fc-panel-card.fc-panel-card-current {
+  color: var(--text);
+  font-weight: 600;
+
+  &::before {
+    content: '\25BA  ';
+    color: var(--accent);
+  }
+}
