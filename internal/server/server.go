@@ -38,6 +38,10 @@ type Store interface {
 	BookmarkedPaths() ([]string, error)
 	AddBookmark(path string) error
 	RemoveBookmark(path string) error
+	ShareNote(path string) (string, error)
+	UnshareNote(path string) error
+	ShareTokenForNote(path string) (string, error)
+	NotePathForShareToken(token string) (string, error)
 	RenderWithTags(src []byte, tags []string) (markdown.RenderResult, error)
 	RenderPreview(src []byte) (markdown.RenderResult, error)
 	DueCards(notePath string, limit int) ([]srs.Card, error)

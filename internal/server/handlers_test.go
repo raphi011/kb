@@ -17,6 +17,7 @@ type mockKB struct {
 	notes           []index.Note
 	tags            []index.Tag
 	forceReIndexErr error
+	shares          map[string]string // path → token
 }
 
 func (m *mockKB) AllNotes() ([]index.Note, error)                      { return m.notes, nil }
@@ -44,6 +45,35 @@ func (m *mockKB) Render(src []byte) (markdown.RenderResult, error) { return mark
 func (m *mockKB) BookmarkedPaths() ([]string, error)                          { return nil, nil }
 func (m *mockKB) AddBookmark(path string) error                               { return nil }
 func (m *mockKB) RemoveBookmark(path string) error                            { return nil }
+func (m *mockKB) ShareNote(path string) (string, error) {
+	if m.shares == nil {
+		m.shares = map[string]string{}
+	}
+	if token, ok := m.shares[path]; ok {
+		return token, nil
+	}
+	token := "test-token-" + path
+	m.shares[path] = token
+	return token, nil
+}
+func (m *mockKB) UnshareNote(path string) error {
+	delete(m.shares, path)
+	return nil
+}
+func (m *mockKB) ShareTokenForNote(path string) (string, error) {
+	if m.shares == nil {
+		return "", nil
+	}
+	return m.shares[path], nil
+}
+func (m *mockKB) NotePathForShareToken(token string) (string, error) {
+	for p, t := range m.shares {
+		if t == token {
+			return p, nil
+		}
+	}
+	return "", index.ErrNotFound
+}
 func (m *mockKB) ReIndex() error                                              { return nil }
 func (m *mockKB) ForceReIndex() error                                         { return m.forceReIndexErr }
 func (m *mockKB) RenderWithTags(src []byte, _ []string) (markdown.RenderResult, error) {

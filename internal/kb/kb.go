@@ -262,6 +262,22 @@ func (kb *KB) RemoveBookmark(path string) error {
 	return kb.idx.RemoveBookmark(path)
 }
 
+func (kb *KB) ShareNote(path string) (string, error) {
+	return kb.idx.ShareNote(path)
+}
+
+func (kb *KB) UnshareNote(path string) error {
+	return kb.idx.UnshareNote(path)
+}
+
+func (kb *KB) ShareTokenForNote(path string) (string, error) {
+	return kb.idx.ShareTokenForNote(path)
+}
+
+func (kb *KB) NotePathForShareToken(token string) (string, error) {
+	return kb.idx.NotePathForShareToken(token)
+}
+
 func (kb *KB) ReadFile(path string) ([]byte, error) {
 	return kb.repo.ReadBlob(path)
 }
