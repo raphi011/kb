@@ -62,6 +62,20 @@ func Open(dbPath string) (*DB, error) {
 		return nil, fmt.Errorf("create schema: %w", err)
 	}
 
+	// Run migrations — ignore "duplicate column" errors from already-migrated DBs.
+	for _, stmt := range strings.Split(migrationsSQL, ";") {
+		stmt = strings.TrimSpace(stmt)
+		if stmt == "" {
+			continue
+		}
+		if _, err := db.Exec(stmt); err != nil {
+			if !strings.Contains(err.Error(), "duplicate column") {
+				db.Close()
+				return nil, fmt.Errorf("migration: %w", err)
+			}
+		}
+	}
+
 	return &DB{db: db}, nil
 }
 

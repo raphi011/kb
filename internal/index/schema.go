@@ -95,3 +95,9 @@ CREATE TABLE IF NOT EXISTS flashcard_reviews (
 CREATE INDEX IF NOT EXISTS flashcard_reviews_by_card ON flashcard_reviews(card_hash);
 CREATE INDEX IF NOT EXISTS flashcard_reviews_by_date ON flashcard_reviews(reviewed_at);
 `
+
+// migrationsSQL adds columns that may be missing from older databases.
+// ALTER TABLE ... ADD COLUMN is a no-op if the column already exists (SQLite ≥ 3.35).
+const migrationsSQL = `
+ALTER TABLE notes ADD COLUMN is_marp BOOLEAN NOT NULL DEFAULT 0;
+`
