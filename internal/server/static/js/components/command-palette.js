@@ -1,6 +1,6 @@
 import { esc, fuzzyMatch } from '../utils.js';
 import { getRecentPaths } from '../navigation.js';
-import { getManifest, findByPath } from '../manifest.js';
+import { getManifest, findByPath } from '../lib/manifest.js';
 import { navigateTo } from '../navigation.js';
 
 let focusIdx = 0;

@@ -1,5 +1,5 @@
 import { esc } from '../utils.js';
-import { getManifest } from '../manifest.js';
+import { getManifest } from '../lib/manifest.js';
 let selectedTags = [];
 let selectedDate = null;
 

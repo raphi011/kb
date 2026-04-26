@@ -1,4 +1,4 @@
-import { findByPath, setBookmarked } from '../manifest.js';
+import { findByPath, setBookmarked } from '../lib/manifest.js';
 
 export function initBookmarks() {
   document.addEventListener('click', (e) => {
