@@ -459,6 +459,7 @@ func writeJSON(w http.ResponseWriter, v any) {
 
 // renderError renders an error page or an error fragment for HTMX requests.
 func (s *Server) renderError(w http.ResponseWriter, r *http.Request, code int, message string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(code)
 	s.renderContent(w, r, message, views.ErrorContentInner(code, message), TOCData{})
 }
