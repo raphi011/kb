@@ -1,3 +1,5 @@
+import { set } from './ui-store.js';
+
 export function initZen() {
   const btn = document.getElementById('zen-toggle');
   if (!btn) return;
@@ -5,7 +7,7 @@ export function initZen() {
   function toggle() {
     const active = document.body.classList.toggle('zen');
     document.documentElement.classList.toggle('zen', active);
-    localStorage.setItem('zk-zen', active ? '1' : '0');
+    set('zen', active);
   }
 
   btn.addEventListener('click', toggle);
