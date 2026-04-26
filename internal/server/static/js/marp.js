@@ -91,10 +91,11 @@ async function renderMarp() {
   const container = document.getElementById('marp-container');
   if (!container || !window.__MARP_SOURCE) return;
 
-  await ensureMarp();
-
   const md = window.__MARP_SOURCE;
   delete window.__MARP_SOURCE;
+
+  await ensureMarp();
+
   const baseURL = container.dataset.baseUrl || '';
 
   const marp = new window.Marp({ math: false });
@@ -124,13 +125,13 @@ export function initMarp() {
   document.addEventListener('fullscreenchange', handleFullscreenChange);
 
   document.addEventListener('click', (e) => {
-    if (e.target.closest('#marp-present-btn')) {
+    if (e.target.closest?.('#marp-present-btn')) {
       handlePresent();
     }
   });
 
   document.addEventListener('click', (e) => {
-    const item = e.target.closest('.slide-panel-item');
+    const item = e.target.closest?.('.slide-panel-item');
     if (!item) return;
     const slideIdx = parseInt(item.dataset.slide, 10);
     if (!isNaN(slideIdx)) {

@@ -16,7 +16,7 @@ export function initHTMXHooks() {
 
   // Upgrade clicks on internal markdown links to HTMX navigations.
   document.addEventListener('click', (e) => {
-    const a = e.target.closest('#content-area a[href]');
+    const a = e.target.closest?.('#content-area a[href]');
     if (!a) return;
 
     const href = a.getAttribute('href');
