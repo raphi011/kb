@@ -66,8 +66,7 @@ templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFl
 		<div class="resize-handle-v server-tree" data-resize-target="next"></div>
 		<details class="panel-section sidebar-tags-section server-tree" open aria-label="Flashcards">
 			<summary class="panel-label">
-				Flashcards <span id="fc-due-badge" class="panel-count fc-badge"></span>
-				<a class="sidebar-section-link" href="/flashcards" hx-get="/flashcards" hx-target="#content-col" hx-swap="innerHTML transition:true" hx-push-url="true" title="Flashcard dashboard" onclick="event.stopPropagation()">&#8594;</a>
+				Flashcards <span id="fc-due-badge" class="panel-count"></span>
 			</summary>
 			<div class="panel-body sidebar-section-body">
 				for _, nfc := range flashcardNotes {

@@ -343,7 +343,7 @@ func Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFla
 			return templ_7745c5c3_Err
 		}
 		if len(flashcardNotes) > 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"panel-section sidebar-tags-section server-tree\" open aria-label=\"Flashcards\"><summary class=\"panel-label\">Flashcards <span id=\"fc-due-badge\" class=\"panel-count fc-badge\"></span> <a class=\"sidebar-section-link\" href=\"/flashcards\" hx-get=\"/flashcards\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\" title=\"Flashcard dashboard\" onclick=\"event.stopPropagation()\">&#8594;</a></summary><div class=\"panel-body sidebar-section-body\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"resize-handle-v server-tree\" data-resize-target=\"next\"></div><details class=\"panel-section sidebar-tags-section server-tree\" open aria-label=\"Flashcards\"><summary class=\"panel-label\">Flashcards <span id=\"fc-due-badge\" class=\"panel-count\"></span></summary><div class=\"panel-body sidebar-section-body\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -355,7 +355,7 @@ func Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFla
 				var templ_7745c5c3_Var18 templ.SafeURL
 				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL("/flashcards/review?note=" + nfc.NotePath))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 76, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 75, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 				if templ_7745c5c3_Err != nil {
@@ -368,7 +368,7 @@ func Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFla
 				var templ_7745c5c3_Var19 string
 				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs("/flashcards/review?note=" + nfc.NotePath)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 77, Col: 56}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 76, Col: 56}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 				if templ_7745c5c3_Err != nil {
@@ -381,7 +381,7 @@ func Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFla
 				var templ_7745c5c3_Var20 string
 				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(nfc.NotePath)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 81, Col: 26}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 80, Col: 26}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 				if templ_7745c5c3_Err != nil {
@@ -394,7 +394,7 @@ func Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFla
 				var templ_7745c5c3_Var21 string
 				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(nfc.NoteTitle)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 83, Col: 21}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 82, Col: 21}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 				if templ_7745c5c3_Err != nil {
@@ -412,7 +412,7 @@ func Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFla
 					var templ_7745c5c3_Var22 string
 					templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(intStr(nfc.DueCount))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 85, Col: 75}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 84, Col: 75}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 					if templ_7745c5c3_Err != nil {
@@ -430,7 +430,7 @@ func Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFla
 					var templ_7745c5c3_Var23 string
 					templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(intStr(nfc.CardCount))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 87, Col: 77}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/sidebar.templ`, Line: 86, Col: 77}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 					if templ_7745c5c3_Err != nil {

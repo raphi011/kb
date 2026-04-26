@@ -145,13 +145,7 @@ function updateBadge() {
   fetch('/api/flashcards/stats')
     .then(r => r.json())
     .then(stats => {
-      if (stats.dueToday > 0) {
-        badge.textContent = stats.dueToday;
-        badge.classList.add('fc-badge-active');
-      } else {
-        badge.textContent = '';
-        badge.classList.remove('fc-badge-active');
-      }
+      badge.textContent = stats.dueToday > 0 ? stats.dueToday : '';
     })
     .catch(() => {});
 }

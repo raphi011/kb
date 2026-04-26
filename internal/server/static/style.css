@@ -571,17 +571,6 @@ details[open] > .tree-folder::before {
   max-height: 30vh;
 }
 
-.sidebar-section-link {
-  color: var(--text-faint);
-  text-decoration: none;
-  font-size: 11px;
-  line-height: 1;
-  opacity: 0.6;
-  transition: opacity 0.15s;
-
-  &:hover { opacity: 1; color: var(--text-muted); }
-}
-
 .sidebar-fc-item {
   display: flex;
   align-items: center;
@@ -1672,17 +1661,6 @@ a.backlink-card, .backlink-card {
 }
 
 /* --- Flashcards --- */
-
-.fc-badge-active {
-  background: var(--accent);
-  color: #fff;
-  border-radius: 8px;
-  padding: 0 6px;
-  min-width: 16px;
-  text-align: center;
-  line-height: 16px;
-  font-size: 11px;
-}
 
 /* Inline flashcard (rendered inside notes) */
 .flashcard {
