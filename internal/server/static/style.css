@@ -385,6 +385,23 @@ html.zen, body.zen {
   }
 }
 
+.sidebar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0;
+  border-top: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 16px;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.sidebar-footer:hover {
+  color: var(--fg);
+}
+
 @keyframes fadeSlideIn {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
