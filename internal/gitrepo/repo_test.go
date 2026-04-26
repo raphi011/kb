@@ -3,6 +3,7 @@ package gitrepo
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -165,6 +166,46 @@ func TestFileLog(t *testing.T) {
 	}
 	if len(commits) != 0 {
 		t.Errorf("FileLog for nonexistent returned %d commits, want 0", len(commits))
+	}
+}
+
+func TestReadBlobAt(t *testing.T) {
+	dir := setupTestRepo(t)
+	repo, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	commits, err := repo.FileLog("notes/hello.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(commits) < 2 {
+		t.Fatal("expected at least 2 commits for hello.md")
+	}
+
+	// oldest commit should have original content
+	oldContent, err := repo.ReadBlobAt("notes/hello.md", commits[len(commits)-1].Hash)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(oldContent), "Hello world.") {
+		t.Errorf("old content should contain 'Hello world.', got: %s", oldContent)
+	}
+
+	// newest commit should have updated content
+	newContent, err := repo.ReadBlobAt("notes/hello.md", commits[0].Hash)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(newContent), "Hello world updated.") {
+		t.Errorf("new content should contain 'Hello world updated.', got: %s", newContent)
+	}
+
+	// nonexistent file at valid commit should error
+	_, err = repo.ReadBlobAt("nonexistent.md", commits[0].Hash)
+	if err == nil {
+		t.Error("ReadBlobAt for nonexistent file should error")
 	}
 }
 

@@ -91,6 +91,29 @@ func (r *Repo) ReadBlob(path string) ([]byte, error) {
 	return io.ReadAll(reader)
 }
 
+// ReadBlobAt reads a file's content at a specific commit hash.
+func (r *Repo) ReadBlobAt(path, commitHash string) ([]byte, error) {
+	hash := plumbing.NewHash(commitHash)
+	commit, err := r.repo.CommitObject(hash)
+	if err != nil {
+		return nil, fmt.Errorf("get commit %s: %w", commitHash[:7], err)
+	}
+	tree, err := commit.Tree()
+	if err != nil {
+		return nil, fmt.Errorf("get tree: %w", err)
+	}
+	file, err := tree.File(path)
+	if err != nil {
+		return nil, fmt.Errorf("get file %s at %s: %w", path, commitHash[:7], err)
+	}
+	reader, err := file.Reader()
+	if err != nil {
+		return nil, fmt.Errorf("read file %s: %w", path, err)
+	}
+	defer reader.Close()
+	return io.ReadAll(reader)
+}
+
 func (r *Repo) CommitHashes(n int) ([]string, error) {
 	iter, err := r.repo.Log(&git.LogOptions{From: r.head.Hash()})
 	if err != nil {
