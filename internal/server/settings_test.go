@@ -60,12 +60,12 @@ func TestHandleForceReindex(t *testing.T) {
 
 	srv.ServeHTTP(w, req)
 
-	if w.Code != http.StatusOK {
-		t.Fatalf("status = %d, want 200", w.Code)
+	if w.Code != http.StatusNoContent {
+		t.Fatalf("status = %d, want 204", w.Code)
 	}
-	body := w.Body.String()
-	if !strings.Contains(body, "Reindex complete") {
-		t.Errorf("response = %q, want toast with 'Reindex complete'", body)
+	trigger := w.Header().Get("HX-Trigger")
+	if !strings.Contains(trigger, "Reindex complete") {
+		t.Errorf("HX-Trigger = %q, want toast with 'Reindex complete'", trigger)
 	}
 }
 
@@ -80,14 +80,14 @@ func TestHandleForceReindexError(t *testing.T) {
 
 	srv.ServeHTTP(w, req)
 
-	if w.Code != http.StatusOK {
-		t.Fatalf("status = %d, want 200", w.Code)
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want 500", w.Code)
 	}
-	body := w.Body.String()
-	if !strings.Contains(body, "Reindex failed") {
-		t.Errorf("response = %q, want error toast with 'Reindex failed'", body)
+	trigger := w.Header().Get("HX-Trigger")
+	if !strings.Contains(trigger, "Reindex failed") {
+		t.Errorf("HX-Trigger = %q, want error toast with 'Reindex failed'", trigger)
 	}
-	if !strings.Contains(body, "index corrupt") {
-		t.Errorf("response = %q, want error message in toast", body)
+	if !strings.Contains(trigger, "index corrupt") {
+		t.Errorf("HX-Trigger = %q, want error message in toast", trigger)
 	}
 }

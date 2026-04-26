@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"os/exec"
@@ -13,11 +14,11 @@ func (s *Server) handleSettings(w http.ResponseWriter, r *http.Request) {
 	s.renderContent(w, r, "Settings", views.SettingsContent(), TOCData{})
 }
 
-func (s *Server) renderToast(w http.ResponseWriter, r *http.Request, msg string, isError bool) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := views.Toast(msg, isError).Render(r.Context(), w); err != nil {
-		slog.Error("render component", "error", err)
-	}
+// triggerToast sets the HX-Trigger header to show a toast notification on the client.
+func triggerToast(w http.ResponseWriter, msg string, isError bool) {
+	payload := map[string]any{"message": msg, "error": isError}
+	b, _ := json.Marshal(map[string]any{"kb:toast": payload})
+	w.Header().Set("HX-Trigger", string(b))
 }
 
 func (s *Server) handlePull(w http.ResponseWriter, r *http.Request) {
@@ -29,37 +30,44 @@ func (s *Server) handlePull(w http.ResponseWriter, r *http.Request) {
 		if msg == "" {
 			msg = err.Error()
 		}
-		s.renderToast(w, r, "Pull failed: "+msg, true)
+		triggerToast(w, "Pull failed: "+msg, true)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if err := s.reindexer.ReIndex(); err != nil {
 		slog.Error("post-pull reindex", "error", err)
-		s.renderToast(w, r, "Pull succeeded but reindex failed: "+err.Error(), true)
+		triggerToast(w, "Pull succeeded but reindex failed: "+err.Error(), true)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if err := s.RefreshCache(); err != nil {
 		slog.Error("post-pull refresh cache", "error", err)
-		s.renderToast(w, r, "Pull complete but cache refresh failed — reload the page", true)
+		triggerToast(w, "Pull complete but cache refresh failed — reload the page", true)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	s.renderToast(w, r, "Pull complete", false)
+	triggerToast(w, "Pull complete", false)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (s *Server) handleForceReindex(w http.ResponseWriter, r *http.Request) {
 	if err := s.reindexer.ForceReIndex(); err != nil {
 		slog.Error("force reindex", "error", err)
-		s.renderToast(w, r, "Reindex failed: "+err.Error(), true)
+		triggerToast(w, "Reindex failed: "+err.Error(), true)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if err := s.RefreshCache(); err != nil {
 		slog.Error("post-reindex refresh cache", "error", err)
-		s.renderToast(w, r, "Reindex complete but cache refresh failed — reload the page", true)
+		triggerToast(w, "Reindex complete but cache refresh failed — reload the page", true)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	s.renderToast(w, r, "Reindex complete", false)
+	triggerToast(w, "Reindex complete", false)
+	w.WriteHeader(http.StatusNoContent)
 }

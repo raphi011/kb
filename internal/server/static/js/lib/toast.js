@@ -39,6 +39,10 @@ export function toast(message, isError = false, actions = []) {
 
 // Listen for server-triggered toasts via HX-Trigger: {"kb:toast": "message"}
 on(Events.TOAST, (e) => {
-  const msg = e.detail?.value ?? e.detail;
-  if (msg) toast(String(msg));
+  const detail = e.detail?.value ?? e.detail;
+  if (typeof detail === 'object' && detail?.message) {
+    toast(detail.message, !!detail.error);
+  } else if (detail) {
+    toast(String(detail));
+  }
 });

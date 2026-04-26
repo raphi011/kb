@@ -11,8 +11,7 @@ templ SettingsContent() {
 					<button
 						class="settings-btn"
 						hx-post="/api/settings/pull"
-						hx-target="#toast-container"
-						hx-swap="innerHTML"
+						hx-swap="none"
 						hx-disabled-elt="this"
 					>
 						Git Pull
@@ -20,8 +19,7 @@ templ SettingsContent() {
 					<button
 						class="settings-btn"
 						hx-post="/api/settings/reindex"
-						hx-target="#toast-container"
-						hx-swap="innerHTML"
+						hx-swap="none"
 						hx-disabled-elt="this"
 					>
 						Force Reindex
