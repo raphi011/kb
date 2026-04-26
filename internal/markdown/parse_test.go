@@ -1,6 +1,7 @@
 package markdown
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -195,5 +196,68 @@ func TestParseMarkdown_NonMarpNoSlides(t *testing.T) {
 	}
 	if len(doc.Slides) != 0 {
 		t.Errorf("Slides = %d, want 0 for non-Marp note", len(doc.Slides))
+	}
+}
+
+func TestExtractHeadingSection(t *testing.T) {
+	body := `# Title
+
+Intro paragraph.
+
+## Channels
+
+Channels are typed conduits.
+
+They allow goroutines to communicate.
+
+## Mutexes
+
+Mutexes provide mutual exclusion.
+`
+	section := ExtractHeadingSection(body, "Channels")
+	if section == "" {
+		t.Fatal("expected non-empty section")
+	}
+	if !strings.Contains(section, "typed conduits") {
+		t.Errorf("missing channel content in: %s", section)
+	}
+	if !strings.Contains(section, "goroutines to communicate") {
+		t.Errorf("missing second paragraph in: %s", section)
+	}
+	if strings.Contains(section, "Mutexes") {
+		t.Errorf("should not include next heading in: %s", section)
+	}
+}
+
+func TestExtractHeadingSection_NotFound(t *testing.T) {
+	body := "# Title\n\nSome content.\n"
+	section := ExtractHeadingSection(body, "Nonexistent")
+	if section != "" {
+		t.Errorf("expected empty section for missing heading, got: %s", section)
+	}
+}
+
+func TestExtractHeadingSection_NestedHeading(t *testing.T) {
+	body := `## Parent
+
+Parent content.
+
+### Child
+
+Child content.
+
+## Sibling
+
+Sibling content.
+`
+	section := ExtractHeadingSection(body, "Parent")
+	if !strings.Contains(section, "Parent content") {
+		t.Errorf("missing parent content in: %s", section)
+	}
+	if !strings.Contains(section, "Child content") {
+		t.Errorf("should include nested child in: %s", section)
+	}
+	if strings.Contains(section, "Sibling content") {
+		t.Errorf("should not include sibling in: %s", section)
 	}
 }

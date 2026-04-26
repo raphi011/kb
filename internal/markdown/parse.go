@@ -249,6 +249,60 @@ func isExternalURL(s string) bool {
 	return strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://")
 }
 
+// ExtractHeadingSection returns the markdown content under the specified
+// heading, from the heading line to the next heading at the same or higher
+// level. Returns empty string if the heading is not found.
+func ExtractHeadingSection(body, heading string) string {
+	lines := strings.Split(body, "\n")
+	targetLevel := 0
+	startLine := -1
+
+	for i, line := range lines {
+		level, text := parseHeadingLine(line)
+		if level == 0 {
+			continue
+		}
+		if startLine == -1 {
+			// Looking for the target heading.
+			if strings.EqualFold(strings.TrimSpace(text), strings.TrimSpace(heading)) {
+				targetLevel = level
+				startLine = i + 1
+			}
+			continue
+		}
+		// Already found — stop at same or higher level heading.
+		if level <= targetLevel {
+			return strings.TrimSpace(strings.Join(lines[startLine:i], "\n"))
+		}
+	}
+
+	if startLine == -1 {
+		return ""
+	}
+	return strings.TrimSpace(strings.Join(lines[startLine:], "\n"))
+}
+
+// parseHeadingLine returns the heading level (1-6) and text for ATX headings.
+// Returns 0, "" for non-heading lines.
+func parseHeadingLine(line string) (int, string) {
+	trimmed := strings.TrimSpace(line)
+	level := 0
+	for _, c := range trimmed {
+		if c == '#' {
+			level++
+		} else {
+			break
+		}
+	}
+	if level == 0 || level > 6 {
+		return 0, ""
+	}
+	if len(trimmed) > level && trimmed[level] != ' ' {
+		return 0, "" // "##text" is not a heading
+	}
+	return level, strings.TrimSpace(trimmed[level:])
+}
+
 func dedup(items []string) []string {
 	if len(items) == 0 {
 		return nil
