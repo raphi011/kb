@@ -389,10 +389,11 @@ html.zen, body.zen {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   padding: 6px 0;
   border-top: 1px solid var(--border);
   color: var(--fg-muted);
-  font-size: 16px;
+  font-size: 12px;
   text-decoration: none;
   flex-shrink: 0;
   transition: color 0.15s;
@@ -400,6 +401,10 @@ html.zen, body.zen {
 
 .sidebar-footer:hover {
   color: var(--fg);
+}
+
+.sidebar-footer-icon {
+  font-size: 16px;
 }
 
 @keyframes fadeSlideIn {
@@ -1623,7 +1628,7 @@ a.backlink-card, .backlink-card {
   padding: 6px 14px;
   border-radius: 5px;
   border: 1px solid var(--border);
-  background: var(--surface-hover);
+  background: var(--surface);
   color: var(--fg);
   font-size: 13px;
   cursor: pointer;
@@ -1642,13 +1647,14 @@ a.backlink-card, .backlink-card {
 #toast-container {
   position: fixed;
   bottom: 20px;
-  right: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1000;
   pointer-events: none;
 }
 
 .toast {
-  background: var(--surface-hover);
+  background: var(--surface);
   color: var(--fg);
   border: 1px solid var(--border);
   border-left: 3px solid oklch(0.7 0.15 145);
