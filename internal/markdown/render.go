@@ -189,6 +189,39 @@ func newRenderer(lookup map[string]string, titleLookup map[string]string, hc *he
 	)
 }
 
+// RenderPreview renders markdown for preview popovers. Includes wikilinks,
+// GFM, and syntax highlighting but no page-level transforms (h1 stripping,
+// heading IDs, mermaid, flashcard transformers).
+func RenderPreview(src []byte, lookup map[string]string, titleLookup map[string]string) (RenderResult, error) {
+	resolver := noteResolver{lookup: lookup, titleLookup: titleLookup}
+	md := goldmark.New(
+		goldmark.WithExtensions(
+			extension.GFM,
+			highlighting.NewHighlighting(
+				highlighting.WithStyle("dracula"),
+				highlighting.WithFormatOptions(chromahtml.WithClasses(true)),
+			),
+		),
+		goldmark.WithParserOptions(
+			parser.WithInlineParsers(
+				util.Prioritized(&wikilink.Parser{}, 199),
+			),
+		),
+		goldmark.WithRendererOptions(
+			gmhtml.WithUnsafe(),
+			renderer.WithNodeRenderers(
+				util.Prioritized(&wikilinkRenderer{resolver: resolver}, 199),
+				util.Prioritized(&externalLinkRenderer{}, 50),
+			),
+		),
+	)
+	var buf bytes.Buffer
+	if err := md.Convert(src, &buf); err != nil {
+		return RenderResult{}, fmt.Errorf("render preview: %w", err)
+	}
+	return RenderResult{HTML: buf.String()}, nil
+}
+
 // RenderInline renders a short markdown string (card question/answer) to
 // inline HTML. Uses GFM + wikilink parser. No page-level features (h1 stripping,
 // heading IDs, mermaid, flashcard transformers). Strips the wrapping <p> tag.

@@ -311,6 +311,23 @@ func (kb *KB) RenderWithTags(src []byte, tags []string) (markdown.RenderResult, 
 	return markdown.Render(src, lookup, titleLookup, flashcardsEnabled)
 }
 
+func (kb *KB) RenderPreview(src []byte) (markdown.RenderResult, error) {
+	notes, err := kb.idx.AllNotes()
+	if err != nil {
+		return markdown.RenderResult{}, err
+	}
+	lookup := make(map[string]string, len(notes)*2)
+	titleLookup := make(map[string]string, len(notes))
+	for _, n := range notes {
+		stem := n.Path[strings.LastIndex(n.Path, "/")+1:]
+		stem = strings.TrimSuffix(stem, ".md")
+		lookup[stem] = n.Path
+		lookup[strings.TrimSuffix(n.Path, ".md")] = n.Path
+		titleLookup[n.Path] = n.Title
+	}
+	return markdown.RenderPreview(src, lookup, titleLookup)
+}
+
 func hasFlashcardsTag(tags []string) bool {
 	for _, t := range tags {
 		if t == "flashcards" || strings.HasPrefix(t, "flashcards/") {
