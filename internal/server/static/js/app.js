@@ -13,6 +13,7 @@ import { initFlashcards } from './flashcards.js';
 import { initMarp } from './marp.js';
 import { initToast } from './toast.js';
 import { recordVisit } from './history.js';
+import { initPreview } from './preview.js';
 
 initTheme();
 initResize();
@@ -28,6 +29,7 @@ initLightbox();
 initFlashcards();
 initMarp();
 initToast();
+initPreview();
 
 // Record initial page load if it's a note.
 if (location.pathname.startsWith('/notes/')) {
