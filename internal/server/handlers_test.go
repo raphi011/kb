@@ -232,8 +232,8 @@ func TestMarpNoteRendersSlideContainer(t *testing.T) {
 	if !strings.Contains(body, "marp-container") {
 		t.Errorf("response should contain marp-container")
 	}
-	if !strings.Contains(body, "marp-source") {
-		t.Errorf("response should contain marp-source script block")
+	if !strings.Contains(body, "__MARP_SOURCE") {
+		t.Errorf("response should contain __MARP_SOURCE script block")
 	}
 	if !strings.Contains(body, "marp-present-btn") {
 		t.Errorf("response should contain present button")

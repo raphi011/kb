@@ -85,13 +85,13 @@ function handleFullscreenChange() {
 }
 
 async function renderMarp() {
-  const source = document.getElementById('marp-source');
   const container = document.getElementById('marp-container');
-  if (!source || !container) return;
+  if (!container || !window.__MARP_SOURCE) return;
 
   await ensureMarp();
 
-  const md = source.textContent;
+  const md = window.__MARP_SOURCE;
+  delete window.__MARP_SOURCE;
   const baseURL = container.dataset.baseUrl || '';
 
   const marp = new window.Marp({ math: false });
