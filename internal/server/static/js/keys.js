@@ -1,4 +1,4 @@
-import { toggleBookmarkForCurrentNote } from './bookmark.js';
+import { toggleBookmarkForCurrentNote } from './components/bookmark.js';
 import { navigateTo } from './navigation.js';
 
 // Vim-like keyboard shortcuts for navigating the notebook.

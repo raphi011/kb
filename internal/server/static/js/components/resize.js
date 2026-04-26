@@ -1,4 +1,4 @@
-import { set } from './ui-store.js';
+import { set } from '../ui-store.js';
 
 let verticalAbort = null;
 

@@ -1,8 +1,8 @@
-import { initToc } from './toc.js';
-import { initResize } from './resize.js';
+import { initToc } from './components/toc.js';
+import { initResize } from './components/resize.js';
 import { navigateTo, fetchContent, isPathChange, updateTreeActive } from './navigation.js';
-import { onReviewCardSettled } from './flashcards.js';
-import { onMarpSwap } from './marp.js';
+import { onReviewCardSettled } from './components/flashcards.js';
+import { onMarpSwap } from './components/marp.js';
 import { restorePanels } from './panels.js';
 
 export function initHTMXHooks() {
