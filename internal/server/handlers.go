@@ -104,7 +104,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.renderContent(w, r, "Knowledge Base", views.FolderContentInner(nil, "Knowledge Base", entries), TOCData{})
+	s.renderContent(w, r, "Knowledge Base", views.FolderContentInner(nil, "Knowledge Base", entries), TOCData{}, "")
 }
 
 func (s *Server) handleNote(w http.ResponseWriter, r *http.Request) {
@@ -194,8 +194,6 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 
 	shareToken, _ := s.store.ShareTokenForNote(note.Path)
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
 	toc := TOCData{
 		Headings:       headings,
 		OutgoingLinks:  outLinks,
@@ -204,24 +202,8 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 		NotePath:       note.Path,
 	}
 
-	if isHTMX(r) {
-		if err := views.NoteContentInner(breadcrumbs, note, result.HTML, backlinks, headings, shareToken).Render(r.Context(), w); err != nil {
-			slog.Error("render component", "error", err)
-		}
-		s.renderTOC(w, r, toc)
-		return
-	}
-
-	s.renderFullPage(w, r, views.LayoutParams{
-		Title:          note.Title,
-		Tree:           buildTree(s.noteCache().notes, note.Path),
-		ContentCol:     views.ContentCol(views.NoteContentInner(breadcrumbs, note, result.HTML, backlinks, headings, shareToken)),
-		Headings:       toc.Headings,
-		OutgoingLinks:  toc.OutgoingLinks,
-		Backlinks:      toc.Backlinks,
-		FlashcardPanel: toc.FlashcardPanel,
-		NotePath:       note.Path,
-	})
+	inner := views.NoteContentInner(breadcrumbs, note, result.HTML, backlinks, headings, shareToken)
+	s.renderContent(w, r, note.Title, inner, toc, note.Path)
 }
 
 func (s *Server) renderMarpNote(w http.ResponseWriter, r *http.Request, note *index.Note, raw []byte) {
@@ -241,25 +223,13 @@ func (s *Server) renderMarpNote(w http.ResponseWriter, r *http.Request, note *in
 
 	shareToken, _ := s.store.ShareTokenForNote(note.Path)
 
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
-	toc := TOCData{SlidePanel: slidePanel, NotePath: note.Path}
-
-	if isHTMX(r) {
-		if err := views.MarpNoteContentInner(breadcrumbs, note, string(raw), doc.Slides, baseURL, shareToken).Render(r.Context(), w); err != nil {
-			slog.Error("render component", "error", err)
-		}
-		s.renderTOC(w, r, toc)
-		return
-	}
-
-	s.renderFullPage(w, r, views.LayoutParams{
-		Title:      note.Title,
-		Tree:       buildTree(s.noteCache().notes, note.Path),
-		ContentCol: views.ContentCol(views.MarpNoteContentInner(breadcrumbs, note, string(raw), doc.Slides, baseURL, shareToken)),
+	toc := TOCData{
 		SlidePanel: slidePanel,
 		NotePath:   note.Path,
-	})
+	}
+
+	inner := views.MarpNoteContentInner(breadcrumbs, note, string(raw), doc.Slides, baseURL, shareToken)
+	s.renderContent(w, r, note.Title, inner, toc, note.Path)
 }
 
 func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath string) {
@@ -298,7 +268,7 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 	}
 	breadcrumbs := buildBreadcrumbs(folderPath + "/placeholder")
 
-	s.renderContent(w, r, folderName, views.FolderContentInner(breadcrumbs, folderName, entries), TOCData{})
+	s.renderContent(w, r, folderName, views.FolderContentInner(breadcrumbs, folderName, entries), TOCData{}, "")
 }
 
 func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
@@ -486,7 +456,7 @@ func writeJSON(w http.ResponseWriter, v any) {
 func (s *Server) renderError(w http.ResponseWriter, r *http.Request, code int, message string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(code)
-	s.renderContent(w, r, message, views.ErrorContentInner(code, message), TOCData{})
+	s.renderContent(w, r, message, views.ErrorContentInner(code, message), TOCData{}, "")
 }
 
 func sortEntries(entries []views.FolderEntry) {
