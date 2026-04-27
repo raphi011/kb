@@ -40,9 +40,7 @@ func dueLabel(t time.Time) string {
 
 templ FlashcardDashboardContent(stats index.FlashcardStats) {
 	<div id="content-area">
-		<article id="article">
-			<h1 id="article-title">Flashcards</h1>
-			<hr class="article-divider"/>
+		@ArticlePage(ArticleProps{Title: "Flashcards"}) {
 			<div class="fc-dashboard">
 				<div class="fc-stats">
 					<div class="fc-stat">
@@ -70,7 +68,7 @@ templ FlashcardDashboardContent(stats index.FlashcardStats) {
 					<p class="fc-all-done">All caught up! No cards due.</p>
 				}
 			</div>
-		</article>
+		}
 	</div>
 }
 

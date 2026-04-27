@@ -42,6 +42,29 @@ templ VersionNoteContent(segments []BreadcrumbSegment, title string, commitDate 
 	</div>
 }
 
+templ noteActions(path string, shareToken string) {
+	<button
+		id="share-btn"
+		class="share-btn"
+		type="button"
+		aria-label="Share note"
+		title="Share note"
+		data-path={ path }
+		data-share-token={ shareToken }
+	>
+		<span class="share-icon">&#128279;</span>
+	</button>
+	<button
+		id="bookmark-btn"
+		class="bookmark-btn"
+		type="button"
+		aria-label="Toggle bookmark"
+		data-path={ path }
+	>
+		<span class="bookmark-icon">&#9734;</span>
+	</button>
+}
+
 templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading, shareToken string) {
 	if len(headings) > 0 {
 		<details id="mob-toc-details" class="mob-toc" aria-label="Table of contents">
@@ -53,32 +76,10 @@ templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, hea
 			</div>
 		</details>
 	}
-	<article id="article">
-		<div class="article-title-row">
-			<h1 id="article-title">{ note.Title }</h1>
-			<div class="article-title-actions">
-				<button
-					id="share-btn"
-					class="share-btn"
-					type="button"
-					aria-label="Share note"
-					title="Share note"
-					data-path={ note.Path }
-					data-share-token={ shareToken }
-				>
-					<span class="share-icon">&#128279;</span>
-				</button>
-				<button
-					id="bookmark-btn"
-					class="bookmark-btn"
-					type="button"
-					aria-label="Toggle bookmark"
-					data-path={ note.Path }
-				>
-					<span class="bookmark-icon">&#9734;</span>
-				</button>
-			</div>
-		</div>
+	@ArticlePage(ArticleProps{
+		Title:        note.Title,
+		TitleActions: noteActions(note.Path, shareToken),
+	}) {
 		<div class="article-meta">
 			<span class="article-meta-text">
 				Created: { note.Created.Format("2006-01-02") } · Modified: { note.Modified.Format("2006-01-02") } · { intStr(note.WordCount) } words
@@ -87,7 +88,6 @@ templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, hea
 				<span class="meta-tag" data-tag={ tag }>{ tag }</span>
 			}
 		</div>
-		<hr class="article-divider"/>
 		<div class="prose">
 			@templ.Raw(noteHTML)
 		</div>
@@ -104,45 +104,27 @@ templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, hea
 				}
 			</section>
 		}
-	</article>
+	}
+}
+
+templ marpActions(path string, shareToken string) {
+	<button
+		id="marp-present-btn"
+		class="marp-present-btn"
+		type="button"
+		aria-label="Start presentation"
+		title="Present fullscreen"
+	>
+		&#9655; Present
+	</button>
+	@noteActions(path, shareToken)
 }
 
 templ MarpArticle(note *index.Note, rawMarkdown string, slides []markdown.SlideInfo, baseURL string, shareToken string) {
-	<article id="article">
-		<div class="article-title-row">
-			<h1 id="article-title">{ note.Title }</h1>
-			<div class="article-title-actions">
-				<button
-					id="marp-present-btn"
-					class="marp-present-btn"
-					type="button"
-					aria-label="Start presentation"
-					title="Present fullscreen"
-				>
-					&#9655; Present
-				</button>
-				<button
-					id="share-btn"
-					class="share-btn"
-					type="button"
-					aria-label="Share note"
-					title="Share note"
-					data-path={ note.Path }
-					data-share-token={ shareToken }
-				>
-					<span class="share-icon">&#128279;</span>
-				</button>
-				<button
-					id="bookmark-btn"
-					class="bookmark-btn"
-					type="button"
-					aria-label="Toggle bookmark"
-					data-path={ note.Path }
-				>
-					<span class="bookmark-icon">&#9734;</span>
-				</button>
-			</div>
-		</div>
+	@ArticlePage(ArticleProps{
+		Title:        note.Title,
+		TitleActions: marpActions(note.Path, shareToken),
+	}) {
 		<div class="article-meta">
 			<span class="article-meta-text">
 				Created: { note.Created.Format("2006-01-02") } · Modified: { note.Modified.Format("2006-01-02") } · { intStr(len(slides)) } slides
@@ -151,10 +133,9 @@ templ MarpArticle(note *index.Note, rawMarkdown string, slides []markdown.SlideI
 				<span class="meta-tag" data-tag={ tag }>{ tag }</span>
 			}
 		</div>
-		<hr class="article-divider"/>
 		<div id="marp-container" data-base-url={ baseURL }></div>
 		@templ.Raw("<script>window.__MARP_SOURCE = " + jsonStr(rawMarkdown) + ";</script>")
-	</article>
+	}
 }
 
 templ MarpNoteContentInner(segments []BreadcrumbSegment, note *index.Note, rawMarkdown string, slides []markdown.SlideInfo, baseURL string, shareToken string) {
@@ -165,9 +146,7 @@ templ MarpNoteContentInner(segments []BreadcrumbSegment, note *index.Note, rawMa
 }
 
 templ FolderListing(folderName string, entries []FolderEntry) {
-	<article id="article">
-		<h1>{ folderName }<span class="folder-slash">/</span></h1>
-		<hr class="article-divider"/>
+	@ArticlePage(ArticleProps{Title: folderName + "/"}) {
 		if len(entries) > 0 {
 			<ul class="folder-list">
 				for _, entry := range entries {
@@ -192,7 +171,7 @@ templ FolderListing(folderName string, entries []FolderEntry) {
 		} else {
 			<p class="folder-empty">Empty folder.</p>
 		}
-	</article>
+	}
 }
 
 templ NoteContentInner(segments []BreadcrumbSegment, note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading, shareToken string) {
