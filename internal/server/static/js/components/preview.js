@@ -94,7 +94,7 @@ export function initPreview() {
   previewInitialized = true;
 
   document.addEventListener('mouseenter', (e) => {
-    const link = e.target.closest('a.wikilink');
+    const link = e.target.closest?.('a.wikilink');
     if (!link) return;
     clearTimeout(graceTimer);
     clearTimeout(hoverTimer);
@@ -103,7 +103,7 @@ export function initPreview() {
   }, true);
 
   document.addEventListener('mouseleave', (e) => {
-    const link = e.target.closest('a.wikilink');
+    const link = e.target.closest?.('a.wikilink');
     if (!link) return;
     clearTimeout(hoverTimer);
     graceTimer = setTimeout(() => dismiss(), 100);

@@ -5,7 +5,7 @@ import { registry } from '../lib/registry.js';
 
 export function initBookmarks() {
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('#bookmark-btn');
+    const btn = e.target.closest?.('#bookmark-btn');
     if (!btn) return;
     toggleBookmark(btn.dataset.path);
   });

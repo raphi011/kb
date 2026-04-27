@@ -12,8 +12,8 @@ export function initLightbox() {
 
   // Click delegation on content area.
   document.addEventListener('click', (e) => {
-    const img = e.target.closest('#content-area img');
-    const mermaid = e.target.closest('#content-area .mermaid');
+    const img = e.target.closest?.('#content-area img');
+    const mermaid = e.target.closest?.('#content-area .mermaid');
     if (!img && !mermaid) return;
     if (dialog.open) return;
 

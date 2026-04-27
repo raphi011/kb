@@ -1,4 +1,4 @@
-import { set } from '../lib/store.js';
+import { get, set } from '../lib/store.js';
 import { registry } from '../lib/registry.js';
 
 let verticalAbort = null;
@@ -58,40 +58,56 @@ function setupVerticalHandles() {
   const signal = verticalAbort.signal;
 
   for (const handle of document.querySelectorAll('.resize-handle-v')) {
+    const section = handle.nextElementSibling;
+    if (!section) continue;
+
+    const body = sectionBody(section);
+    if (!body) continue;
+
+    // Restore saved height.
+    const panelId = section.dataset.panel;
+    if (panelId) {
+      const saved = get('panelHeight:' + panelId);
+      if (saved) applyHeight(body, saved);
+    }
+
     handle.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       handle.setPointerCapture(e.pointerId);
       handle.classList.add('dragging');
-
-      const section = handle.nextElementSibling;
-      if (!section) return;
-
-      // Find the scrollable body inside the section.
-      const body = section.querySelector('.toc-links-body, .toc-tags-body, .sidebar-tags-body');
-      if (!body) return;
 
       const startY = e.clientY;
       const startHeight = body.getBoundingClientRect().height;
 
       function onMove(e) {
         const delta = e.clientY - startY;
-        const height = Math.max(20, startHeight - delta);
-        body.style.height = height + 'px';
-        body.style.maxHeight = 'none';
-        body.style.flexGrow = '0';
-        body.style.flexShrink = '0';
+        applyHeight(body, Math.max(20, startHeight - delta));
       }
 
       function onUp() {
         handle.classList.remove('dragging');
         handle.removeEventListener('pointermove', onMove);
         handle.removeEventListener('pointerup', onUp);
+        if (panelId) {
+          set('panelHeight:' + panelId, Math.round(body.getBoundingClientRect().height));
+        }
       }
 
       handle.addEventListener('pointermove', onMove);
       handle.addEventListener('pointerup', onUp);
     }, { signal });
   }
+}
+
+function sectionBody(section) {
+  return section.querySelector('.panel-body, .toc-links-body, .toc-tags-body, .sidebar-tags-body');
+}
+
+function applyHeight(body, height) {
+  body.style.height = height + 'px';
+  body.style.maxHeight = 'none';
+  body.style.flexGrow = '0';
+  body.style.flexShrink = '0';
 }
 
 registry.register('.resize-handle, .resize-handle-v', { init: initResize });

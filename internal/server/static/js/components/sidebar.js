@@ -15,13 +15,13 @@ export function initSidebar() {
 
   // Event delegation for tag and filter-chip clicks.
   document.addEventListener('click', (e) => {
-    const tagEl = e.target.closest('[data-tag]');
-    if (tagEl && !e.target.closest('.filter-chip')) {
+    const tagEl = e.target.closest?.('[data-tag]');
+    if (tagEl && !e.target.closest?.('.filter-chip')) {
       e.preventDefault();
       e.stopPropagation();
       addTag(tagEl.dataset.tag);
     }
-    const chip = e.target.closest('.filter-chip');
+    const chip = e.target.closest?.('.filter-chip');
     if (chip) {
       if (chip.dataset.date) {
         clearDate(true);
@@ -51,7 +51,7 @@ export function initSidebar() {
     if (topbar && inner) {
       topbar.addEventListener('click', (e) => {
         if (!sidebar.classList.contains('mob-open')) return;
-        if (e.target.closest('button, a')) return;
+        if (e.target.closest?.('button, a')) return;
         inner.scrollTo({ top: 0, behavior: 'smooth' });
       });
     }

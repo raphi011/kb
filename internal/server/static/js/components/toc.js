@@ -75,7 +75,7 @@ export function initToc() {
   const mobDetails = document.getElementById('mob-toc-details');
   if (mobDetails) {
     mobDetails.addEventListener('click', (e) => {
-      const link = e.target.closest('.toc-item');
+      const link = e.target.closest?.('.toc-item');
       if (link) {
         e.preventDefault();
         const id = link.getAttribute('href')?.replace('#', '');

@@ -88,6 +88,15 @@
 .fc-q-text { font-size: 18px; line-height: 1.5; margin-bottom: var(--space-6); }
 .fc-a-text { font-size: 16px; line-height: 1.5; margin-bottom: var(--space-6); padding: var(--space-5); background: var(--surface); border-radius: var(--space-3); }
 
+.fc-q-text a, .fc-a-text a {
+  color: var(--link);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+
+  &:hover { border-bottom-color: var(--link); }
+}
+
 .fc-show-answer {
   display: block;
   width: 100%;

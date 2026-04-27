@@ -8,7 +8,7 @@ let reviewState = null; // { done: 0, total: 0, ratings: {1:0, 2:0, 3:0, 4:0} }
 export function initFlashcards() {
   // Delegated click on panel card items
   document.addEventListener('click', (e) => {
-    const item = e.target.closest('.fc-panel-card');
+    const item = e.target.closest?.('.fc-panel-card');
     if (!item) return;
     const hash = item.dataset.hash;
     if (!hash) return;
@@ -30,7 +30,7 @@ export function initFlashcards() {
 
   // Delegated click on .flashcard-reveal toggles .flashcard-a[hidden]
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.flashcard-reveal');
+    const btn = e.target.closest?.('.flashcard-reveal');
     if (!btn) return;
     const card = btn.closest('.flashcard');
     if (!card) return;
@@ -41,7 +41,7 @@ export function initFlashcards() {
 
   // Capture rating BEFORE HTMX submits the form
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('.fc-rate');
+    const btn = e.target.closest?.('.fc-rate');
     if (!btn || !reviewState) return;
     const rating = btn.value;
     const card = document.querySelector('.fc-review-card');
@@ -53,7 +53,7 @@ export function initFlashcards() {
 
   // Delegated click on .cloze reveals the hidden answer
   document.addEventListener('click', (e) => {
-    const cloze = e.target.closest('.cloze');
+    const cloze = e.target.closest?.('.cloze');
     if (!cloze || cloze.classList.contains('revealed')) return;
     cloze.classList.add('revealed');
     const answer = cloze.querySelector('.cloze-answer');

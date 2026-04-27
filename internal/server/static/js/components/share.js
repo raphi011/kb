@@ -4,7 +4,7 @@ import { registry } from '../lib/registry.js';
 
 export function initShare() {
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('#share-btn');
+    const btn = e.target.closest?.('#share-btn');
     if (!btn) return;
     handleShareClick(btn);
   });

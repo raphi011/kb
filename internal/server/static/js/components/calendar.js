@@ -10,7 +10,7 @@ export function initCalendar() {
 
   // Delegate on document so it survives OOB TOC panel swaps.
   document.addEventListener('click', (e) => {
-    const dayEl = e.target.closest('#calendar .cal-day-active');
+    const dayEl = e.target.closest?.('#calendar .cal-day-active');
     if (!dayEl) return;
 
     const date = dayEl.dataset.date;
