@@ -6,10 +6,6 @@ import (
 	"strings"
 )
 
-func lenStr[T any](s []T) string {
-	return fmt.Sprint(len(s))
-}
-
 func intStr(n int) string {
 	return fmt.Sprint(n)
 }

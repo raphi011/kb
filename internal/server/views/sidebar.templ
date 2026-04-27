@@ -38,19 +38,13 @@ templ Tree(nodes []*FileNode) {
 }
 
 templ TagList(tags []index.Tag) {
-	<div class="resize-handle-v server-tree" data-resize-target="next"></div>
-	<details class="panel-section sidebar-tags-section server-tree" open aria-label="Tags" data-panel="tags">
-		<summary class="section-label panel-label">
-			Tags <span class="panel-count">{ lenStr(tags) }</span>
-		</summary>
-		<div class="panel-body sidebar-tags-body">
-			for _, tag := range tags {
-				<span class="list-item sidebar-tag-item" data-tag={ tag.Name }>
-					{ tag.Name } <span class="tag-count">{ intStr(tag.NoteCount) }</span>
-				</span>
-			}
-		</div>
-	</details>
+	@PanelSection(PanelProps{Label: "Tags", Count: len(tags), ID: "tags", Open: true, Class: "sidebar-tags-section server-tree", BodyClass: "sidebar-tags-body"}) {
+		for _, tag := range tags {
+			<span class="list-item sidebar-tag-item" data-tag={ tag.Name }>
+				{ tag.Name } <span class="tag-count">{ intStr(tag.NoteCount) }</span>
+			</span>
+		}
+	}
 }
 
 templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFlashcardCount, bookmarks []BookmarkEntry) {
@@ -103,20 +97,14 @@ type BookmarkEntry struct {
 
 templ BookmarksPanel(bookmarks []BookmarkEntry) {
 	<div id="bookmarks-panel">
-		<div class="resize-handle-v" data-resize-target="next"></div>
 		if len(bookmarks) > 0 {
-			<details class="panel-section sidebar-tags-section" open aria-label="Bookmarks" data-panel="bookmarks">
-				<summary class="section-label panel-label">
-					Bookmarks <span class="panel-count">{ intStr(len(bookmarks)) }</span>
-				</summary>
-				<div class="panel-body sidebar-section-body">
-					for _, b := range bookmarks {
-						@ContentLink("list-item sidebar-panel-item", "/notes/" + b.Path) {
-							{ b.Title }
-						}
+			@PanelSection(PanelProps{Label: "Bookmarks", Count: len(bookmarks), ID: "bookmarks", Open: true, Class: "sidebar-tags-section", BodyClass: "sidebar-section-body"}) {
+				for _, b := range bookmarks {
+					@ContentLink("list-item sidebar-panel-item", "/notes/" + b.Path) {
+						{ b.Title }
 					}
-				</div>
-			</details>
+				}
+			}
 		} else {
 			<div class="panel-section sidebar-tags-section">
 				<span class="section-label panel-label">
