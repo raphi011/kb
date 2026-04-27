@@ -293,7 +293,7 @@ func TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []in
 				return templ_7745c5c3_Err
 			}
 			if len(headings) > 0 {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div id=\"toc-inner\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div id=\"toc-inner\" class=\"scrollable\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -352,7 +352,7 @@ func TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []in
 					return templ_7745c5c3_Err
 				}
 			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<div id=\"toc-inner\"><span class=\"toc-empty\">No headings</span></div>")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<div id=\"toc-inner\" class=\"scrollable\"><span class=\"toc-empty\">No headings</span></div>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
