@@ -12,6 +12,7 @@ type LayoutParams struct {
 	Tree           []*FileNode
 	Tags           []index.Tag
 	FlashcardNotes []index.NoteFlashcardCount
+	Bookmarks      []BookmarkEntry
 	ContentCol     templ.Component
 	Headings       []markdown.Heading
 	OutgoingLinks  []index.Link
@@ -81,7 +82,7 @@ templ Layout(p LayoutParams) {
 		<div id="sidebar-backdrop"></div>
 		<div id="layout">
 			<nav id="sidebar">
-				@Sidebar(p.Tree, p.Tags, p.FlashcardNotes)
+				@Sidebar(p.Tree, p.Tags, p.FlashcardNotes, p.Bookmarks)
 				<a
 					class="sidebar-footer"
 					href="/settings"

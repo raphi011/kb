@@ -71,6 +71,13 @@ func (s *Server) renderFullPage(w http.ResponseWriter, r *http.Request, p views.
 	if fcNotes, err := s.store.NotesWithFlashcards(); err == nil {
 		p.FlashcardNotes = fcNotes
 	}
+	if bookmarkedPaths, err := s.store.BookmarkedPaths(); err == nil {
+		for _, path := range bookmarkedPaths {
+			if note := cache.notesByPath[path]; note != nil {
+				p.Bookmarks = append(p.Bookmarks, views.BookmarkEntry{Path: note.Path, Title: note.Title})
+			}
+		}
+	}
 	if err := views.Layout(p).Render(r.Context(), w); err != nil {
 		slog.Error("render component", "error", err)
 	}

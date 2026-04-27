@@ -53,7 +53,7 @@ templ TagList(tags []index.Tag) {
 	</details>
 }
 
-templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFlashcardCount) {
+templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFlashcardCount, bookmarks []BookmarkEntry) {
 	<div id="active-filters"></div>
 	<div id="sidebar-inner" class="scrollable">
 		if len(nodes) > 0 {
@@ -62,7 +62,7 @@ templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFl
 			</div>
 		}
 	</div>
-	<div id="bookmarks-panel"></div>
+	@BookmarksPanel(bookmarks)
 	if len(flashcardNotes) > 0 {
 		<div class="resize-handle-v server-tree" data-resize-target="next"></div>
 		<details class="panel-section sidebar-tags-section server-tree" open aria-label="Flashcards" data-panel="flashcards">

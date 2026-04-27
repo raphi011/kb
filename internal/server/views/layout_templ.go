@@ -20,6 +20,7 @@ type LayoutParams struct {
 	Tree           []*FileNode
 	Tags           []index.Tag
 	FlashcardNotes []index.NoteFlashcardCount
+	Bookmarks      []BookmarkEntry
 	ContentCol     templ.Component
 	Headings       []markdown.Heading
 	OutgoingLinks  []index.Link
@@ -85,7 +86,7 @@ func Layout(p LayoutParams) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(p.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 59, Col: 13}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 60, Col: 13}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -105,7 +106,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Sidebar(p.Tree, p.Tags, p.FlashcardNotes).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Sidebar(p.Tree, p.Tags, p.FlashcardNotes, p.Bookmarks).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -125,7 +126,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div><dialog id=\"cmd-dialog\"><div id=\"cmd-box\"><div id=\"cmd-input-row\"><span class=\"cmd-icon-search\">&#8984;</span> <input id=\"cmd-input\" type=\"text\" placeholder=\"Search...\" autocomplete=\"off\"></div><div id=\"cmd-results\"></div><div id=\"cmd-footer\"><span class=\"cmd-hint\"><kbd>&#8593;&#8595;</kbd> navigate</span> <span class=\"cmd-hint\"><kbd>&#8629;</kbd> open</span> <span class=\"cmd-hint\"><kbd>esc</kbd> close</span></div></div></dialog> <dialog id=\"media-dialog\"><div id=\"media-container\"></div></dialog>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div><dialog id=\"cmd-dialog\"><div id=\"cmd-box\"><div id=\"cmd-input-row\"><span class=\"cmd-icon-search\">&#8984;</span> <input id=\"cmd-input\" type=\"text\" placeholder=\"Search...\" autocomplete=\"off\"></div><div id=\"cmd-results\" class=\"scrollable\"></div><div id=\"cmd-footer\"><span class=\"cmd-hint\"><kbd>&#8593;&#8595;</kbd> navigate</span> <span class=\"cmd-hint\"><kbd>&#8629;</kbd> open</span> <span class=\"cmd-hint\"><kbd>esc</kbd> close</span></div></div></dialog> <dialog id=\"media-dialog\"><div id=\"media-container\"></div></dialog>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
