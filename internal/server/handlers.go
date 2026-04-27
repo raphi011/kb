@@ -4,7 +4,6 @@ import (
 	"crypto/subtle"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"sort"
@@ -20,11 +19,9 @@ import (
 
 func (s *Server) handleLoginPage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	fmt.Fprint(w, `<!DOCTYPE html><html><body>
-		<form method="POST" action="/login">
-			<input type="password" name="token" placeholder="Token">
-			<button type="submit">Login</button>
-		</form></body></html>`)
+	if err := views.LoginPage().Render(r.Context(), w); err != nil {
+		slog.Error("render login page", "error", err)
+	}
 }
 
 func (s *Server) handleLoginSubmit(w http.ResponseWriter, r *http.Request) {
