@@ -64,3 +64,22 @@ Formats Go source code according to standard style rules
 - `/flashcards` — dashboard with stats (new, learning, due today)
 - `/flashcards/review` — review due cards; `?note=path/to/note.md` to scope to one note
 - Keyboard: Space = show answer / rate Good, 1-4 = rate Again/Hard/Good/Easy, Esc = abort
+
+## Build & Assets
+
+- CSS source: `internal/server/static/css/` (11 layered files, entry: `style.css`)
+- JS source: `internal/server/static/js/` (ES modules, entry: `app.js`)
+- Bundles: `static/style.min.css`, `static/app.min.js` (esbuild, not committed)
+- Build: `just bundle` (or `just bundle-js` / `just bundle-css`)
+- Dev: `just dev ~/path/to/repo` (watch mode + server with sourcemaps)
+- Docker: bundles both CSS + JS in build stage
+
+## Conventions
+
+Detailed guides for each layer — read before making changes in that area:
+
+- [HTMX patterns](docs/conventions/htmx.md)
+- [Templ components](docs/conventions/templ.md)
+- [JavaScript](docs/conventions/javascript.md)
+- [CSS](docs/conventions/css.md)
+- [API routes](docs/conventions/api.md)
