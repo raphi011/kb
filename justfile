@@ -55,3 +55,18 @@ test:
 
 clean:
     rm -f kb
+
+bundle-js:
+    npx esbuild internal/server/static/js/app.js --bundle --minify --format=iife --outfile=internal/server/static/app.min.js
+
+bundle-css:
+    npx esbuild internal/server/static/css/style.css --bundle --minify --outfile=internal/server/static/style.min.css
+
+bundle: bundle-js bundle-css
+
+dev repo:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    npx esbuild internal/server/static/css/style.css --bundle --sourcemap --outfile=internal/server/static/style.min.css --watch &
+    npx esbuild internal/server/static/js/app.js --bundle --sourcemap --format=iife --outfile=internal/server/static/app.min.js --watch &
+    go run ./cmd/kb serve --token test --repo "{{ repo }}"
