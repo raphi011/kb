@@ -82,61 +82,53 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 			}
 			<div id="toc-header"><span class="section-label">On this page</span></div>
 			if len(headings) > 0 {
-				<div id="toc-inner">
+				<div id="toc-inner" class="scrollable">
 					for _, h := range headings {
 						<a class={ "toc-item", templ.KV("h1", h.Level == 1), templ.KV("h3", h.Level == 3) } href={ templ.SafeURL("#" + h.ID) }>{ h.Text }</a>
 					}
 				</div>
 			} else {
-				<div id="toc-inner">
+				<div id="toc-inner" class="scrollable">
 					<span class="toc-empty">No headings</span>
 				</div>
 			}
-			<div class="resize-handle-v" data-resize-target="next"></div>
 			if len(outgoing) > 0 {
-				<details class="panel-section toc-links-section" open aria-label="Outgoing links" data-panel="links">
-					<summary class="section-label panel-label">Links <span class="panel-count">{ lenStr(outgoing) }</span></summary>
-					<div class="panel-body toc-links-body">
-						for _, link := range outgoing {
-							if link.External {
-								<a class="list-item toc-link-item toc-link-out" href={ templ.SafeURL(link.TargetPath) } target="_blank" rel="noopener">
-									if link.Title != "" {
-										{ link.Title }
-									} else {
-										{ link.TargetPath }
-									}
-								</a>
-							} else if link.TargetPath != "" {
-								@ContentLink("list-item toc-link-item toc-link-out", "/notes/" + link.TargetPath) {
-									if link.Title != "" {
-										{ link.Title }
-									} else {
-										{ link.TargetPath }
-									}
+				@PanelSection(PanelProps{Label: "Links", Count: len(outgoing), ID: "links", Open: true, Class: "toc-links-section", BodyClass: "toc-links-body"}) {
+					for _, link := range outgoing {
+						if link.External {
+							<a class="list-item toc-link-item toc-link-out" href={ templ.SafeURL(link.TargetPath) } target="_blank" rel="noopener">
+								if link.Title != "" {
+									{ link.Title }
+								} else {
+									{ link.TargetPath }
 								}
-							} else {
-								<span class="list-item toc-link-item toc-link-out">{ link.Title }</span>
+							</a>
+						} else if link.TargetPath != "" {
+							@ContentLink("list-item toc-link-item toc-link-out", "/notes/" + link.TargetPath) {
+								if link.Title != "" {
+									{ link.Title }
+								} else {
+									{ link.TargetPath }
+								}
 							}
+						} else {
+							<span class="list-item toc-link-item toc-link-out">{ link.Title }</span>
 						}
-					</div>
-				</details>
+					}
+				}
 			} else {
 				<div class="panel-section panel-empty">
 					<span class="section-label panel-label">Links <span class="panel-count">0</span></span>
 				</div>
 			}
-			<div class="resize-handle-v" data-resize-target="next"></div>
 			if len(backlinks) > 0 {
-				<details class="panel-section toc-links-section" open aria-label="Backlinks" data-panel="backlinks">
-					<summary class="section-label panel-label">Backlinks <span class="panel-count">{ lenStr(backlinks) }</span></summary>
-					<div class="panel-body toc-links-body">
-						for _, link := range backlinks {
-							@ContentLink("list-item toc-link-item toc-link-in", "/notes/" + link.SourcePath) {
-								{ link.SourceTitle }
-							}
+				@PanelSection(PanelProps{Label: "Backlinks", Count: len(backlinks), ID: "backlinks", Open: true, Class: "toc-links-section", BodyClass: "toc-links-body"}) {
+					for _, link := range backlinks {
+						@ContentLink("list-item toc-link-item toc-link-in", "/notes/" + link.SourcePath) {
+							{ link.SourceTitle }
 						}
-					</div>
-				</details>
+					}
+				}
 			} else {
 				<div class="panel-section panel-empty">
 					<span class="section-label panel-label">Backlinks <span class="panel-count">0</span></span>

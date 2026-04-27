@@ -62,3 +62,9 @@
   font-family: var(--font-ui);
   font-weight: 600;
 }
+
+/* Thin scrollbar — add to any scrollable container */
+.scrollable {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
