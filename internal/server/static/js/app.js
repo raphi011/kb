@@ -41,10 +41,6 @@ initBookmarks();
 initShare();
 initPreview();
 
-// ── Registry: initial page ──────────────────────────────────
-
-registry.init(document);
-
 // ── Panel state persistence (global delegation, attached once) ──
 
 document.addEventListener('toggle', (e) => {
@@ -64,6 +60,10 @@ registry.register('details[data-panel]', {
     }
   }
 });
+
+// ── Registry: initial page ──────────────────────────────────
+
+registry.init(document);
 
 // ── HTMX lifecycle ──────────────────────────────────────────
 
