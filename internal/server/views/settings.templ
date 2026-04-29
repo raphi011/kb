@@ -10,11 +10,11 @@ templ SettingsContent() {
 				<div class="settings-actions">
 					<button
 						class="btn settings-btn"
-						hx-post="/api/settings/pull"
+						hx-post="/api/settings/sync"
 						hx-swap="none"
 						hx-disabled-elt="this"
 					>
-						Git Pull
+						Sync from upstream
 					</button>
 					<button
 						class="btn settings-btn"

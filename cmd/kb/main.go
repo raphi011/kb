@@ -31,6 +31,7 @@ func main() {
 	root.AddCommand(catCmd())
 	root.AddCommand(editCmd())
 	root.AddCommand(serveCmd())
+	root.AddCommand(syncCmd())
 
 	if err := root.Execute(); err != nil {
 		os.Exit(1)
@@ -321,11 +322,69 @@ func editCmd() *cobra.Command {
 	}
 }
 
+func syncCmd() *cobra.Command {
+	var (
+		originURL   string
+		originToken string
+	)
+	cmd := &cobra.Command{
+		Use:   "sync",
+		Short: "Fetch from origin and fast-forward local heads",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			k, err := openKB("")
+			if err != nil {
+				return err
+			}
+			defer k.Close()
+
+			if originURL != "" {
+				if err := k.EnsureOrigin(originURL); err != nil {
+					return fmt.Errorf("ensure origin: %w", err)
+				}
+			}
+
+			result, err := k.Sync(cmd.Context(), originToken)
+			if err != nil {
+				return err
+			}
+
+			if len(result.Updated) == 0 && len(result.Diverged) == 0 {
+				fmt.Println("Already up to date")
+				return nil
+			}
+			for _, u := range result.Updated {
+				if u.Created {
+					fmt.Printf("created %s -> %s\n", u.Branch, u.New.String()[:7])
+					continue
+				}
+				fmt.Printf("synced %s: %s..%s (%d commits)\n",
+					u.Branch, u.Old.String()[:7], u.New.String()[:7], u.CommitsAhead)
+			}
+			for _, d := range result.Diverged {
+				fmt.Printf("DIVERGED %s: local %s, upstream %s\n",
+					d.Branch, d.Local.String()[:7], d.Remote.String()[:7])
+			}
+			if len(result.Diverged) > 0 {
+				return fmt.Errorf("%d branch(es) diverged", len(result.Diverged))
+			}
+			if err := k.ReIndex(); err != nil {
+				return fmt.Errorf("reindex: %w", err)
+			}
+			return nil
+		},
+	}
+	cmd.Flags().StringVar(&originURL, "origin-url", os.Getenv("KB_ORIGIN_URL"), "Upstream git URL (configures origin remote)")
+	cmd.Flags().StringVar(&originToken, "origin-token", os.Getenv("KB_ORIGIN_TOKEN"), "Token for upstream HTTPS basic auth (optional)")
+	return cmd
+}
+
 func serveCmd() *cobra.Command {
 	var (
-		addr  string
-		repo  string
-		token string
+		addr        string
+		repo        string
+		token       string
+		originURL   string
+		originToken string
 	)
 	cmd := &cobra.Command{
 		Use:   "serve",
@@ -356,11 +415,17 @@ func serveCmd() *cobra.Command {
 			}
 			defer k.Close()
 
+			if originURL != "" {
+				if err := k.EnsureOrigin(originURL); err != nil {
+					return fmt.Errorf("ensure origin: %w", err)
+				}
+			}
+
 			if err := k.Index(false); err != nil {
 				return fmt.Errorf("index: %w", err)
 			}
 
-			srv, err := server.New(k, k, token, repoPath)
+			srv, err := server.New(k, k, k, token, originToken, repoPath)
 			if err != nil {
 				return fmt.Errorf("create server: %w", err)
 			}
@@ -375,6 +440,8 @@ func serveCmd() *cobra.Command {
 	cmd.Flags().StringVar(&addr, "addr", ":8080", "Listen address")
 	cmd.Flags().StringVar(&repo, "repo", "", "Repository path (default: current dir)")
 	cmd.Flags().StringVar(&token, "token", "", "Auth token (required)")
+	cmd.Flags().StringVar(&originURL, "origin-url", os.Getenv("KB_ORIGIN_URL"), "Upstream git URL (configures origin remote)")
+	cmd.Flags().StringVar(&originToken, "origin-token", os.Getenv("KB_ORIGIN_TOKEN"), "Token for upstream HTTPS basic auth (optional)")
 	return cmd
 }
 

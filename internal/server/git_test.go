@@ -142,7 +142,7 @@ func TestE2EGitClone(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	srv, err := New(k, k, token, bareDir)
+	srv, err := New(k, k, k, token, "", bareDir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +188,7 @@ func TestE2EGitPushTriggersReindex(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	srv, err := New(k, k, token, bareDir)
+	srv, err := New(k, k, k, token, "", bareDir)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -23,8 +23,8 @@ func TestHandleSettingsFullPage(t *testing.T) {
 	if !strings.Contains(body, "Settings") {
 		t.Error("response should contain 'Settings' heading")
 	}
-	if !strings.Contains(body, "/api/settings/pull") {
-		t.Error("response should contain pull action endpoint")
+	if !strings.Contains(body, "/api/settings/sync") {
+		t.Error("response should contain sync action endpoint")
 	}
 	if !strings.Contains(body, "/api/settings/reindex") {
 		t.Error("response should contain reindex action endpoint")

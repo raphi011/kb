@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +14,7 @@ import (
 	gogit "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/open-spaced-repetition/go-fsrs/v3"
+	"github.com/raphi011/kb/internal/gitrepo"
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
 	"github.com/raphi011/kb/internal/srs"
@@ -98,6 +100,7 @@ func (m *mockKB) NotePathForShareToken(token string) (string, error) {
 }
 func (m *mockKB) ReIndex() error                                              { return nil }
 func (m *mockKB) ForceReIndex() error                                         { return m.forceReIndexErr }
+func (m *mockKB) Sync(context.Context, string) (*gitrepo.SyncResult, error)   { return &gitrepo.SyncResult{}, nil }
 func (m *mockKB) RenderWithTags(src []byte, _ []string) (markdown.RenderResult, error) {
 	return markdown.Render(src, nil, nil, false)
 }
@@ -130,7 +133,7 @@ func newTestServer(t *testing.T) *Server {
 			{Name: "golang", NoteCount: 1},
 		},
 	}
-	srv, err := New(store, store, "test-token", "")
+	srv, err := New(store, store, store, "test-token", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -272,7 +275,7 @@ func TestNewServerRejectsEmptyToken(t *testing.T) {
 		notes: []index.Note{{Path: "a.md", Title: "A", Tags: []string{}}},
 		tags:  []index.Tag{},
 	}
-	_, err := New(store, store, "", "")
+	_, err := New(store, store, store, "", "", "")
 	if err == nil {
 		t.Error("New() should reject empty token")
 	}
@@ -442,7 +445,7 @@ func TestGitHistoryEndpoint(t *testing.T) {
 		},
 		tags: []index.Tag{},
 	}
-	srv, err := New(store, store, "test-token", dir)
+	srv, err := New(store, store, store, "test-token", "", dir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -492,7 +495,7 @@ func TestGitVersionEndpoint(t *testing.T) {
 		},
 		tags: []index.Tag{},
 	}
-	srv, err := New(store, store, "test-token", dir)
+	srv, err := New(store, store, store, "test-token", "", dir)
 	if err != nil {
 		t.Fatal(err)
 	}

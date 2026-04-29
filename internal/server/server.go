@@ -15,6 +15,7 @@ import (
 	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
 	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/open-spaced-repetition/go-fsrs/v3"
+	"github.com/raphi011/kb/internal/gitrepo"
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
 	"github.com/raphi011/kb/internal/srs"
@@ -62,19 +63,26 @@ type ReIndexer interface {
 	ForceReIndex() error
 }
 
+// Syncer fetches from origin and fast-forwards local heads.
+type Syncer interface {
+	Sync(ctx context.Context, token string) (*gitrepo.SyncResult, error)
+}
+
 type Server struct {
 	mux         *http.ServeMux
 	handler     http.Handler
 	store       Store
 	reindexer   ReIndexer
+	syncer      Syncer
 	token       string
+	originToken string
 	repoPath    string
 	cache       atomic.Pointer[noteCache]
 	chromaDark  []byte
 	chromaLight []byte
 }
 
-func New(store Store, reindexer ReIndexer, token string, repoPath string) (*Server, error) {
+func New(store Store, reindexer ReIndexer, syncer Syncer, token, originToken, repoPath string) (*Server, error) {
 	if token == "" {
 		return nil, fmt.Errorf("token must not be empty")
 	}
@@ -94,7 +102,9 @@ func New(store Store, reindexer ReIndexer, token string, repoPath string) (*Serv
 		mux:         http.NewServeMux(),
 		store:       store,
 		reindexer:   reindexer,
+		syncer:      syncer,
 		token:       token,
+		originToken: originToken,
 		repoPath:    repoPath,
 		chromaDark:  dark,
 		chromaLight: light,
@@ -150,7 +160,7 @@ func (s *Server) registerRoutes() error {
 	s.mux.HandleFunc("GET /flashcards/note/{path...}", s.handleFlashcardsForNote)
 	s.mux.HandleFunc("GET /api/flashcards/stats", s.handleFlashcardStatsAPI)
 	s.mux.HandleFunc("GET /settings", s.handleSettings)
-	s.mux.HandleFunc("POST /api/settings/pull", s.handlePull)
+	s.mux.HandleFunc("POST /api/settings/sync", s.handleSync)
 	s.mux.HandleFunc("POST /api/settings/reindex", s.handleForceReindex)
 	s.mux.HandleFunc("GET /preview/{path...}", s.handlePreview)
 	s.mux.HandleFunc("GET /api/git/history/{path...}", s.handleGitHistory)
