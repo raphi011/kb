@@ -11,8 +11,8 @@ function getPopover() {
     popover = document.createElement('div');
     popover.className = 'preview-popover-container';
     popover.setAttribute('hidden', '');
-    popover.addEventListener('mouseenter', () => clearTimeout(graceTimer));
-    popover.addEventListener('mouseleave', () => dismiss());
+    popover.addEventListener('pointerenter', () => clearTimeout(graceTimer));
+    popover.addEventListener('pointerleave', () => dismiss());
     document.body.appendChild(popover);
   }
   return popover;
@@ -93,7 +93,8 @@ export function initPreview() {
   if (previewInitialized) return;
   previewInitialized = true;
 
-  document.addEventListener('mouseenter', (e) => {
+  document.addEventListener('pointerenter', (e) => {
+    if (e.pointerType !== 'mouse') return;
     const link = e.target.closest?.('a.wikilink');
     if (!link) return;
     clearTimeout(graceTimer);
@@ -102,7 +103,8 @@ export function initPreview() {
     hoverTimer = setTimeout(() => show(link), 300);
   }, true);
 
-  document.addEventListener('mouseleave', (e) => {
+  document.addEventListener('pointerleave', (e) => {
+    if (e.pointerType !== 'mouse') return;
     const link = e.target.closest?.('a.wikilink');
     if (!link) return;
     clearTimeout(hoverTimer);
