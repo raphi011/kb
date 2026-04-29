@@ -13,9 +13,10 @@ import (
 )
 
 type KB struct {
-	repo *gitrepo.Repo
-	idx  *index.DB
-	srs  *srs.Service
+	repo     *gitrepo.Repo
+	idx      *index.DB
+	srs      *srs.Service
+	renderer *markdown.Renderer
 }
 
 func Open(repoPath, dbPath string) (*KB, error) {
@@ -49,6 +50,9 @@ func (kb *KB) Index(force bool) error {
 		slog.Debug("index up to date", "sha", headSHA)
 		return nil
 	}
+
+	// Invalidate cached renderer — lookup maps will change.
+	kb.renderer = nil
 
 	if lastSHA == "" || force {
 		return kb.fullIndex(headSHA)
@@ -352,6 +356,25 @@ func (kb *KB) ForceReIndex() error {
 	return kb.Index(true)
 }
 
+// refreshRenderer rebuilds the cached markdown renderer from current index state.
+func (kb *KB) refreshRenderer() error {
+	notes, err := kb.idx.AllNotes()
+	if err != nil {
+		return fmt.Errorf("refresh renderer: %w", err)
+	}
+	lookup := make(map[string]string, len(notes)*2)
+	titleLookup := make(map[string]string, len(notes))
+	for _, n := range notes {
+		stem := n.Path[strings.LastIndex(n.Path, "/")+1:]
+		stem = strings.TrimSuffix(stem, ".md")
+		lookup[stem] = n.Path
+		lookup[strings.TrimSuffix(n.Path, ".md")] = n.Path
+		titleLookup[n.Path] = n.Title
+	}
+	kb.renderer = markdown.NewRenderer(lookup, titleLookup)
+	return nil
+}
+
 // Render renders markdown bytes to HTML using the wiki-link lookup from the index.
 func (kb *KB) Render(src []byte) (markdown.RenderResult, error) {
 	return kb.RenderWithTags(src, nil)
@@ -359,67 +382,32 @@ func (kb *KB) Render(src []byte) (markdown.RenderResult, error) {
 
 // RenderWithTags renders markdown with optional flashcard support based on tags.
 func (kb *KB) RenderWithTags(src []byte, tags []string) (markdown.RenderResult, error) {
-	notes, err := kb.idx.AllNotes()
-	if err != nil {
-		return markdown.RenderResult{}, fmt.Errorf("render: %w", err)
+	if kb.renderer == nil {
+		if err := kb.refreshRenderer(); err != nil {
+			return markdown.RenderResult{}, err
+		}
 	}
-	lookup := make(map[string]string, len(notes)*2)
-	titleLookup := make(map[string]string, len(notes))
-	for _, n := range notes {
-		stem := n.Path[strings.LastIndex(n.Path, "/")+1:]
-		stem = strings.TrimSuffix(stem, ".md")
-		lookup[stem] = n.Path
-		lookup[strings.TrimSuffix(n.Path, ".md")] = n.Path
-		titleLookup[n.Path] = n.Title
-	}
-	flashcardsEnabled := hasFlashcardsTag(tags)
-	result, err := markdown.Render(src, lookup, titleLookup, flashcardsEnabled)
-	if err != nil {
-		return markdown.RenderResult{}, fmt.Errorf("render: %w", err)
-	}
-	return result, nil
+	return kb.renderer.Render(src, hasFlashcardsTag(tags))
 }
 
 func (kb *KB) RenderShared(src []byte) (markdown.RenderResult, error) {
-	notes, err := kb.idx.AllNotes()
-	if err != nil {
-		return markdown.RenderResult{}, fmt.Errorf("render: %w", err)
+	if kb.renderer == nil {
+		if err := kb.refreshRenderer(); err != nil {
+			return markdown.RenderResult{}, err
+		}
 	}
-	lookup := make(map[string]string, len(notes)*2)
-	titleLookup := make(map[string]string, len(notes))
-	for _, n := range notes {
-		stem := n.Path[strings.LastIndex(n.Path, "/")+1:]
-		stem = strings.TrimSuffix(stem, ".md")
-		lookup[stem] = n.Path
-		lookup[strings.TrimSuffix(n.Path, ".md")] = n.Path
-		titleLookup[n.Path] = n.Title
-	}
-	result, err := markdown.RenderShared(src, lookup, titleLookup)
-	if err != nil {
-		return markdown.RenderResult{}, fmt.Errorf("render: %w", err)
-	}
-	return result, nil
+	lookup, titleLookup := kb.renderer.Lookup()
+	return markdown.RenderShared(src, lookup, titleLookup)
 }
 
 func (kb *KB) RenderPreview(src []byte) (markdown.RenderResult, error) {
-	notes, err := kb.idx.AllNotes()
-	if err != nil {
-		return markdown.RenderResult{}, fmt.Errorf("render: %w", err)
+	if kb.renderer == nil {
+		if err := kb.refreshRenderer(); err != nil {
+			return markdown.RenderResult{}, err
+		}
 	}
-	lookup := make(map[string]string, len(notes)*2)
-	titleLookup := make(map[string]string, len(notes))
-	for _, n := range notes {
-		stem := n.Path[strings.LastIndex(n.Path, "/")+1:]
-		stem = strings.TrimSuffix(stem, ".md")
-		lookup[stem] = n.Path
-		lookup[strings.TrimSuffix(n.Path, ".md")] = n.Path
-		titleLookup[n.Path] = n.Title
-	}
-	result, err := markdown.RenderPreview(src, lookup, titleLookup)
-	if err != nil {
-		return markdown.RenderResult{}, fmt.Errorf("render: %w", err)
-	}
-	return result, nil
+	lookup, titleLookup := kb.renderer.Lookup()
+	return markdown.RenderPreview(src, lookup, titleLookup)
 }
 
 func hasFlashcardsTag(tags []string) bool {

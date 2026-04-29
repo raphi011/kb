@@ -141,22 +141,25 @@ func nodeTextFromWikilink(src []byte, n *wikilink.Node) []byte {
 	return buf.Bytes()
 }
 
-// Render converts markdown bytes to HTML with wiki-link resolution, syntax
-// highlighting, mermaid support, h1 stripping, and heading collection.
-func Render(src []byte, lookup map[string]string, titleLookup map[string]string, flashcardsEnabled bool) (RenderResult, error) {
-	hc := &headingCollector{}
-	var buf bytes.Buffer
-	ctx := parser.NewContext()
-	ctx.Set(flashcardsEnabledKey, flashcardsEnabled)
-	if err := newRenderer(lookup, titleLookup, hc).Convert(src, &buf, parser.WithContext(ctx)); err != nil {
-		return RenderResult{}, fmt.Errorf("render markdown: %w", err)
-	}
-	return RenderResult{HTML: buf.String(), Headings: hc.headings}, nil
+// Renderer holds a reusable goldmark.Markdown instance configured with
+// wiki-link resolution, syntax highlighting, mermaid, and flashcard support.
+// Safe for concurrent use — per-request state flows through parser.Context.
+type Renderer struct {
+	md          goldmark.Markdown
+	lookup      map[string]string
+	titleLookup map[string]string
 }
 
-func newRenderer(lookup map[string]string, titleLookup map[string]string, hc *headingCollector) goldmark.Markdown {
+// Lookup returns the wiki-link resolution maps used by this renderer.
+func (rr *Renderer) Lookup() (lookup map[string]string, titleLookup map[string]string) {
+	return rr.lookup, rr.titleLookup
+}
+
+// NewRenderer builds a Renderer with the given wiki-link lookup maps.
+// The returned instance is safe for concurrent use across requests.
+func NewRenderer(lookup map[string]string, titleLookup map[string]string) *Renderer {
 	resolver := noteResolver{lookup: lookup, titleLookup: titleLookup}
-	return goldmark.New(
+	md := goldmark.New(
 		goldmark.WithExtensions(
 			extension.GFM,
 			meta.Meta,
@@ -172,7 +175,7 @@ func newRenderer(lookup map[string]string, titleLookup map[string]string, hc *he
 			),
 			parser.WithASTTransformers(
 				util.Prioritized(&h1Stripper{}, 101),
-				util.Prioritized(hc, 102),
+				util.Prioritized(&headingCollector{}, 102),
 				util.Prioritized(&mermaidTransformer{}, 100),
 				util.Prioritized(&flashcardTransformer{}, 99),
 			),
@@ -187,6 +190,29 @@ func newRenderer(lookup map[string]string, titleLookup map[string]string, hc *he
 			),
 		),
 	)
+	return &Renderer{md: md, lookup: lookup, titleLookup: titleLookup}
+}
+
+// Render converts markdown bytes to HTML with wiki-link resolution, syntax
+// highlighting, mermaid support, h1 stripping, and heading collection.
+func (rr *Renderer) Render(src []byte, flashcardsEnabled bool) (RenderResult, error) {
+	var buf bytes.Buffer
+	ctx := parser.NewContext()
+	ctx.Set(flashcardsEnabledKey, flashcardsEnabled)
+	if err := rr.md.Convert(src, &buf, parser.WithContext(ctx)); err != nil {
+		return RenderResult{}, fmt.Errorf("render markdown: %w", err)
+	}
+	var headings []Heading
+	if h, ok := ctx.Get(headingsKey).([]Heading); ok {
+		headings = h
+	}
+	return RenderResult{HTML: buf.String(), Headings: headings}, nil
+}
+
+// Render is a convenience function that creates a one-off renderer.
+// Prefer NewRenderer + Render for repeated use with the same lookup maps.
+func Render(src []byte, lookup map[string]string, titleLookup map[string]string, flashcardsEnabled bool) (RenderResult, error) {
+	return NewRenderer(lookup, titleLookup).Render(src, flashcardsEnabled)
 }
 
 // RenderPreview renders markdown for preview popovers. Includes wikilinks,
@@ -290,13 +316,16 @@ func (t *h1Stripper) Transform(doc *ast.Document, _ text.Reader, _ parser.Contex
 	})
 }
 
-// headingCollector extracts h2/h3 headings with their auto-generated IDs.
-type headingCollector struct {
-	headings []Heading
-}
+var headingsKey = parser.NewContextKey()
 
-func (hc *headingCollector) Transform(doc *ast.Document, reader text.Reader, _ parser.Context) {
+// headingCollector extracts h2/h3 headings with their auto-generated IDs.
+// Headings are stored in the parser.Context (via headingsKey) so the
+// goldmark.Markdown instance remains stateless and reusable.
+type headingCollector struct{}
+
+func (hc *headingCollector) Transform(doc *ast.Document, reader text.Reader, ctx parser.Context) {
 	src := reader.Source()
+	var headings []Heading
 	_ = ast.Walk(doc, func(node ast.Node, entering bool) (ast.WalkStatus, error) {
 		if !entering {
 			return ast.WalkContinue, nil
@@ -324,9 +353,10 @@ func (hc *headingCollector) Transform(doc *ast.Document, reader text.Reader, _ p
 		if id, ok := h.AttributeString("id"); ok {
 			heading.ID = string(id.([]byte))
 		}
-		hc.headings = append(hc.headings, heading)
+		headings = append(headings, heading)
 		return ast.WalkContinue, nil
 	})
+	ctx.Set(headingsKey, headings)
 }
 
 // --- Mermaid ---
@@ -507,7 +537,6 @@ func (t *imageStripper) Transform(doc *ast.Document, _ text.Reader, _ parser.Con
 // links are preserved.
 func RenderShared(src []byte, lookup map[string]string, titleLookup map[string]string) (RenderResult, error) {
 	resolver := noteResolver{lookup: lookup, titleLookup: titleLookup}
-	hc := &headingCollector{}
 	md := goldmark.New(
 		goldmark.WithExtensions(
 			extension.GFM,
@@ -523,7 +552,7 @@ func RenderShared(src []byte, lookup map[string]string, titleLookup map[string]s
 			),
 			parser.WithASTTransformers(
 				util.Prioritized(&h1Stripper{}, 101),
-				util.Prioritized(hc, 102),
+				util.Prioritized(&headingCollector{}, 102),
 				util.Prioritized(&mermaidTransformer{}, 100),
 				util.Prioritized(&imageStripper{}, 98),
 			),
@@ -538,10 +567,15 @@ func RenderShared(src []byte, lookup map[string]string, titleLookup map[string]s
 		),
 	)
 	var buf bytes.Buffer
-	if err := md.Convert(src, &buf); err != nil {
+	ctx := parser.NewContext()
+	if err := md.Convert(src, &buf, parser.WithContext(ctx)); err != nil {
 		return RenderResult{}, fmt.Errorf("render shared: %w", err)
 	}
-	return RenderResult{HTML: buf.String(), Headings: hc.headings}, nil
+	var headings []Heading
+	if h, ok := ctx.Get(headingsKey).([]Heading); ok {
+		headings = h
+	}
+	return RenderResult{HTML: buf.String(), Headings: headings}, nil
 }
 
 // --- External link renderer ---

@@ -21,7 +21,7 @@ func (s *Server) handleFlashcardDashboard(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	s.renderContent(w, r, "Flashcards", views.FlashcardDashboardContent(stats), TOCData{}, "")
+	s.renderContent(w, r, "Flashcards", views.FlashcardDashboardContent(stats), TOCData{})
 }
 
 func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
@@ -69,7 +69,7 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		s.renderContent(w, r, "Review Done", views.ReviewDoneContent(stats, notePath, summary), TOCData{FlashcardPanel: fcPanel}, "")
+		s.renderContent(w, r, "Review Done", views.ReviewDoneContent(stats, notePath, summary), TOCData{FlashcardPanel: fcPanel})
 		return
 	}
 
@@ -98,7 +98,7 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	s.renderContent(w, r, "Review", views.ReviewCardContent(data, previews, notePath), TOCData{FlashcardPanel: fcPanel}, "")
+	s.renderContent(w, r, "Review", views.ReviewCardContent(data, previews, notePath), TOCData{FlashcardPanel: fcPanel})
 }
 
 func (s *Server) handleFlashcardRate(w http.ResponseWriter, r *http.Request) {

@@ -24,7 +24,7 @@ type TOCData struct {
 // inner is the content to display (typically Breadcrumb + ContentArea + page content).
 // For HTMX requests: renders inner + OOB TOC.
 // For full page: wraps in layout with sidebar, calendar, etc.
-func (s *Server) renderContent(w http.ResponseWriter, r *http.Request, title string, inner templ.Component, toc TOCData, activePath string) {
+func (s *Server) renderContent(w http.ResponseWriter, r *http.Request, title string, inner templ.Component, toc TOCData) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if isHTMX(r) {
@@ -37,7 +37,7 @@ func (s *Server) renderContent(w http.ResponseWriter, r *http.Request, title str
 
 	s.renderFullPage(w, r, views.LayoutParams{
 		Title:          title,
-		Tree:           buildTree(s.noteCache().notes, activePath),
+		Tree:           s.noteCache().tree,
 		ContentCol:     views.ContentCol(inner),
 		Headings:       toc.Headings,
 		OutgoingLinks:  toc.OutgoingLinks,

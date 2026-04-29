@@ -11,12 +11,16 @@ import (
 )
 
 type noteCache struct {
-	notes        []index.Note
-	tags         []index.Tag
-	manifestJSON string
-	lookup       map[string]string
-	titleLookup  map[string]string
-	notesByPath  map[string]*index.Note
+	notes         []index.Note
+	tags          []index.Tag
+	tree          []*views.FileNode
+	manifestJSON  string
+	lookup        map[string]string
+	titleLookup   map[string]string
+	notesByPath   map[string]*index.Note
+	calendarYear  int
+	calendarMonth int
+	activeDays    map[int]bool
 }
 
 func buildNoteCache(store Store) (*noteCache, error) {
@@ -48,13 +52,25 @@ func buildNoteCache(store Store) (*noteCache, error) {
 	if err != nil {
 		return nil, err
 	}
+	tree := buildTree(notes, "")
+
+	year, month := currentYearMonth()
+	activeDays, err := store.ActivityDays(year, month)
+	if err != nil {
+		activeDays = map[int]bool{}
+	}
+
 	return &noteCache{
-		notes:        notes,
-		tags:         tags,
-		manifestJSON: manifest,
-		lookup:       lookup,
-		titleLookup:  titleLookup,
-		notesByPath:  byPath,
+		notes:         notes,
+		tags:          tags,
+		tree:          tree,
+		manifestJSON:  manifest,
+		lookup:        lookup,
+		titleLookup:   titleLookup,
+		notesByPath:   byPath,
+		calendarYear:  year,
+		calendarMonth: month,
+		activeDays:    activeDays,
 	}, nil
 }
 

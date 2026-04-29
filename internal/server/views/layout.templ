@@ -120,10 +120,6 @@ templ Layout(p LayoutParams) {
 		@templ.Raw("<script>window.__ZK_MANIFEST = " + p.ManifestJSON + ";</script>")
 		<script src="/static/htmx.min.js"></script>
 		<script src="/static/app.min.js"></script>
-		<script src="/static/mermaid.min.js"></script>
-		<script>
-			if(window.mermaid){mermaid.initialize({startOnLoad:false,theme:'dark'});mermaid.run({nodes:document.querySelectorAll('.mermaid')});}
-		</script>
 		<div id="toast-container"></div>
 	</body>
 	</html>

@@ -12,7 +12,7 @@ import (
 )
 
 func (s *Server) handleSettings(w http.ResponseWriter, r *http.Request) {
-	s.renderContent(w, r, "Settings", views.SettingsContent(), TOCData{}, "")
+	s.renderContent(w, r, "Settings", views.SettingsContent(), TOCData{})
 }
 
 // triggerToast sets the HX-Trigger header to show a toast notification on the client.

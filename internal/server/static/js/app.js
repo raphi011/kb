@@ -17,6 +17,7 @@ import './components/marp.js';
 import './components/flashcards.js';
 import './components/bookmark.js';
 import './components/share.js';
+import './components/mermaid.js';
 
 // ── One-time global setup ───────────────────────────────────
 
@@ -64,6 +65,7 @@ registry.register('details[data-panel]', {
 // ── Registry: initial page ──────────────────────────────────
 
 registry.init(document);
+updateTreeActive();
 
 // ── HTMX lifecycle ──────────────────────────────────────────
 
@@ -94,7 +96,7 @@ document.addEventListener('htmx:beforeRequest', (e) => {
   }
 });
 
-// Post-swap: registry init, tree highlight, mobile drawer close, mermaid, scroll.
+// Post-swap: registry init, tree highlight, mobile drawer close, scroll.
 document.addEventListener('htmx:afterSettle', (e) => {
   const id = e.detail.target.id;
   if (id === 'content-col') {
@@ -102,7 +104,6 @@ document.addEventListener('htmx:afterSettle', (e) => {
     closeMobileDrawer();
     updateTreeActive();
     registry.init(e.detail.target);
-    rerenderMermaid(e.detail.target);
     window.scrollTo(0, 0);
   }
   if (id === 'calendar' || id === 'toc-panel') {
@@ -140,10 +141,4 @@ function closeMobileDrawer() {
   const backdrop = document.getElementById('sidebar-backdrop');
   if (sidebar) sidebar.classList.remove('mob-open');
   if (backdrop) backdrop.classList.remove('mob-open');
-}
-
-function rerenderMermaid(root) {
-  if (window.mermaid) {
-    mermaid.run({ nodes: root.querySelectorAll('.mermaid') });
-  }
 }

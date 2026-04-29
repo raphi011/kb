@@ -1,30 +1,8 @@
 import { registry } from '../lib/registry.js';
-
-let marpLoaded = false;
-let marpLoadPromise = null;
-
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
-      return;
-    }
-    const s = document.createElement('script');
-    s.src = src;
-    s.onload = resolve;
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
+import { loadScript } from '../lib/loader.js';
 
 async function ensureMarp() {
-  if (marpLoaded) return;
-  if (marpLoadPromise) return marpLoadPromise;
-  marpLoadPromise = (async () => {
-    await loadScript('/static/marp-core.min.js');
-    marpLoaded = true;
-  })();
-  return marpLoadPromise;
+  await loadScript('/static/marp-core.min.js');
 }
 
 let currentSlide = 0;

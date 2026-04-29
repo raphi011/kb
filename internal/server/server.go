@@ -113,7 +113,7 @@ func New(store Store, reindexer ReIndexer, syncer Syncer, token, originToken, re
 	if err := s.registerRoutes(); err != nil {
 		return nil, err
 	}
-	s.handler = s.authMiddleware(s.mux)
+	s.handler = gzipMiddleware(s.authMiddleware(s.mux))
 	return s, nil
 }
 
@@ -134,7 +134,8 @@ func (s *Server) registerRoutes() error {
 	if err != nil {
 		return fmt.Errorf("static fs: %w", err)
 	}
-	s.mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticSub))))
+	s.mux.Handle("GET /static/", cacheControl("public, max-age=31536000, immutable",
+		http.StripPrefix("/static/", http.FileServer(http.FS(staticSub)))))
 	s.mux.HandleFunc("GET /static/chroma.css", s.handleChromaCSS)
 	s.mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 	s.mux.HandleFunc("GET /login", s.handleLoginPage)
@@ -170,8 +171,16 @@ func (s *Server) registerRoutes() error {
 
 func (s *Server) handleChromaCSS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/css; charset=utf-8")
+	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
 	w.Write(scopeChromaCSS(s.chromaDark, `html:not([data-theme="light"]) `))
 	w.Write(scopeChromaCSS(s.chromaLight, `[data-theme="light"] `))
+}
+
+func cacheControl(value string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", value)
+		next.ServeHTTP(w, r)
+	})
 }
 
 func scopeChromaCSS(css []byte, scope string) []byte {
