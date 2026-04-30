@@ -193,42 +193,79 @@ func (kb *KB) incrementalIndex(oldSHA, newSHA string) error {
 		return kb.fullIndex(newSHA)
 	}
 
-	timestamps, err := kb.repo.GitLog()
+	// Read all changed file contents in one tree traversal.
+	changedPaths := append(diff.Added, diff.Modified...)
+	blobs, err := kb.repo.ReadBlobs(changedPaths)
 	if err != nil {
-		return fmt.Errorf("git log: %w", err)
+		return fmt.Errorf("read blobs: %w", err)
 	}
 
-	for _, path := range diff.Deleted {
-		if err := kb.idx.DeleteNote(path); err != nil {
-			slog.Warn("delete note failed", "path", path, "error", err)
+	// Get HEAD commit time for timestamp derivation (avoids full GitLog).
+	commitTime, err := kb.repo.HeadCommitTime()
+	if err != nil {
+		return fmt.Errorf("head commit time: %w", err)
+	}
+
+	// Build timestamps: added files get commitTime for both; modified files keep existing created.
+	timestamps := make(map[string]gitrepo.FileTimestamps, len(changedPaths))
+	for _, path := range diff.Added {
+		timestamps[path] = gitrepo.FileTimestamps{Created: commitTime, Modified: commitTime}
+	}
+	for _, path := range diff.Modified {
+		existing, err := kb.idx.NoteByPath(path)
+		if err == nil {
+			timestamps[path] = gitrepo.FileTimestamps{Created: existing.Created, Modified: commitTime}
+		} else {
+			timestamps[path] = gitrepo.FileTimestamps{Created: commitTime, Modified: commitTime}
 		}
 	}
 
+	// Parse changed files (few files — sequential is fine).
+	var notes []indexedNote
 	var skipped int
-	for _, path := range append(diff.Added, diff.Modified...) {
-		content, err := kb.repo.ReadBlob(path)
-		if err != nil {
-			slog.Warn("skip file", "path", path, "error", err)
+	for _, path := range changedPaths {
+		content, ok := blobs[path]
+		if !ok {
+			slog.Warn("skip file (not in tree)", "path", path)
 			skipped++
 			continue
 		}
-		if err := kb.indexFile(path, content, timestamps); err != nil {
-			slog.Warn("index file failed", "path", path, "error", err)
-			skipped++
+		doc := markdown.ParseMarkdown(string(content))
+		notes = append(notes, indexedNote{path: path, doc: doc, ts: timestamps[path]})
+	}
+
+	// Single transaction for all writes.
+	err = kb.idx.WithTx(func(tx *index.Tx) error {
+		for _, path := range diff.Deleted {
+			if err := tx.DeleteNote(path); err != nil {
+				slog.Warn("delete note failed", "path", path, "error", err)
+			}
 		}
-	}
 
-	total := len(diff.Added) + len(diff.Modified)
-	if skipped > 0 && skipped == total {
-		return fmt.Errorf("all %d files failed to index — not updating head_commit", skipped)
-	}
+		for _, n := range notes {
+			if err := writeNote(tx, n); err != nil {
+				slog.Warn("index file failed", "path", n.path, "error", err)
+				skipped++
+				continue
+			}
+		}
 
-	if err := kb.idx.ResolveLinks(); err != nil {
-		return fmt.Errorf("resolve links: %w", err)
-	}
+		total := len(diff.Added) + len(diff.Modified)
+		if skipped > 0 && skipped == total {
+			return fmt.Errorf("all %d files failed to index", skipped)
+		}
 
-	if err := kb.idx.SetMeta("head_commit", newSHA); err != nil {
-		return fmt.Errorf("set head commit: %w", err)
+		// Only resolve links if note set changed (additions/deletions affect resolution).
+		if len(diff.Added) > 0 || len(diff.Deleted) > 0 {
+			if err := tx.ResolveLinks(); err != nil {
+				return fmt.Errorf("resolve links: %w", err)
+			}
+		}
+
+		return tx.SetMeta("head_commit", newSHA)
+	})
+	if err != nil {
+		return err
 	}
 
 	slog.Info("incremental index complete",
@@ -239,65 +276,6 @@ func (kb *KB) incrementalIndex(oldSHA, newSHA string) error {
 	return nil
 }
 
-func (kb *KB) indexFile(path string, content []byte, timestamps map[string]gitrepo.FileTimestamps) error {
-	doc := markdown.ParseMarkdown(string(content))
-
-	ts := timestamps[path]
-
-	note := index.Note{
-		Path:      path,
-		Title:     doc.Title,
-		Body:      doc.Body,
-		Lead:      doc.Lead,
-		WordCount: doc.WordCount,
-		IsMarp:    doc.IsMarp,
-		Created:   ts.Created,
-		Modified:  ts.Modified,
-		Metadata:  doc.Frontmatter,
-	}
-
-	// Use filename stem as title fallback
-	if note.Title == "" {
-		stem := path
-		if idx := strings.LastIndex(path, "/"); idx >= 0 {
-			stem = path[idx+1:]
-		}
-		note.Title = strings.TrimSuffix(stem, ".md")
-	}
-
-	if err := kb.idx.UpsertNote(note); err != nil {
-		return fmt.Errorf("upsert note: %w", err)
-	}
-
-	if err := kb.idx.SetTags(path, doc.Tags); err != nil {
-		return fmt.Errorf("set tags: %w", err)
-	}
-
-	// Build links from wiki-links + external links
-	var links []index.Link
-	for _, wl := range doc.WikiLinks {
-		target := wl
-		if !strings.HasSuffix(target, ".md") {
-			target += ".md"
-		}
-		links = append(links, index.Link{TargetPath: target, Title: wl})
-	}
-	for _, el := range doc.ExternalLinks {
-		links = append(links, index.Link{TargetPath: el.URL, Title: el.Title, External: true})
-	}
-
-	if err := kb.idx.SetLinks(path, links); err != nil {
-		return fmt.Errorf("set links: %w", err)
-	}
-
-	if len(doc.Flashcards) > 0 {
-		if err := kb.idx.UpsertFlashcards(path, doc.Flashcards); err != nil {
-			return fmt.Errorf("upsert flashcards: %w", err)
-		}
-	}
-
-	return nil
-}
 
 // --- Query API (delegates to index) ---
 
