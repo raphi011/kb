@@ -1,6 +1,7 @@
 package kb
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -181,5 +182,87 @@ func TestReadFile(t *testing.T) {
 	}
 	if len(content) == 0 {
 		t.Error("expected non-empty content")
+	}
+}
+
+func setupBenchRepo(b *testing.B, numNotes int) string {
+	b.Helper()
+	dir := b.TempDir()
+
+	repo, err := git.PlainInit(dir, false)
+	if err != nil {
+		b.Fatal(err)
+	}
+	wt, err := repo.Worktree()
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	for i := range numNotes {
+		path := fmt.Sprintf("notes/note-%03d.md", i)
+		content := fmt.Sprintf("---\ntitle: Note %d\ntags:\n  - bench\n  - tag%d\n---\n\nContent of note %d with [[note-%03d]] link.\n\nMore text here for body.",
+			i, i%5, i, (i+1)%numNotes)
+		p := filepath.Join(dir, path)
+		os.MkdirAll(filepath.Dir(p), 0o755)
+		os.WriteFile(p, []byte(content), 0o644)
+	}
+	wt.Add(".")
+	wt.Commit("initial", &git.CommitOptions{
+		Author: &object.Signature{Name: "bench", Email: "b@b.com", When: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)},
+	})
+
+	return dir
+}
+
+func BenchmarkFullIndex(b *testing.B) {
+	dir := setupBenchRepo(b, 200)
+
+	for b.Loop() {
+		kb, err := Open(dir, filepath.Join(dir, ".kb-bench.db"))
+		if err != nil {
+			b.Fatal(err)
+		}
+		if err := kb.Index(true); err != nil {
+			b.Fatal(err)
+		}
+		kb.Close()
+		os.Remove(filepath.Join(dir, ".kb-bench.db"))
+	}
+}
+
+func BenchmarkIncrementalIndex(b *testing.B) {
+	dir := setupBenchRepo(b, 200)
+
+	// Initial full index
+	kb, err := Open(dir, filepath.Join(dir, ".kb-bench.db"))
+	if err != nil {
+		b.Fatal(err)
+	}
+	if err := kb.Index(true); err != nil {
+		b.Fatal(err)
+	}
+	kb.Close()
+
+	// Add one more file and commit
+	repo, _ := git.PlainOpen(dir)
+	wt, _ := repo.Worktree()
+	p := filepath.Join(dir, "notes/new-note.md")
+	os.MkdirAll(filepath.Dir(p), 0o755)
+	os.WriteFile(p, []byte("# New\n\nNew note for benchmark."), 0o644)
+	wt.Add("notes/new-note.md")
+	wt.Commit("add new", &git.CommitOptions{
+		Author: &object.Signature{Name: "bench", Email: "b@b.com", When: time.Now()},
+	})
+
+	b.ResetTimer()
+	for b.Loop() {
+		kb, err := Open(dir, filepath.Join(dir, ".kb-bench.db"))
+		if err != nil {
+			b.Fatal(err)
+		}
+		if err := kb.Index(false); err != nil {
+			b.Fatal(err)
+		}
+		kb.Close()
 	}
 }
