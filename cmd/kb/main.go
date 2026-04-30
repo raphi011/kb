@@ -390,10 +390,6 @@ func serveCmd() *cobra.Command {
 		Use:   "serve",
 		Short: "Start web server + git remote",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if token == "" {
-				return fmt.Errorf("--token is required")
-			}
-
 			repoPath := repo
 			if repoPath == "" {
 				cwd, err := os.Getwd()
@@ -439,7 +435,7 @@ func serveCmd() *cobra.Command {
 	}
 	cmd.Flags().StringVar(&addr, "addr", ":8080", "Listen address")
 	cmd.Flags().StringVar(&repo, "repo", "", "Repository path (default: current dir)")
-	cmd.Flags().StringVar(&token, "token", "", "Auth token (required)")
+	cmd.Flags().StringVar(&token, "token", "", "Auth token (empty = run unauthenticated; intended for use behind an external auth proxy)")
 	cmd.Flags().StringVar(&originURL, "origin-url", os.Getenv("KB_ORIGIN_URL"), "Upstream git URL (configures origin remote)")
 	cmd.Flags().StringVar(&originToken, "origin-token", os.Getenv("KB_ORIGIN_TOKEN"), "Token for upstream HTTPS basic auth (optional)")
 	return cmd

@@ -270,14 +270,23 @@ func TestBookmarkAPI(t *testing.T) {
 	}
 }
 
-func TestNewServerRejectsEmptyToken(t *testing.T) {
+func TestNewServerAllowsEmptyTokenAndDisablesAuth(t *testing.T) {
 	store := &mockKB{
 		notes: []index.Note{{Path: "a.md", Title: "A", Tags: []string{}}},
 		tags:  []index.Tag{},
 	}
-	_, err := New(store, store, store, "", "", "")
-	if err == nil {
-		t.Error("New() should reject empty token")
+	srv, err := New(store, store, store, "", "", "")
+	if err != nil {
+		t.Fatalf("New() with empty token: %v", err)
+	}
+
+	// Auth-required endpoint must be reachable without any credentials when
+	// the server is configured with an empty token.
+	req := httptest.NewRequest("GET", "/api/notes", nil)
+	w := httptest.NewRecorder()
+	srv.ServeHTTP(w, req)
+	if w.Code == http.StatusUnauthorized {
+		t.Errorf("GET /api/notes with empty-token server returned 401; auth should be disabled")
 	}
 }
 

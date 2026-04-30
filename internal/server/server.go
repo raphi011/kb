@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/fs"
 	"log"
+	"log/slog"
 	"net/http"
 	"sync/atomic"
 	"time"
@@ -84,7 +85,7 @@ type Server struct {
 
 func New(store Store, reindexer ReIndexer, syncer Syncer, token, originToken, repoPath string) (*Server, error) {
 	if token == "" {
-		return nil, fmt.Errorf("token must not be empty")
+		slog.Warn("kb running with authentication disabled; do not expose without an external auth proxy in front")
 	}
 	dark, err := buildChromaCSS("dracula")
 	if err != nil {

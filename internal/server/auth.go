@@ -13,6 +13,11 @@ const sessionCookieName = "kb-session"
 
 func (s *Server) authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if s.token == "" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		path := r.URL.Path
 
 		if path == "/healthz" || path == "/login" || strings.HasPrefix(path, "/static/") || strings.HasPrefix(path, "/s/") {
