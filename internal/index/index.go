@@ -83,6 +83,21 @@ func (d *DB) Close() error {
 	return d.db.Close()
 }
 
+// WithTx executes fn within a single database transaction.
+// If fn returns an error, the transaction is rolled back.
+func (d *DB) WithTx(fn func(tx *Tx) error) error {
+	sqlTx, err := d.db.Begin()
+	if err != nil {
+		return fmt.Errorf("begin tx: %w", err)
+	}
+	defer sqlTx.Rollback()
+
+	if err := fn(&Tx{tx: sqlTx}); err != nil {
+		return err
+	}
+	return sqlTx.Commit()
+}
+
 func (d *DB) UpsertNote(n Note) error {
 	var metadataJSON []byte
 	if n.Metadata != nil {
