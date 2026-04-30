@@ -250,6 +250,88 @@ func (r *Repo) GitLog() (map[string]FileTimestamps, error) {
 	return timestamps, err
 }
 
+// ReadAllBlobs walks the HEAD tree once and returns all .md file contents.
+// More efficient than calling ReadBlob per file since it avoids repeated tree lookups.
+func (r *Repo) ReadAllBlobs() (map[string][]byte, error) {
+	commit, err := r.repo.CommitObject(r.head.Hash())
+	if err != nil {
+		return nil, fmt.Errorf("get HEAD commit: %w", err)
+	}
+	tree, err := commit.Tree()
+	if err != nil {
+		return nil, fmt.Errorf("get tree: %w", err)
+	}
+
+	blobs := make(map[string][]byte)
+	err = tree.Files().ForEach(func(f *object.File) error {
+		if !strings.HasSuffix(f.Name, ".md") {
+			return nil
+		}
+		reader, err := f.Reader()
+		if err != nil {
+			return fmt.Errorf("read %s: %w", f.Name, err)
+		}
+		defer reader.Close()
+		data, err := io.ReadAll(reader)
+		if err != nil {
+			return fmt.Errorf("read all %s: %w", f.Name, err)
+		}
+		blobs[f.Name] = data
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("walk blobs: %w", err)
+	}
+	return blobs, nil
+}
+
+// ReadBlobs fetches specific paths from HEAD tree in one tree traversal.
+// More efficient than per-file ReadBlob when reading multiple files.
+func (r *Repo) ReadBlobs(paths []string) (map[string][]byte, error) {
+	if len(paths) == 0 {
+		return nil, nil
+	}
+
+	commit, err := r.repo.CommitObject(r.head.Hash())
+	if err != nil {
+		return nil, fmt.Errorf("get HEAD commit: %w", err)
+	}
+	tree, err := commit.Tree()
+	if err != nil {
+		return nil, fmt.Errorf("get tree: %w", err)
+	}
+
+	need := make(map[string]struct{}, len(paths))
+	for _, p := range paths {
+		need[p] = struct{}{}
+	}
+
+	blobs := make(map[string][]byte, len(paths))
+	tree.Files().ForEach(func(f *object.File) error {
+		if _, ok := need[f.Name]; !ok {
+			return nil
+		}
+		reader, err := f.Reader()
+		if err != nil {
+			return nil
+		}
+		defer reader.Close()
+		data, _ := io.ReadAll(reader)
+		blobs[f.Name] = data
+		return nil
+	})
+	return blobs, nil
+}
+
+// HeadCommitTime returns the author timestamp of the HEAD commit.
+func (r *Repo) HeadCommitTime() (time.Time, error) {
+	commit, err := r.repo.CommitObject(r.head.Hash())
+	if err != nil {
+		return time.Time{}, fmt.Errorf("get HEAD commit: %w", err)
+	}
+	return commit.Author.When, nil
+}
+
 func (r *Repo) RefreshHead() error {
 	head, err := r.repo.Head()
 	if err != nil {

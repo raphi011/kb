@@ -231,3 +231,76 @@ func TestGitLog(t *testing.T) {
 		t.Error("Modified should be >= Created")
 	}
 }
+
+func TestReadAllBlobs(t *testing.T) {
+	dir := setupTestRepo(t)
+	repo, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	blobs, err := repo.ReadAllBlobs()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(blobs) != 3 {
+		t.Fatalf("ReadAllBlobs returned %d files, want 3", len(blobs))
+	}
+	if _, ok := blobs["notes/hello.md"]; !ok {
+		t.Error("missing notes/hello.md")
+	}
+	if len(blobs["notes/hello.md"]) == 0 {
+		t.Error("notes/hello.md has empty content")
+	}
+}
+
+func TestReadBlobs(t *testing.T) {
+	dir := setupTestRepo(t)
+	repo, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	blobs, err := repo.ReadBlobs([]string{"notes/hello.md", "notes/go.md"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(blobs) != 2 {
+		t.Fatalf("ReadBlobs returned %d files, want 2", len(blobs))
+	}
+	if len(blobs["notes/hello.md"]) == 0 {
+		t.Error("notes/hello.md has empty content")
+	}
+}
+
+func TestReadBlobs_Empty(t *testing.T) {
+	dir := setupTestRepo(t)
+	repo, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	blobs, err := repo.ReadBlobs(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if blobs != nil {
+		t.Errorf("expected nil for empty paths, got %v", blobs)
+	}
+}
+
+func TestHeadCommitTime(t *testing.T) {
+	dir := setupTestRepo(t)
+	repo, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ts, err := repo.HeadCommitTime()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ts.IsZero() {
+		t.Error("expected non-zero commit time")
+	}
+}
