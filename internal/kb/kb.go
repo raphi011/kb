@@ -3,7 +3,9 @@ package kb
 import (
 	"fmt"
 	"log/slog"
+	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/open-spaced-repetition/go-fsrs/v3"
 	"github.com/raphi011/kb/internal/gitrepo"
@@ -60,6 +62,65 @@ func (kb *KB) Index(force bool) error {
 	return kb.incrementalIndex(lastSHA, headSHA)
 }
 
+// indexedNote holds the result of parsing a single note file.
+type indexedNote struct {
+	path string
+	doc  *markdown.MarkdownDoc
+	ts   gitrepo.FileTimestamps
+}
+
+// writeNote persists a parsed note to the index within a transaction.
+func writeNote(tx *index.Tx, n indexedNote) error {
+	note := index.Note{
+		Path:      n.path,
+		Title:     n.doc.Title,
+		Body:      n.doc.Body,
+		Lead:      n.doc.Lead,
+		WordCount: n.doc.WordCount,
+		IsMarp:    n.doc.IsMarp,
+		Created:   n.ts.Created,
+		Modified:  n.ts.Modified,
+		Metadata:  n.doc.Frontmatter,
+	}
+
+	if note.Title == "" {
+		stem := n.path
+		if idx := strings.LastIndex(n.path, "/"); idx >= 0 {
+			stem = n.path[idx+1:]
+		}
+		note.Title = strings.TrimSuffix(stem, ".md")
+	}
+
+	if err := tx.UpsertNote(note); err != nil {
+		return fmt.Errorf("upsert note: %w", err)
+	}
+	if err := tx.SetTags(n.path, n.doc.Tags); err != nil {
+		return fmt.Errorf("set tags: %w", err)
+	}
+
+	var links []index.Link
+	for _, wl := range n.doc.WikiLinks {
+		target := wl
+		if !strings.HasSuffix(target, ".md") {
+			target += ".md"
+		}
+		links = append(links, index.Link{TargetPath: target, Title: wl})
+	}
+	for _, el := range n.doc.ExternalLinks {
+		links = append(links, index.Link{TargetPath: el.URL, Title: el.Title, External: true})
+	}
+	if err := tx.SetLinks(n.path, links); err != nil {
+		return fmt.Errorf("set links: %w", err)
+	}
+
+	if len(n.doc.Flashcards) > 0 {
+		if err := tx.UpsertFlashcards(n.path, n.doc.Flashcards); err != nil {
+			return fmt.Errorf("upsert flashcards: %w", err)
+		}
+	}
+	return nil
+}
+
 func (kb *KB) fullIndex(headSHA string) error {
 	slog.Info("running full index", "head", shortSHA(headSHA))
 
@@ -68,37 +129,55 @@ func (kb *KB) fullIndex(headSHA string) error {
 		return fmt.Errorf("git log: %w", err)
 	}
 
+	blobs, err := kb.repo.ReadAllBlobs()
+	if err != nil {
+		return fmt.Errorf("read blobs: %w", err)
+	}
+
+	// Phase 1: parallel parse
+	notes := make([]indexedNote, 0, len(blobs))
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, runtime.NumCPU())
+
+	for path, content := range blobs {
+		wg.Add(1)
+		sem <- struct{}{}
+		go func(p string, c []byte) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			doc := markdown.ParseMarkdown(string(c))
+			mu.Lock()
+			notes = append(notes, indexedNote{path: p, doc: doc, ts: timestamps[p]})
+			mu.Unlock()
+		}(path, content)
+	}
+	wg.Wait()
+
+	// Phase 2: sequential DB write in single transaction
 	var count, skipped int
-	err = kb.repo.WalkFiles(func(path string) error {
-		content, err := kb.repo.ReadBlob(path)
-		if err != nil {
-			slog.Warn("skip file", "path", path, "error", err)
-			skipped++
-			return nil
+	err = kb.idx.WithTx(func(tx *index.Tx) error {
+		for _, n := range notes {
+			if err := writeNote(tx, n); err != nil {
+				slog.Warn("index file failed", "path", n.path, "error", err)
+				skipped++
+				continue
+			}
+			count++
 		}
 
-		if err := kb.indexFile(path, content, timestamps); err != nil {
-			slog.Warn("index file failed", "path", path, "error", err)
-			skipped++
-			return nil
+		if skipped > 0 && count == 0 {
+			return fmt.Errorf("all %d files failed to index", skipped)
 		}
-		count++
-		return nil
+
+		if err := tx.ResolveLinks(); err != nil {
+			return fmt.Errorf("resolve links: %w", err)
+		}
+		return tx.SetMeta("head_commit", headSHA)
 	})
 	if err != nil {
-		return fmt.Errorf("walk files: %w", err)
-	}
-
-	if skipped > 0 && count == 0 {
-		return fmt.Errorf("all %d files failed to index — not updating head_commit", skipped)
-	}
-
-	if err := kb.idx.ResolveLinks(); err != nil {
-		return fmt.Errorf("resolve links: %w", err)
-	}
-
-	if err := kb.idx.SetMeta("head_commit", headSHA); err != nil {
-		return fmt.Errorf("set head commit: %w", err)
+		return err
 	}
 
 	slog.Info("full index complete", "notes", count, "skipped", skipped)
