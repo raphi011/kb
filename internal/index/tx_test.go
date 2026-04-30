@@ -69,9 +69,15 @@ func TestTx_ResolveLinks(t *testing.T) {
 	db := testDB(t)
 
 	err := db.WithTx(func(tx *Tx) error {
-		tx.UpsertNote(Note{Path: "a.md", Title: "A", Body: "b", WordCount: 1})
-		tx.UpsertNote(Note{Path: "notes/tools/chezmoi.md", Title: "Chezmoi", Body: "b", WordCount: 1})
-		tx.SetLinks("a.md", []Link{{TargetPath: "chezmoi.md", Title: "chezmoi"}})
+		if err := tx.UpsertNote(Note{Path: "a.md", Title: "A", Body: "b", WordCount: 1}); err != nil {
+			return err
+		}
+		if err := tx.UpsertNote(Note{Path: "notes/tools/chezmoi.md", Title: "Chezmoi", Body: "b", WordCount: 1}); err != nil {
+			return err
+		}
+		if err := tx.SetLinks("a.md", []Link{{TargetPath: "chezmoi.md", Title: "chezmoi"}}); err != nil {
+			return err
+		}
 		return tx.ResolveLinks()
 	})
 	if err != nil {
@@ -96,7 +102,9 @@ func TestTx_UpsertFlashcards(t *testing.T) {
 	}
 
 	err := db.WithTx(func(tx *Tx) error {
-		tx.UpsertNote(Note{Path: "flash.md", Title: "Flash", Body: "b", WordCount: 1})
+		if err := tx.UpsertNote(Note{Path: "flash.md", Title: "Flash", Body: "b", WordCount: 1}); err != nil {
+			return err
+		}
 		return tx.UpsertFlashcards("flash.md", cards)
 	})
 	if err != nil {

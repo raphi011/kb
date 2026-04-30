@@ -106,6 +106,9 @@ func (t *Tx) UpsertFlashcards(notePath string, cards []markdown.ParsedCard) erro
 		}
 	}
 	rows.Close()
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("iterate flashcard hashes: %w", err)
+	}
 
 	for _, h := range toDelete {
 		if _, err := t.tx.Exec("DELETE FROM flashcards WHERE card_hash = ?", h); err != nil {
