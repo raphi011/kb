@@ -139,48 +139,15 @@ func (d *DB) DeleteNote(path string) error {
 }
 
 func (d *DB) SetTags(path string, tags []string) error {
-	tx, err := d.db.Begin()
-	if err != nil {
-		return fmt.Errorf("set tags begin: %w", err)
-	}
-	defer tx.Rollback()
-
-	if _, err := tx.Exec("DELETE FROM tags WHERE path = ?", path); err != nil {
-		return fmt.Errorf("delete tags: %w", err)
-	}
-	for _, tag := range tags {
-		if _, err := tx.Exec("INSERT INTO tags (name, path) VALUES (?, ?)", tag, path); err != nil {
-			return fmt.Errorf("insert tag: %w", mapDBError(err))
-		}
-	}
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("set tags commit: %w", err)
-	}
-	return nil
+	return d.WithTx(func(tx *Tx) error {
+		return tx.SetTags(path, tags)
+	})
 }
 
 func (d *DB) SetLinks(path string, links []Link) error {
-	tx, err := d.db.Begin()
-	if err != nil {
-		return fmt.Errorf("set links begin: %w", err)
-	}
-	defer tx.Rollback()
-
-	if _, err := tx.Exec("DELETE FROM links WHERE source_path = ?", path); err != nil {
-		return fmt.Errorf("delete links: %w", err)
-	}
-	for _, l := range links {
-		if _, err := tx.Exec(
-			"INSERT INTO links (source_path, target_path, title, external) VALUES (?, ?, ?, ?)",
-			path, l.TargetPath, l.Title, l.External,
-		); err != nil {
-			return fmt.Errorf("insert link: %w", mapDBError(err))
-		}
-	}
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("set links commit: %w", err)
-	}
-	return nil
+	return d.WithTx(func(tx *Tx) error {
+		return tx.SetLinks(path, links)
+	})
 }
 
 // ResolveLinks updates target_path for non-external links by matching

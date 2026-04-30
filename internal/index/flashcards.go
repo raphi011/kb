@@ -127,68 +127,9 @@ func (d *DB) ReviewSummaryForNote(notePath string, now time.Time) (ReviewSummary
 // UpsertFlashcards syncs the flashcard rows for a note with the parsed cards.
 // It preserves flashcard_state for unchanged hashes.
 func (d *DB) UpsertFlashcards(notePath string, cards []markdown.ParsedCard) error {
-	tx, err := d.db.Begin()
-	if err != nil {
-		return fmt.Errorf("upsert flashcards begin: %w", err)
-	}
-	defer tx.Rollback()
-
-	// Build set of current hashes.
-	newHashes := make(map[string]bool, len(cards))
-	for _, c := range cards {
-		newHashes[c.Hash] = true
-	}
-
-	// Delete cards that are no longer present.
-	rows, err := tx.Query("SELECT card_hash FROM flashcards WHERE note_path = ?", notePath)
-	if err != nil {
-		return fmt.Errorf("query existing flashcards: %w", err)
-	}
-	var toDelete []string
-	for rows.Next() {
-		var h string
-		if err := rows.Scan(&h); err != nil {
-			rows.Close()
-			return fmt.Errorf("scan flashcard hash: %w", err)
-		}
-		if !newHashes[h] {
-			toDelete = append(toDelete, h)
-		}
-	}
-	rows.Close()
-
-	for _, h := range toDelete {
-		if _, err := tx.Exec("DELETE FROM flashcards WHERE card_hash = ?", h); err != nil {
-			return fmt.Errorf("delete flashcard: %w", err)
-		}
-	}
-
-	// Upsert current cards.
-	for _, c := range cards {
-		reversed := 0
-		if c.Reversed {
-			reversed = 1
-		}
-		_, err := tx.Exec(`
-			INSERT INTO flashcards (card_hash, note_path, kind, question, answer, reversed, ord)
-			VALUES (?, ?, ?, ?, ?, ?, ?)
-			ON CONFLICT(card_hash) DO UPDATE SET
-				note_path = excluded.note_path,
-				last_seen = CURRENT_TIMESTAMP,
-				ord = excluded.ord,
-				question = excluded.question,
-				answer = excluded.answer`,
-			c.Hash, notePath, string(c.Kind), c.Question, c.Answer, reversed, c.Ord,
-		)
-		if err != nil {
-			return fmt.Errorf("upsert flashcard: %w", mapDBError(err))
-		}
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("upsert flashcards commit: %w", err)
-	}
-	return nil
+	return d.WithTx(func(tx *Tx) error {
+		return tx.UpsertFlashcards(notePath, cards)
+	})
 }
 
 // DeleteFlashcardsForNote removes all flashcards for a note path.
