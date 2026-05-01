@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/open-spaced-repetition/go-fsrs/v3"
 	"github.com/raphi011/kb/internal/gitrepo"
@@ -56,10 +57,19 @@ func (kb *KB) Index(force bool) error {
 	// Invalidate cached renderer — lookup maps will change.
 	kb.renderer = nil
 
+	start := time.Now()
+	var err2 error
+
 	if lastSHA == "" || force {
-		return kb.fullIndex(headSHA)
+		err2 = kb.fullIndex(headSHA)
+	} else {
+		err2 = kb.incrementalIndex(lastSHA, headSHA)
 	}
-	return kb.incrementalIndex(lastSHA, headSHA)
+
+	if err2 == nil {
+		slog.Info("indexing complete", "duration", time.Since(start).Round(time.Millisecond))
+	}
+	return err2
 }
 
 // indexedNote holds the result of parsing a single note file.
