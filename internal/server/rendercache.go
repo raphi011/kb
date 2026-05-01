@@ -44,6 +44,16 @@ func (rc *renderCache) put(path string, content []byte, entry renderCacheEntry) 
 	rc.entries[path] = entry
 }
 
+func (rc *renderCache) headings(path string) []markdown.Heading {
+	rc.mu.RLock()
+	defer rc.mu.RUnlock()
+
+	if entry, ok := rc.entries[path]; ok {
+		return entry.headings
+	}
+	return nil
+}
+
 func (rc *renderCache) clear() {
 	rc.mu.Lock()
 	defer rc.mu.Unlock()

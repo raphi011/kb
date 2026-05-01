@@ -162,11 +162,9 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 	}
 
 	var html string
-	var headings []markdown.Heading
 
 	if cached, ok := s.renderCache.get(note.Path, raw); ok {
 		html = cached.html
-		headings = cached.headings
 	} else {
 		result, err := s.store.RenderWithTags(raw, note.Tags)
 		if err != nil {
@@ -175,22 +173,17 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 			return
 		}
 		html = result.HTML
-		headings = result.Headings
-		s.renderCache.put(note.Path, raw, renderCacheEntry{html: html, headings: headings})
+		s.renderCache.put(note.Path, raw, renderCacheEntry{html: html, headings: result.Headings})
 	}
-
-	// Prepend the note title as an h1 entry so it appears in the TOC.
-	headings = append([]markdown.Heading{{Text: note.Title, ID: "article-title", Level: 1}}, headings...)
 
 	breadcrumbs := buildBreadcrumbs(note.Path)
 	shareToken, _ := s.store.ShareTokenForNote(note.Path)
 
 	toc := TOCData{
-		Headings: headings,
 		NotePath: note.Path,
 	}
 
-	inner := views.NoteContentInner(breadcrumbs, note, html, headings, shareToken)
+	inner := views.NoteContentInner(breadcrumbs, note, html, shareToken)
 	s.renderContent(w, r, note.Title, inner, toc)
 }
 
@@ -532,15 +525,13 @@ func (s *Server) handleGitVersion(w http.ResponseWriter, r *http.Request) {
 		title = note.Title
 	}
 
-	headings := result.Headings
 	breadcrumbs := buildBreadcrumbs(notePath)
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	inner := views.VersionNoteContent(breadcrumbs, title, commitDate, commitMsg, notePath, result.HTML, headings)
+	inner := views.VersionNoteContent(breadcrumbs, title, commitDate, commitMsg, notePath, result.HTML)
 
 	toc := TOCData{
-		Headings: headings,
 		NotePath: notePath,
 	}
 
@@ -556,7 +547,6 @@ func (s *Server) handleGitVersion(w http.ResponseWriter, r *http.Request) {
 		Title:      title + " (version)",
 		Tree:       s.noteCache().tree,
 		ContentCol: views.ContentCol(inner),
-		Headings:   headings,
 		NotePath:   notePath,
 	})
 }

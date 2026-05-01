@@ -199,41 +199,6 @@
   }
 }
 
-/* ── Mobile TOC (inline, details/summary) ──────────────────── */
-
-.mob-toc {
-  display: none;
-}
-
-.mob-toc-toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  font-size: 11px;
-  font-family: var(--font-ui);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  cursor: pointer;
-  padding: 10px var(--space-8) var(--space-4);
-  border-bottom: 1px solid var(--border);
-  user-select: none;
-  list-style: none;
-
-  &::-webkit-details-marker { display: none; }
-  &:hover { color: var(--text-muted); }
-}
-
-.mob-toc-body {
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--space-2);
-  margin: var(--space-4) var(--space-8) var(--space-5);
-  overflow: hidden;
-  padding: var(--space-3) 0;
-}
 
 .mob-tags-row {
   display: flex;

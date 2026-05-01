@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/raphi011/kb/internal/markdown"
 	"github.com/raphi011/kb/internal/server/views"
 )
 
@@ -21,6 +22,12 @@ func (s *Server) handleNotePanels(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
+
+	// Headings come from the render cache (populated by the main page render
+	// which always executes before this HTMX endpoint is called).
+	headings := s.renderCache.headings(note.Path)
+	// Prepend the note title as an h1 entry so it appears in the TOC.
+	headings = append([]markdown.Heading{{Text: note.Title, ID: "article-title", Level: 1}}, headings...)
 
 	outLinks, err := s.store.OutgoingLinks(note.Path)
 	if err != nil {
@@ -53,7 +60,7 @@ func (s *Server) handleNotePanels(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := views.TOCPanelsLazy(outLinks, backlinks, fcPanel, note.Path).Render(r.Context(), w); err != nil {
+	if err := views.TOCPanelsLazy(headings, outLinks, backlinks, fcPanel, note.Path).Render(r.Context(), w); err != nil {
 		slog.Error("render panels", "error", err)
 	}
 }

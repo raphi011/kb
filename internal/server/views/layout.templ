@@ -2,7 +2,6 @@ package views
 
 import (
 	"github.com/raphi011/kb/internal/index"
-	"github.com/raphi011/kb/internal/markdown"
 )
 
 // LayoutParams holds all data needed for a full page render.
@@ -14,7 +13,6 @@ type LayoutParams struct {
 	FlashcardNotes []index.NoteFlashcardCount
 	Bookmarks      []BookmarkEntry
 	ContentCol     templ.Component
-	Headings       []markdown.Heading
 	CalendarYear   int
 	CalendarMonth  int
 	ActiveDays     map[int]bool
@@ -95,7 +93,7 @@ templ Layout(p LayoutParams) {
 			<div id="main">
 				@p.ContentCol
 				<div class="resize-handle" id="toc-resize"></div>
-				@TOCPanel(p.Headings, false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel, p.NotePath)
+				@TOCPanel(false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel, p.NotePath)
 			</div>
 		</div>
 		<dialog id="cmd-dialog">

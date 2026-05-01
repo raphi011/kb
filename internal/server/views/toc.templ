@@ -68,7 +68,7 @@ templ GitHistoryItems(commits []gitrepo.FileCommit, notePath string) {
 	}
 }
 
-templ TOCPanel(headings []markdown.Heading, oob bool, calYear int, calMonth int, activeDays map[int]bool, flashcardPanel *FlashcardPanelData, slidePanel *SlidePanelData, notePath string) {
+templ TOCPanel(oob bool, calYear int, calMonth int, activeDays map[int]bool, flashcardPanel *FlashcardPanelData, slidePanel *SlidePanelData, notePath string) {
 	<aside
 		id="toc-panel"
 		if oob {
@@ -79,18 +79,6 @@ templ TOCPanel(headings []markdown.Heading, oob bool, calYear int, calMonth int,
 			if calYear > 0 {
 				@Calendar(calYear, calMonth, activeDays, 0)
 				<div class="resize-handle-v" data-resize-target="next"></div>
-			}
-			<div id="toc-header"><span class="section-label">On this page</span></div>
-			if len(headings) > 0 {
-				<div id="toc-inner" class="scrollable">
-					for _, h := range headings {
-						<a class={ "toc-item", templ.KV("h1", h.Level == 1), templ.KV("h3", h.Level == 3) } href={ templ.SafeURL("#" + h.ID) }>{ h.Text }</a>
-					}
-				</div>
-			} else {
-				<div id="toc-inner" class="scrollable">
-					<span class="toc-empty">No headings</span>
-				</div>
 			}
 			if notePath != "" {
 				<div
@@ -111,7 +99,19 @@ templ TOCPanel(headings []markdown.Heading, oob bool, calYear int, calMonth int,
 	</aside>
 }
 
-templ TOCPanelsLazy(outgoing []index.Link, backlinks []index.Link, flashcardPanel *FlashcardPanelData, notePath string) {
+templ TOCPanelsLazy(headings []markdown.Heading, outgoing []index.Link, backlinks []index.Link, flashcardPanel *FlashcardPanelData, notePath string) {
+	<div id="toc-header"><span class="section-label">On this page</span></div>
+	if len(headings) > 0 {
+		<div id="toc-inner" class="scrollable">
+			for _, h := range headings {
+				<a class={ "toc-item", templ.KV("h1", h.Level == 1), templ.KV("h3", h.Level == 3) } href={ templ.SafeURL("#" + h.ID) }>{ h.Text }</a>
+			}
+		</div>
+	} else {
+		<div id="toc-inner" class="scrollable">
+			<span class="toc-empty">No headings</span>
+		</div>
+	}
 	if len(outgoing) > 0 {
 		@PanelSection(PanelProps{Label: "Links", Count: len(outgoing), ID: "links", Open: true, Class: "toc-links-section", BodyClass: "toc-links-body"}) {
 			for _, link := range outgoing {

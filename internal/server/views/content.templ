@@ -28,7 +28,7 @@ templ VersionBanner(date string, message string, notePath string) {
 	</div>
 }
 
-templ VersionNoteContent(segments []BreadcrumbSegment, title string, commitDate string, commitMsg string, notePath string, noteHTML string, headings []markdown.Heading) {
+templ VersionNoteContent(segments []BreadcrumbSegment, title string, commitDate string, commitMsg string, notePath string, noteHTML string) {
 	@Breadcrumb(segments, title)
 	@VersionBanner(commitDate, commitMsg, notePath)
 	<div id="content-area">
@@ -65,17 +65,7 @@ templ noteActions(path string, shareToken string) {
 	</button>
 }
 
-templ NoteArticle(note *index.Note, noteHTML string, headings []markdown.Heading, shareToken string) {
-	if len(headings) > 0 {
-		<details id="mob-toc-details" class="mob-toc" aria-label="Table of contents">
-			<summary class="mob-toc-toggle">On this page</summary>
-			<div class="mob-toc-body">
-				for _, h := range headings {
-					<a class={ "toc-item", templ.KV("h1", h.Level == 1), templ.KV("h3", h.Level == 3) } href={ templ.SafeURL("#" + h.ID) }>{ h.Text }</a>
-				}
-			</div>
-		</details>
-	}
+templ NoteArticle(note *index.Note, noteHTML string, shareToken string) {
 	@ArticlePage(ArticleProps{
 		Title:        note.Title,
 		TitleActions: noteActions(note.Path, shareToken),
@@ -161,10 +151,10 @@ templ FolderListing(folderName string, entries []FolderEntry) {
 	}
 }
 
-templ NoteContentInner(segments []BreadcrumbSegment, note *index.Note, noteHTML string, headings []markdown.Heading, shareToken string) {
+templ NoteContentInner(segments []BreadcrumbSegment, note *index.Note, noteHTML string, shareToken string) {
 	@Breadcrumb(segments, note.Title)
 	<div id="content-area">
-		@NoteArticle(note, noteHTML, headings, shareToken)
+		@NoteArticle(note, noteHTML, shareToken)
 	</div>
 }
 

@@ -118,7 +118,7 @@
 
 .panel-label {
   letter-spacing: 0.08em;
-  padding: 3px var(--space-5);
+  padding: var(--space-4) var(--space-5);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -221,10 +221,6 @@ details[open] > .tree-folder::before {
 
 .sidebar-tags-section {
   flex-shrink: 0;
-
-  .panel-label {
-    padding: var(--space-4) var(--space-5);
-  }
 }
 
 .sidebar-tags-body {
