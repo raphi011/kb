@@ -153,9 +153,16 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 		return
 	}
 
-	// ETag based on index SHA + content hash.
-	etag := fmt.Sprintf(`"%s:%x"`, s.noteCache().indexSHA, hashContent(raw))
+	// ETag based on index SHA + content hash + request type (HTMX partial vs full page).
+	// Without the HTMX distinction, a browser can cache a partial response's ETag and
+	// use it on a full page refresh, getting a 304 for the wrong representation.
+	variant := "f"
+	if isHTMX(r) {
+		variant = "h"
+	}
+	etag := fmt.Sprintf(`"%s:%s:%x"`, s.noteCache().indexSHA, variant, hashContent(raw))
 	w.Header().Set("ETag", etag)
+	w.Header().Set("Vary", "HX-Request")
 	if r.Header.Get("If-None-Match") == etag {
 		w.WriteHeader(http.StatusNotModified)
 		return

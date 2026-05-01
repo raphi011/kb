@@ -100,7 +100,7 @@ function setupVerticalHandles() {
 }
 
 function sectionBody(section) {
-  return section.querySelector('.panel-body, .toc-links-body, .toc-tags-body, .sidebar-tags-body');
+  return section.querySelector('.panel-body, .toc-links-body, .toc-tags-body');
 }
 
 function applyHeight(body, height) {

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -64,10 +63,6 @@ func TestETag200WhenNotMatches(t *testing.T) {
 func TestETagSkippedForJSON(t *testing.T) {
 	srv := newTestServer(t)
 
-	// Compute expected ETag to verify it is absent on JSON path.
-	raw := []byte("# Test\n\nBody.")
-	expectedETag := fmt.Sprintf(`"%s:%x"`, "abc123", hashContent(raw))
-
 	req := httptest.NewRequest("GET", "/notes/notes/hello.md", nil)
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer test-token")
@@ -77,8 +72,44 @@ func TestETagSkippedForJSON(t *testing.T) {
 	if w.Code != http.StatusOK {
 		t.Fatalf("status = %d, want 200", w.Code)
 	}
-	etag := w.Header().Get("ETag")
-	if etag == expectedETag {
-		t.Error("ETag should not be set for JSON requests")
+	if etag := w.Header().Get("ETag"); etag != "" {
+		t.Errorf("ETag should not be set for JSON requests, got %q", etag)
+	}
+}
+
+func TestETagDiffersBetweenHTMXAndFullPage(t *testing.T) {
+	srv := newTestServer(t)
+
+	// Full page request.
+	req1 := httptest.NewRequest("GET", "/notes/notes/hello.md", nil)
+	req1.Header.Set("Authorization", "Bearer test-token")
+	w1 := httptest.NewRecorder()
+	srv.ServeHTTP(w1, req1)
+	fullETag := w1.Header().Get("ETag")
+
+	// HTMX partial request.
+	req2 := httptest.NewRequest("GET", "/notes/notes/hello.md", nil)
+	req2.Header.Set("Authorization", "Bearer test-token")
+	req2.Header.Set("HX-Request", "true")
+	w2 := httptest.NewRecorder()
+	srv.ServeHTTP(w2, req2)
+	htmxETag := w2.Header().Get("ETag")
+
+	if fullETag == "" || htmxETag == "" {
+		t.Fatal("both responses should have ETags")
+	}
+	if fullETag == htmxETag {
+		t.Errorf("full page and HTMX ETags must differ to prevent cached partial from being used on refresh")
+	}
+
+	// Verify that an HTMX ETag does NOT produce 304 on a full page refresh.
+	req3 := httptest.NewRequest("GET", "/notes/notes/hello.md", nil)
+	req3.Header.Set("Authorization", "Bearer test-token")
+	req3.Header.Set("If-None-Match", htmxETag)
+	w3 := httptest.NewRecorder()
+	srv.ServeHTTP(w3, req3)
+
+	if w3.Code != http.StatusOK {
+		t.Errorf("full page request with HTMX ETag: status = %d, want 200", w3.Code)
 	}
 }

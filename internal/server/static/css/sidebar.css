@@ -217,50 +217,18 @@ details[open] > .tree-folder::before {
 }
 
 
-/* ── Tags in sidebar ───────────────────────────────────────── */
+/* ── Panel count variants ──────────────────────────────────── */
 
-.sidebar-tags-section {
-  flex-shrink: 0;
-}
-
-.sidebar-tags-body {
-  padding: var(--space-3) 10px var(--space-4);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  align-content: flex-start;
-  max-height: 30vh;
-}
-
-.sidebar-section-body {
-  max-height: 30vh;
-}
-
-.sidebar-panel-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-5);
-  font-size: 12px;
-  font-family: var(--font-ui);
-  color: var(--text-muted);
-  line-height: 1.55;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  &:hover { background: var(--bg-hover); color: var(--text); }
-}
-
-.sidebar-panel-item .panel-count.due {
+.panel-count.due {
   background: var(--accent-soft);
   color: var(--accent);
 }
 
-.sidebar-panel-item .panel-count.done {
+.panel-count.done {
   opacity: 0.4;
 }
+
+/* ── Tags in sidebar ───────────────────────────────────────── */
 
 .sidebar-tag-item {
   display: inline-flex;
