@@ -4,6 +4,7 @@ import (
 	"crypto/subtle"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"sort"
@@ -145,6 +146,14 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 
 	if note.IsMarp {
 		s.renderMarpNote(w, r, note, raw)
+		return
+	}
+
+	// ETag based on index SHA + content hash.
+	etag := fmt.Sprintf(`"%s:%x"`, s.noteCache().indexSHA, hashContent(raw))
+	w.Header().Set("ETag", etag)
+	if r.Header.Get("If-None-Match") == etag {
+		w.WriteHeader(http.StatusNotModified)
 		return
 	}
 
