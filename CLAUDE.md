@@ -1,5 +1,42 @@
 # KB — Personal Knowledge Base
 
+## Architecture
+
+```
+cmd/kb/         CLI (cobra): index, search, list, tags, links, backlinks, cat, edit, sync, serve
+internal/
+  kb/           Core KB logic: open, index, search, sync, read/write
+  index/        SQLite FTS index, incremental/full indexing, link resolution
+  gitrepo/      Git operations (go-git): fetch, fast-forward, branch tracking
+  markdown/     Goldmark pipeline: frontmatter, wikilinks, syntax highlighting
+  server/       HTTP server, HTMX handlers, auth, flashcard review, git smart HTTP
+    views/      Templ components (*.templ → *_templ.go via `templ generate`)
+    static/     CSS/JS source + bundled output
+  srs/          Spaced repetition (FSRS): card scheduling, review state
+```
+
+## Commands
+
+```bash
+just build          # go build -o kb ./cmd/kb
+just test           # go test ./...
+just install        # go install + shell completions
+just bundle         # esbuild JS + CSS (minified)
+just bundle-js      # JS only
+just bundle-css     # CSS only
+just dev ~/repo     # watch mode + server with sourcemaps
+just clean          # rm -f kb
+templ generate      # regenerate *_templ.go from *.templ
+```
+
+## Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `KB_REPO` | Repository path (fallback if not in a git repo) |
+| `KB_ORIGIN_URL` | Upstream git URL for sync/serve |
+| `KB_ORIGIN_TOKEN` | HTTPS basic auth token for upstream |
+
 ## Route Conventions
 
 - `/api/*` — pure JSON (consumed by JS `fetch`, badges, polling)
@@ -67,12 +104,11 @@ Formats Go source code according to standard style rules
 
 ## Build & Assets
 
-- CSS source: `internal/server/static/css/` (11 layered files, entry: `style.css`)
+- CSS source: `internal/server/static/css/` (12 layered files, entry: `style.css`)
 - JS source: `internal/server/static/js/` (ES modules, entry: `app.js`)
-- Bundles: `static/style.min.css`, `static/app.min.js` (esbuild, not committed)
-- Build: `just bundle` (or `just bundle-js` / `just bundle-css`)
-- Dev: `just dev ~/path/to/repo` (watch mode + server with sourcemaps)
-- Docker: bundles both CSS + JS in build stage
+- Bundles: `internal/server/static/style.min.css`, `internal/server/static/app.min.js` (esbuild, gitignored via `*.map`)
+- Vendored JS: `htmx.min.js`, `mermaid.min.js`, `marp-*.min.js` (downloaded in Docker build)
+- Docker: downloads vendored JS + bundles CSS/JS in build stage
 
 ## Conventions
 
