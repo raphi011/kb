@@ -148,15 +148,26 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 		return
 	}
 
-	result, err := s.store.RenderWithTags(raw, note.Tags)
-	if err != nil {
-		slog.Error("render note", "path", note.Path, "error", err)
-		s.renderError(w, r, http.StatusInternalServerError, "Failed to render note")
-		return
+	var html string
+	var headings []markdown.Heading
+
+	if cached, ok := s.renderCache.get(note.Path, raw); ok {
+		html = cached.html
+		headings = cached.headings
+	} else {
+		result, err := s.store.RenderWithTags(raw, note.Tags)
+		if err != nil {
+			slog.Error("render note", "path", note.Path, "error", err)
+			s.renderError(w, r, http.StatusInternalServerError, "Failed to render note")
+			return
+		}
+		html = result.HTML
+		headings = result.Headings
+		s.renderCache.put(note.Path, raw, renderCacheEntry{html: html, headings: headings})
 	}
 
 	// Prepend the note title as an h1 entry so it appears in the TOC.
-	headings := append([]markdown.Heading{{Text: note.Title, ID: "article-title", Level: 1}}, result.Headings...)
+	headings = append([]markdown.Heading{{Text: note.Title, ID: "article-title", Level: 1}}, headings...)
 
 	outLinks, err := s.store.OutgoingLinks(note.Path)
 	if err != nil {
@@ -199,7 +210,7 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 		NotePath:       note.Path,
 	}
 
-	inner := views.NoteContentInner(breadcrumbs, note, result.HTML, backlinks, headings, shareToken)
+	inner := views.NoteContentInner(breadcrumbs, note, html, backlinks, headings, shareToken)
 	s.renderContent(w, r, note.Title, inner, toc)
 }
 

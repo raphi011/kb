@@ -80,6 +80,7 @@ type Server struct {
 	originToken string
 	repoPath    string
 	cache       atomic.Pointer[noteCache]
+	renderCache *renderCache
 	chromaDark  []byte
 	chromaLight []byte
 }
@@ -108,6 +109,7 @@ func New(store Store, reindexer ReIndexer, syncer Syncer, token, originToken, re
 		token:       token,
 		originToken: originToken,
 		repoPath:    repoPath,
+		renderCache: newRenderCache(),
 		chromaDark:  dark,
 		chromaLight: light,
 	}
@@ -232,6 +234,7 @@ func (s *Server) RefreshCache() error {
 		return err
 	}
 	s.cache.Store(cache)
+	s.renderCache.clear()
 	return nil
 }
 
