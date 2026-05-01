@@ -1,9 +1,9 @@
 package server
 
 import (
-	"bytes"
 	"context"
 	"embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -13,12 +13,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	chromahtml "github.com/alecthomas/chroma/v2/formatters/html"
-	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/open-spaced-repetition/go-fsrs/v3"
 	"github.com/raphi011/kb/internal/gitrepo"
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
+	"github.com/raphi011/kb/internal/server/views"
 	"github.com/raphi011/kb/internal/srs"
 )
 
@@ -81,22 +80,13 @@ type Server struct {
 	repoPath    string
 	cache       atomic.Pointer[noteCache]
 	renderCache *renderCache
-	chromaDark  []byte
-	chromaLight []byte
 }
 
 func New(store Store, reindexer ReIndexer, syncer Syncer, token, originToken, repoPath string) (*Server, error) {
 	if token == "" {
 		slog.Warn("kb running with authentication disabled; do not expose without an external auth proxy in front")
 	}
-	dark, err := buildChromaCSS("dracula")
-	if err != nil {
-		return nil, fmt.Errorf("chroma dark css: %w", err)
-	}
-	light, err := buildChromaCSS("github")
-	if err != nil {
-		return nil, fmt.Errorf("chroma light css: %w", err)
-	}
+	loadAssetManifest()
 	cache, err := buildNoteCache(store)
 	if err != nil {
 		return nil, fmt.Errorf("build cache: %w", err)
@@ -110,8 +100,6 @@ func New(store Store, reindexer ReIndexer, syncer Syncer, token, originToken, re
 		originToken: originToken,
 		repoPath:    repoPath,
 		renderCache: newRenderCache(),
-		chromaDark:  dark,
-		chromaLight: light,
 	}
 	s.cache.Store(cache)
 	if err := s.registerRoutes(); err != nil {
@@ -121,16 +109,21 @@ func New(store Store, reindexer ReIndexer, syncer Syncer, token, originToken, re
 	return s, nil
 }
 
-func buildChromaCSS(styleName string) ([]byte, error) {
-	style := styles.Get(styleName)
-	if style == nil {
-		style = styles.Fallback
+// loadAssetManifest reads the build-time asset fingerprint manifest (if
+// present) and installs it in the views package. When absent — typically a
+// dev build that ran esbuild but skipped genassets — Asset() falls through
+// to un-fingerprinted /static/<name> URLs.
+func loadAssetManifest() {
+	data, err := fs.ReadFile(staticFS, "static/dist/manifest.json")
+	if err != nil {
+		return
 	}
-	var buf bytes.Buffer
-	if err := chromahtml.New(chromahtml.WithClasses(true)).WriteCSS(&buf, style); err != nil {
-		return nil, err
+	var m map[string]string
+	if err := json.Unmarshal(data, &m); err != nil {
+		slog.Warn("asset manifest unparseable; serving un-fingerprinted assets", "err", err)
+		return
 	}
-	return buf.Bytes(), nil
+	views.SetAssets(m)
 }
 
 func (s *Server) registerRoutes() error {
@@ -138,9 +131,19 @@ func (s *Server) registerRoutes() error {
 	if err != nil {
 		return fmt.Errorf("static fs: %w", err)
 	}
-	s.mux.Handle("GET /static/", cacheControl("public, max-age=31536000, immutable",
+	distSub, err := fs.Sub(staticSub, "dist")
+	if err != nil {
+		return fmt.Errorf("static dist fs: %w", err)
+	}
+	// Fingerprinted assets: safe to cache forever — the URL changes when the
+	// content does. Registered before the broader /static/ route; ServeMux
+	// picks the longest matching prefix.
+	s.mux.Handle("GET /static/dist/", cacheControl("public, max-age=31536000, immutable",
+		http.StripPrefix("/static/dist/", preGzipFileServer(distSub))))
+	// Un-fingerprinted source assets (dev mode + sourcemap source resolution):
+	// must revalidate every time so updates are picked up.
+	s.mux.Handle("GET /static/", cacheControl("public, max-age=0, must-revalidate",
 		http.StripPrefix("/static/", preGzipFileServer(staticSub))))
-	s.mux.HandleFunc("GET /static/chroma.css", s.handleChromaCSS)
 	s.mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 	s.mux.HandleFunc("GET /login", s.handleLoginPage)
 	s.mux.HandleFunc("POST /login", s.handleLoginSubmit)
@@ -174,33 +177,11 @@ func (s *Server) registerRoutes() error {
 	return nil
 }
 
-func (s *Server) handleChromaCSS(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/css; charset=utf-8")
-	w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
-	w.Write(scopeChromaCSS(s.chromaDark, `html:not([data-theme="light"]) `))
-	w.Write(scopeChromaCSS(s.chromaLight, `[data-theme="light"] `))
-}
-
 func cacheControl(value string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", value)
 		next.ServeHTTP(w, r)
 	})
-}
-
-func scopeChromaCSS(css []byte, scope string) []byte {
-	var out bytes.Buffer
-	for _, line := range bytes.Split(css, []byte("\n")) {
-		if idx := bytes.Index(line, []byte(".chroma")); idx >= 0 {
-			out.Write(line[:idx])
-			out.WriteString(scope)
-			out.Write(line[idx:])
-		} else {
-			out.Write(line)
-		}
-		out.WriteByte('\n')
-	}
-	return out.Bytes()
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

@@ -58,21 +58,31 @@ clean:
 
 bundle-js:
     npx esbuild internal/server/static/js/app.js --bundle --minify --format=iife --outfile=internal/server/static/app.min.js
-    gzip -kf9 internal/server/static/app.min.js
 
 bundle-css:
     npx esbuild internal/server/static/css/style.css --bundle --minify --outfile=internal/server/static/style.min.css
-    gzip -kf9 internal/server/static/style.min.css
 
-bundle: bundle-js bundle-css
-    gzip -kf9 internal/server/static/htmx.min.js
-    gzip -kf9 internal/server/static/mermaid.min.js
-    gzip -kf9 internal/server/static/marp-core.min.js
-    gzip -kf9 internal/server/static/marp-browser.min.js
+gen-chroma:
+    go run ./cmd/genchroma -out internal/server/static/chroma.css
+
+# Fingerprint every asset referenced by HTML so it can be served immutably.
+# Add a logical name to the -files list whenever a new asset is introduced
+# (and a corresponding Asset("…") call in the templates).
+gen-assets:
+    go run ./cmd/genassets \
+        -dir internal/server/static \
+        -out internal/server/static/dist \
+        -manifest internal/server/static/dist/manifest.json \
+        -files app.min.js,style.min.css,chroma.css,htmx.min.js,mermaid.min.js,marp-core.min.js,marp-browser.min.js
+
+bundle: bundle-js bundle-css gen-chroma gen-assets
 
 dev repo:
     #!/usr/bin/env bash
     set -euo pipefail
+    # chroma.css is built once: changes only when the chroma library or theme
+    # selection changes, neither of which happens during a dev session.
+    go run ./cmd/genchroma -out internal/server/static/chroma.css
     npx esbuild internal/server/static/css/style.css --bundle --sourcemap --outfile=internal/server/static/style.min.css --watch &
     npx esbuild internal/server/static/js/app.js --bundle --sourcemap --format=iife --outfile=internal/server/static/app.min.js --watch &
     go run ./cmd/kb serve --token test --repo "{{ repo }}"

@@ -3,3 +3,6 @@
 .worktrees/
 *.map
 internal/server/static/*.gz
+# Build artifacts: regenerated each build by `just bundle` / Dockerfile.
+internal/server/static/chroma.css
+internal/server/static/dist/

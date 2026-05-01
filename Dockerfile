@@ -15,13 +15,17 @@ RUN curl -fsSL https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js \
     curl -fsSL https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js \
       -o internal/server/static/mermaid.min.js && \
     npx esbuild internal/server/static/js/app.js --bundle --minify --format=iife --outfile=internal/server/static/app.min.js && \
-    npx esbuild internal/server/static/css/style.css --bundle --minify --outfile=internal/server/static/style.min.css && \
-    gzip -kf9 internal/server/static/app.min.js && \
-    gzip -kf9 internal/server/static/style.min.css && \
-    gzip -kf9 internal/server/static/htmx.min.js && \
-    gzip -kf9 internal/server/static/mermaid.min.js && \
-    gzip -kf9 internal/server/static/marp-core.min.js && \
-    gzip -kf9 internal/server/static/marp-browser.min.js
+    npx esbuild internal/server/static/css/style.css --bundle --minify --outfile=internal/server/static/style.min.css
+
+# Generate chroma.css and fingerprint every asset referenced by HTML so the
+# served URL changes whenever its content changes — letting the binary set
+# `Cache-Control: immutable` without serving stale assets after a release.
+RUN go run ./cmd/genchroma -out internal/server/static/chroma.css && \
+    go run ./cmd/genassets \
+      -dir internal/server/static \
+      -out internal/server/static/dist \
+      -manifest internal/server/static/dist/manifest.json \
+      -files app.min.js,style.min.css,chroma.css,htmx.min.js,mermaid.min.js,marp-core.min.js,marp-browser.min.js
 
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /bin/kb ./cmd/kb
 

@@ -7,8 +7,8 @@ templ SharedLayout(title string, noteHTML string) {
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 		<title>{ title }</title>
-		<link rel="stylesheet" href="/static/style.css"/>
-		<link rel="stylesheet" href="/static/chroma.css"/>
+		<link rel="stylesheet" href={ Asset("style.min.css") }/>
+		<link rel="stylesheet" href={ Asset("chroma.css") }/>
 		<script>
 			(function(){var d=document.documentElement;var t=window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark';d.setAttribute('data-theme',t)})();
 		</script>
@@ -21,7 +21,7 @@ templ SharedLayout(title string, noteHTML string) {
 				@templ.Raw(noteHTML)
 			</div>
 		</article>
-		<script src="/static/mermaid.min.js"></script>
+		<script src={ Asset("mermaid.min.js") }></script>
 		<script>
 			(function(){
 				var bar=document.getElementById('progress-bar');

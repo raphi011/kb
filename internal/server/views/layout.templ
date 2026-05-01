@@ -58,8 +58,8 @@ templ Layout(p LayoutParams) {
 				kb
 			}
 		</title>
-		<link rel="stylesheet" href="/static/style.min.css"/>
-		<link rel="stylesheet" href="/static/chroma.css"/>
+		<link rel="stylesheet" href={ Asset("style.min.css") }/>
+		<link rel="stylesheet" href={ Asset("chroma.css") }/>
 		<script>
 			(function(){var d=document.documentElement,s=d.style;var u;try{u=JSON.parse(localStorage.getItem('zk-ui'))||{}}catch(e){u={}}d.setAttribute('data-theme',u.theme||(window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'));if(u.sidebarWidth)s.setProperty('--sidebar-width',u.sidebarWidth+'px');if(u.tocPanelWidth)s.setProperty('--toc-width',u.tocPanelWidth+'px');if(u.zen)d.classList.add('zen')})();
 		</script>
@@ -114,8 +114,8 @@ templ Layout(p LayoutParams) {
 			<div id="media-container"></div>
 		</dialog>
 		@templ.Raw("<script>window.__ZK_MANIFEST = " + p.ManifestJSON + ";</script>")
-		<script src="/static/htmx.min.js"></script>
-		<script src="/static/app.min.js"></script>
+		<script src={ Asset("htmx.min.js") }></script>
+		<script src={ Asset("app.min.js") }></script>
 		<div id="toast-container"></div>
 	</body>
 	</html>

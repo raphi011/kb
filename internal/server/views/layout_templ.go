@@ -98,7 +98,33 @@ func Layout(p LayoutParams) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</title><link rel=\"stylesheet\" href=\"/static/style.min.css\"><link rel=\"stylesheet\" href=\"/static/chroma.css\"><script>\n\t\t\t(function(){var d=document.documentElement,s=d.style;var u;try{u=JSON.parse(localStorage.getItem('zk-ui'))||{}}catch(e){u={}}d.setAttribute('data-theme',u.theme||(window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'));if(u.sidebarWidth)s.setProperty('--sidebar-width',u.sidebarWidth+'px');if(u.tocPanelWidth)s.setProperty('--toc-width',u.tocPanelWidth+'px');if(u.zen)d.classList.add('zen')})();\n\t\t</script></head><body hx-indicator=\"#nav-loader\"><div id=\"nav-loader\" class=\"nav-loader\"></div><div id=\"progress-bar\"></div><header id=\"topbar\"><button id=\"mob-menu-btn\" class=\"btn btn-icon\" aria-label=\"Menu\">&#9776;</button> <a id=\"logo\" href=\"/\" hx-get=\"/\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\"><span class=\"logo-dot\"></span><strong>kb</strong></a><div id=\"topbar-spacer\"></div><button id=\"cmd-trigger\" type=\"button\"><span>Search</span><kbd>&#8984;K</kbd></button> <button id=\"zen-toggle\" class=\"btn btn-icon\" type=\"button\" aria-label=\"Toggle zen mode\" title=\"Toggle zen mode\">&#8865;</button> <button id=\"theme-toggle\" class=\"btn btn-icon\" type=\"button\" aria-label=\"Toggle theme\"><span id=\"theme-icon\">&#9790;</span></button></header><div id=\"sidebar-backdrop\"></div><div id=\"layout\"><nav id=\"sidebar\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</title><link rel=\"stylesheet\" href=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var3 templ.SafeURL
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(Asset("style.min.css"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 61, Col: 54}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><link rel=\"stylesheet\" href=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 templ.SafeURL
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(Asset("chroma.css"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 62, Col: 51}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"><script>\n\t\t\t(function(){var d=document.documentElement,s=d.style;var u;try{u=JSON.parse(localStorage.getItem('zk-ui'))||{}}catch(e){u={}}d.setAttribute('data-theme',u.theme||(window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'));if(u.sidebarWidth)s.setProperty('--sidebar-width',u.sidebarWidth+'px');if(u.tocPanelWidth)s.setProperty('--toc-width',u.tocPanelWidth+'px');if(u.zen)d.classList.add('zen')})();\n\t\t</script></head><body hx-indicator=\"#nav-loader\"><div id=\"nav-loader\" class=\"nav-loader\"></div><div id=\"progress-bar\"></div><header id=\"topbar\"><button id=\"mob-menu-btn\" class=\"btn btn-icon\" aria-label=\"Menu\">&#9776;</button> <a id=\"logo\" href=\"/\" hx-get=\"/\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\"><span class=\"logo-dot\"></span><strong>kb</strong></a><div id=\"topbar-spacer\"></div><button id=\"cmd-trigger\" type=\"button\"><span>Search</span><kbd>&#8984;K</kbd></button> <button id=\"zen-toggle\" class=\"btn btn-icon\" type=\"button\" aria-label=\"Toggle zen mode\" title=\"Toggle zen mode\">&#8865;</button> <button id=\"theme-toggle\" class=\"btn btn-icon\" type=\"button\" aria-label=\"Toggle theme\"><span id=\"theme-icon\">&#9790;</span></button></header><div id=\"sidebar-backdrop\"></div><div id=\"layout\"><nav id=\"sidebar\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -106,7 +132,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<a class=\"sidebar-footer\" href=\"/settings\" hx-get=\"/settings\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\" title=\"Settings\"><span class=\"sidebar-footer-icon\">&#9881;</span> Settings</a></nav><div class=\"resize-handle\" id=\"sidebar-resize\"></div><div id=\"main\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<a class=\"sidebar-footer\" href=\"/settings\" hx-get=\"/settings\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\" title=\"Settings\"><span class=\"sidebar-footer-icon\">&#9881;</span> Settings</a></nav><div class=\"resize-handle\" id=\"sidebar-resize\"></div><div id=\"main\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -114,7 +140,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div class=\"resize-handle\" id=\"toc-resize\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"resize-handle\" id=\"toc-resize\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -122,7 +148,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</div></div><dialog id=\"cmd-dialog\"><div id=\"cmd-box\"><div id=\"cmd-input-row\"><span class=\"cmd-icon-search\">&#8984;</span> <input id=\"cmd-input\" type=\"text\" placeholder=\"Search...\" autocomplete=\"off\"></div><div id=\"cmd-results\" class=\"scrollable\"></div><div id=\"cmd-footer\"><span class=\"cmd-hint\"><kbd>&#8593;&#8595;</kbd> navigate</span> <span class=\"cmd-hint\"><kbd>&#8629;</kbd> open</span> <span class=\"cmd-hint\"><kbd>esc</kbd> close</span></div></div></dialog> <dialog id=\"media-dialog\"><div id=\"media-container\"></div></dialog>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</div></div><dialog id=\"cmd-dialog\"><div id=\"cmd-box\"><div id=\"cmd-input-row\"><span class=\"cmd-icon-search\">&#8984;</span> <input id=\"cmd-input\" type=\"text\" placeholder=\"Search...\" autocomplete=\"off\"></div><div id=\"cmd-results\" class=\"scrollable\"></div><div id=\"cmd-footer\"><span class=\"cmd-hint\"><kbd>&#8593;&#8595;</kbd> navigate</span> <span class=\"cmd-hint\"><kbd>&#8629;</kbd> open</span> <span class=\"cmd-hint\"><kbd>esc</kbd> close</span></div></div></dialog> <dialog id=\"media-dialog\"><div id=\"media-container\"></div></dialog>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -130,7 +156,33 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<script src=\"/static/htmx.min.js\"></script><script src=\"/static/app.min.js\"></script><div id=\"toast-container\"></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "<script src=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 string
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(Asset("htmx.min.js"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 117, Col: 36}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"></script><script src=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var6 string
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(Asset("app.min.js"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 118, Col: 35}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\"></script><div id=\"toast-container\"></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
