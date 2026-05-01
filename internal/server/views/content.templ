@@ -65,7 +65,7 @@ templ noteActions(path string, shareToken string) {
 	</button>
 }
 
-templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading, shareToken string) {
+templ NoteArticle(note *index.Note, noteHTML string, headings []markdown.Heading, shareToken string) {
 	if len(headings) > 0 {
 		<details id="mob-toc-details" class="mob-toc" aria-label="Table of contents">
 			<summary class="mob-toc-toggle">On this page</summary>
@@ -91,19 +91,6 @@ templ NoteArticle(note *index.Note, noteHTML string, backlinks []index.Link, hea
 		<div class="prose">
 			@templ.Raw(noteHTML)
 		</div>
-		if len(backlinks) > 0 {
-			<section id="backlinks-section">
-				<h4>Referenced by</h4>
-				for _, link := range backlinks {
-					@ContentLink("list-item backlink-card", "/notes/" + link.SourcePath) {
-						<span class="backlink-card-title">{ link.SourceTitle }</span>
-						if backlinkDir(link.SourcePath) != "" {
-							<span class="backlink-card-path"><span>{ backlinkDir(link.SourcePath) }</span></span>
-						}
-					}
-				}
-			</section>
-		}
 	}
 }
 
@@ -174,10 +161,10 @@ templ FolderListing(folderName string, entries []FolderEntry) {
 	}
 }
 
-templ NoteContentInner(segments []BreadcrumbSegment, note *index.Note, noteHTML string, backlinks []index.Link, headings []markdown.Heading, shareToken string) {
+templ NoteContentInner(segments []BreadcrumbSegment, note *index.Note, noteHTML string, headings []markdown.Heading, shareToken string) {
 	@Breadcrumb(segments, note.Title)
 	<div id="content-area">
-		@NoteArticle(note, noteHTML, backlinks, headings, shareToken)
+		@NoteArticle(note, noteHTML, headings, shareToken)
 	</div>
 }
 

@@ -15,8 +15,6 @@ type LayoutParams struct {
 	Bookmarks      []BookmarkEntry
 	ContentCol     templ.Component
 	Headings       []markdown.Heading
-	OutgoingLinks  []index.Link
-	Backlinks      []index.Link
 	CalendarYear   int
 	CalendarMonth  int
 	ActiveDays     map[int]bool
@@ -97,7 +95,7 @@ templ Layout(p LayoutParams) {
 			<div id="main">
 				@p.ContentCol
 				<div class="resize-handle" id="toc-resize"></div>
-				@TOCPanel(p.Headings, p.OutgoingLinks, p.Backlinks, false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel, p.NotePath)
+				@TOCPanel(p.Headings, false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel, p.NotePath)
 			</div>
 		</div>
 		<dialog id="cmd-dialog">

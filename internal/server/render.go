@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
 	"github.com/raphi011/kb/internal/server/views"
 )
@@ -13,8 +12,6 @@ import (
 // TOCData holds everything needed for the OOB TOC panel.
 type TOCData struct {
 	Headings       []markdown.Heading
-	OutgoingLinks  []index.Link
-	Backlinks      []index.Link
 	FlashcardPanel *views.FlashcardPanelData
 	SlidePanel     *views.SlidePanelData
 	NotePath       string
@@ -40,8 +37,6 @@ func (s *Server) renderContent(w http.ResponseWriter, r *http.Request, title str
 		Tree:           s.noteCache().tree,
 		ContentCol:     views.ContentCol(inner),
 		Headings:       toc.Headings,
-		OutgoingLinks:  toc.OutgoingLinks,
-		Backlinks:      toc.Backlinks,
 		FlashcardPanel: toc.FlashcardPanel,
 		SlidePanel:     toc.SlidePanel,
 		NotePath:       toc.NotePath,
@@ -51,7 +46,7 @@ func (s *Server) renderContent(w http.ResponseWriter, r *http.Request, title str
 // renderTOC renders the TOC panel as an OOB swap for HTMX requests.
 func (s *Server) renderTOC(w http.ResponseWriter, r *http.Request, toc TOCData) {
 	calYear, calMonth, activeDays := s.calendarData()
-	if err := views.TOCPanel(toc.Headings, toc.OutgoingLinks, toc.Backlinks, true, calYear, calMonth, activeDays, toc.FlashcardPanel, toc.SlidePanel, toc.NotePath).Render(r.Context(), w); err != nil {
+	if err := views.TOCPanel(toc.Headings, true, calYear, calMonth, activeDays, toc.FlashcardPanel, toc.SlidePanel, toc.NotePath).Render(r.Context(), w); err != nil {
 		slog.Error("render TOC", "error", err)
 	}
 }

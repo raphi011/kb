@@ -168,6 +168,7 @@ func (s *Server) registerRoutes() error {
 	s.mux.HandleFunc("POST /api/settings/sync", s.handleSync)
 	s.mux.HandleFunc("POST /api/settings/reindex", s.handleForceReindex)
 	s.mux.HandleFunc("GET /preview/{path...}", s.handlePreview)
+	s.mux.HandleFunc("GET /api/panels/{path...}", s.handleNotePanels)
 	s.mux.HandleFunc("GET /api/git/history/{path...}", s.handleGitHistory)
 	s.mux.HandleFunc("GET /api/git/version/{hash}/{path...}", s.handleGitVersion)
 	return nil

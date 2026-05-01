@@ -178,48 +178,15 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 	// Prepend the note title as an h1 entry so it appears in the TOC.
 	headings = append([]markdown.Heading{{Text: note.Title, ID: "article-title", Level: 1}}, headings...)
 
-	outLinks, err := s.store.OutgoingLinks(note.Path)
-	if err != nil {
-		slog.Error("outgoing links", "path", note.Path, "error", err)
-	}
-	backlinks, err := s.store.Backlinks(note.Path)
-	if err != nil {
-		slog.Error("backlinks", "path", note.Path, "error", err)
-	}
 	breadcrumbs := buildBreadcrumbs(note.Path)
-
-	var fcPanel *views.FlashcardPanelData
-	for _, tag := range note.Tags {
-		if tag == "flashcards" || strings.HasPrefix(tag, "flashcards/") {
-			if overviews, err := s.store.CardOverviewsForNote(note.Path); err == nil {
-				dueCount := 0
-				for _, c := range overviews {
-					if c.Status == "due" || c.Status == "new" {
-						dueCount++
-					}
-				}
-				fcPanel = &views.FlashcardPanelData{
-					NotePath:   note.Path,
-					DueCount:   dueCount,
-					TotalCount: len(overviews),
-					Cards:      overviews,
-				}
-			}
-			break
-		}
-	}
-
 	shareToken, _ := s.store.ShareTokenForNote(note.Path)
 
 	toc := TOCData{
-		Headings:       headings,
-		OutgoingLinks:  outLinks,
-		Backlinks:      backlinks,
-		FlashcardPanel: fcPanel,
-		NotePath:       note.Path,
+		Headings: headings,
+		NotePath: note.Path,
 	}
 
-	inner := views.NoteContentInner(breadcrumbs, note, html, backlinks, headings, shareToken)
+	inner := views.NoteContentInner(breadcrumbs, note, html, headings, shareToken)
 	s.renderContent(w, r, note.Title, inner, toc)
 }
 

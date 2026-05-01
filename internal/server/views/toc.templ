@@ -68,7 +68,7 @@ templ GitHistoryItems(commits []gitrepo.FileCommit, notePath string) {
 	}
 }
 
-templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []index.Link, oob bool, calYear int, calMonth int, activeDays map[int]bool, flashcardPanel *FlashcardPanelData, slidePanel *SlidePanelData, notePath string) {
+templ TOCPanel(headings []markdown.Heading, oob bool, calYear int, calMonth int, activeDays map[int]bool, flashcardPanel *FlashcardPanelData, slidePanel *SlidePanelData, notePath string) {
 	<aside
 		id="toc-panel"
 		if oob {
@@ -92,57 +92,72 @@ templ TOCPanel(headings []markdown.Heading, outgoing []index.Link, backlinks []i
 					<span class="toc-empty">No headings</span>
 				</div>
 			}
-			if len(outgoing) > 0 {
-				@PanelSection(PanelProps{Label: "Links", Count: len(outgoing), ID: "links", Open: true, Class: "toc-links-section", BodyClass: "toc-links-body"}) {
-					for _, link := range outgoing {
-						if link.External {
-							<a class="list-item toc-link-item toc-link-out" href={ templ.SafeURL(link.TargetPath) } target="_blank" rel="noopener">
-								if link.Title != "" {
-									{ link.Title }
-								} else {
-									{ link.TargetPath }
-								}
-							</a>
-						} else if link.TargetPath != "" {
-							@ContentLink("list-item toc-link-item toc-link-out", "/notes/" + link.TargetPath) {
-								if link.Title != "" {
-									{ link.Title }
-								} else {
-									{ link.TargetPath }
-								}
-							}
-						} else {
-							<span class="list-item toc-link-item toc-link-out">{ link.Title }</span>
-						}
-					}
-				}
-			} else {
-				<div class="panel-section panel-empty">
-					<span class="section-label panel-label">Links <span class="panel-count">0</span></span>
-				</div>
-			}
-			if len(backlinks) > 0 {
-				@PanelSection(PanelProps{Label: "Backlinks", Count: len(backlinks), ID: "backlinks", Open: true, Class: "toc-links-section", BodyClass: "toc-links-body"}) {
-					for _, link := range backlinks {
-						@ContentLink("list-item toc-link-item toc-link-in", "/notes/" + link.SourcePath) {
-							{ link.SourceTitle }
-						}
-					}
-				}
-			} else {
-				<div class="panel-section panel-empty">
-					<span class="section-label panel-label">Backlinks <span class="panel-count">0</span></span>
-				</div>
-			}
 			if notePath != "" {
-				@GitHistoryPanel(notePath)
+				<div
+					id="toc-panels-lazy"
+					hx-get={ "/api/panels/" + notePath }
+					hx-trigger="load"
+					hx-swap="outerHTML"
+				></div>
 			}
-		}
-		if flashcardPanel != nil {
-			@FlashcardPanel(*flashcardPanel)
+		} else {
+			if flashcardPanel != nil {
+				@FlashcardPanel(*flashcardPanel)
+			}
 		}
 		if slidePanel != nil {
 			@SlidePanel(*slidePanel)
 		}
 	</aside>
+}
+
+templ TOCPanelsLazy(outgoing []index.Link, backlinks []index.Link, flashcardPanel *FlashcardPanelData, notePath string) {
+	if len(outgoing) > 0 {
+		@PanelSection(PanelProps{Label: "Links", Count: len(outgoing), ID: "links", Open: true, Class: "toc-links-section", BodyClass: "toc-links-body"}) {
+			for _, link := range outgoing {
+				if link.External {
+					<a class="list-item toc-link-item toc-link-out" href={ templ.SafeURL(link.TargetPath) } target="_blank" rel="noopener">
+						if link.Title != "" {
+							{ link.Title }
+						} else {
+							{ link.TargetPath }
+						}
+					</a>
+				} else if link.TargetPath != "" {
+					@ContentLink("list-item toc-link-item toc-link-out", "/notes/" + link.TargetPath) {
+						if link.Title != "" {
+							{ link.Title }
+						} else {
+							{ link.TargetPath }
+						}
+					}
+				} else {
+					<span class="list-item toc-link-item toc-link-out">{ link.Title }</span>
+				}
+			}
+		}
+	} else {
+		<div class="panel-section panel-empty">
+			<span class="section-label panel-label">Links <span class="panel-count">0</span></span>
+		</div>
+	}
+	if len(backlinks) > 0 {
+		@PanelSection(PanelProps{Label: "Backlinks", Count: len(backlinks), ID: "backlinks", Open: true, Class: "toc-links-section", BodyClass: "toc-links-body"}) {
+			for _, link := range backlinks {
+				@ContentLink("list-item toc-link-item toc-link-in", "/notes/" + link.SourcePath) {
+					{ link.SourceTitle }
+				}
+			}
+		}
+	} else {
+		<div class="panel-section panel-empty">
+			<span class="section-label panel-label">Backlinks <span class="panel-count">0</span></span>
+		</div>
+	}
+	if notePath != "" {
+		@GitHistoryPanel(notePath)
+	}
+	if flashcardPanel != nil {
+		@FlashcardPanel(*flashcardPanel)
+	}
 }
