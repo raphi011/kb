@@ -139,7 +139,7 @@ func (s *Server) registerRoutes() error {
 		return fmt.Errorf("static fs: %w", err)
 	}
 	s.mux.Handle("GET /static/", cacheControl("public, max-age=31536000, immutable",
-		http.StripPrefix("/static/", http.FileServer(http.FS(staticSub)))))
+		http.StripPrefix("/static/", preGzipFileServer(staticSub))))
 	s.mux.HandleFunc("GET /static/chroma.css", s.handleChromaCSS)
 	s.mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 	s.mux.HandleFunc("GET /login", s.handleLoginPage)

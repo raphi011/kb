@@ -58,11 +58,17 @@ clean:
 
 bundle-js:
     npx esbuild internal/server/static/js/app.js --bundle --minify --format=iife --outfile=internal/server/static/app.min.js
+    gzip -kf9 internal/server/static/app.min.js
 
 bundle-css:
     npx esbuild internal/server/static/css/style.css --bundle --minify --outfile=internal/server/static/style.min.css
+    gzip -kf9 internal/server/static/style.min.css
 
 bundle: bundle-js bundle-css
+    gzip -kf9 internal/server/static/htmx.min.js
+    gzip -kf9 internal/server/static/mermaid.min.js
+    gzip -kf9 internal/server/static/marp-core.min.js
+    gzip -kf9 internal/server/static/marp-browser.min.js
 
 dev repo:
     #!/usr/bin/env bash

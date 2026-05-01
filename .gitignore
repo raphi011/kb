@@ -2,3 +2,4 @@
 /kb
 .worktrees/
 *.map
+internal/server/static/*.gz

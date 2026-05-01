@@ -15,7 +15,13 @@ RUN curl -fsSL https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js \
     curl -fsSL https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js \
       -o internal/server/static/mermaid.min.js && \
     npx esbuild internal/server/static/js/app.js --bundle --minify --format=iife --outfile=internal/server/static/app.min.js && \
-    npx esbuild internal/server/static/css/style.css --bundle --minify --outfile=internal/server/static/style.min.css
+    npx esbuild internal/server/static/css/style.css --bundle --minify --outfile=internal/server/static/style.min.css && \
+    gzip -kf9 internal/server/static/app.min.js && \
+    gzip -kf9 internal/server/static/style.min.css && \
+    gzip -kf9 internal/server/static/htmx.min.js && \
+    gzip -kf9 internal/server/static/mermaid.min.js && \
+    gzip -kf9 internal/server/static/marp-core.min.js && \
+    gzip -kf9 internal/server/static/marp-browser.min.js
 
 RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o /bin/kb ./cmd/kb
 

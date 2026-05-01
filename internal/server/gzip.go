@@ -53,6 +53,12 @@ func gzipMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
+		// Static assets are served pre-compressed; skip dynamic gzip.
+		if strings.HasPrefix(r.URL.Path, "/static/") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		gz := gzipPool.Get().(*gzip.Writer)
 		gz.Reset(w)
 
