@@ -55,6 +55,10 @@ func (s *Server) calendarData() (int, int, map[int]bool) {
 
 // renderFullPage renders a complete page layout with sidebar, TOC, and calendar.
 func (s *Server) renderFullPage(w http.ResponseWriter, r *http.Request, p views.LayoutParams) {
+	w.Header().Add("Link", `</static/style.min.css>; rel=preload; as=style`)
+	w.Header().Add("Link", `</static/htmx.min.js>; rel=preload; as=script`)
+	w.Header().Add("Link", `</static/app.min.js>; rel=preload; as=script`)
+
 	cache := s.noteCache()
 	calYear, calMonth, activeDays := s.calendarData()
 	p.Tags = cache.tags
