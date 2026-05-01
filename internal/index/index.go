@@ -99,43 +99,15 @@ func (d *DB) WithTx(fn func(tx *Tx) error) error {
 }
 
 func (d *DB) UpsertNote(n Note) error {
-	var metadataJSON []byte
-	if n.Metadata != nil {
-		var err error
-		metadataJSON, err = json.Marshal(n.Metadata)
-		if err != nil {
-			return fmt.Errorf("marshal metadata: %w", err)
-		}
-	}
-
-	_, err := d.db.Exec(`
-		INSERT INTO notes (path, title, body, lead, word_count, is_marp, created, modified, metadata)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-		ON CONFLICT(path) DO UPDATE SET
-			title = excluded.title,
-			body = excluded.body,
-			lead = excluded.lead,
-			word_count = excluded.word_count,
-			is_marp = excluded.is_marp,
-			created = excluded.created,
-			modified = excluded.modified,
-			metadata = excluded.metadata`,
-		n.Path, n.Title, n.Body, n.Lead, n.WordCount, n.IsMarp,
-		formatTime(n.Created), formatTime(n.Modified),
-		string(metadataJSON),
-	)
-	if err != nil {
-		return fmt.Errorf("upsert note: %w", mapDBError(err))
-	}
-	return nil
+	return d.WithTx(func(tx *Tx) error {
+		return tx.UpsertNote(n)
+	})
 }
 
 func (d *DB) DeleteNote(path string) error {
-	_, err := d.db.Exec("DELETE FROM notes WHERE path = ?", path)
-	if err != nil {
-		return fmt.Errorf("delete note: %w", err)
-	}
-	return nil
+	return d.WithTx(func(tx *Tx) error {
+		return tx.DeleteNote(path)
+	})
 }
 
 func (d *DB) SetTags(path string, tags []string) error {
@@ -150,87 +122,6 @@ func (d *DB) SetLinks(path string, links []Link) error {
 	})
 }
 
-// ResolveLinks updates target_path for non-external links by matching
-// wiki-link stems (e.g. "chezmoi") to actual note paths (e.g. "notes/tools/chezmoi.md").
-func (d *DB) ResolveLinks() error {
-	// Build stem → path lookup from all notes.
-	notes, err := d.AllNotes()
-	if err != nil {
-		return fmt.Errorf("all notes: %w", err)
-	}
-	lookup := make(map[string]string, len(notes))
-	for _, n := range notes {
-		stem := n.Path
-		if idx := strings.LastIndex(stem, "/"); idx >= 0 {
-			stem = stem[idx+1:]
-		}
-		stem = strings.TrimSuffix(stem, ".md")
-		// First match wins — if there are duplicates, the first one indexed takes precedence.
-		if _, exists := lookup[stem]; !exists {
-			lookup[stem] = n.Path
-		}
-	}
-
-	// Find all non-external links whose target_path doesn't match an existing note.
-	rows, err := d.db.Query(`
-		SELECT l.source_path, l.target_path
-		FROM links l
-		LEFT JOIN notes n ON n.path = l.target_path
-		WHERE l.external = 0 AND n.path IS NULL`)
-	if err != nil {
-		return fmt.Errorf("query unresolved links: %w", err)
-	}
-	defer rows.Close()
-
-	type unresolvedLink struct {
-		sourcePath string
-		targetPath string
-	}
-	var unresolved []unresolvedLink
-	for rows.Next() {
-		var l unresolvedLink
-		if err := rows.Scan(&l.sourcePath, &l.targetPath); err != nil {
-			return err
-		}
-		unresolved = append(unresolved, l)
-	}
-	if err := rows.Err(); err != nil {
-		return err
-	}
-
-	if len(unresolved) == 0 {
-		return nil
-	}
-
-	tx, err := d.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	var resolved int
-	for _, l := range unresolved {
-		stem := strings.TrimSuffix(l.targetPath, ".md")
-		if fullPath, ok := lookup[stem]; ok {
-			if _, err := tx.Exec(
-				"UPDATE links SET target_path = ? WHERE source_path = ? AND target_path = ?",
-				fullPath, l.sourcePath, l.targetPath,
-			); err != nil {
-				return err
-			}
-			resolved++
-		}
-	}
-
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	if resolved > 0 {
-		slog.Info("resolved wiki-links", "resolved", resolved, "unresolved", len(unresolved)-resolved)
-	}
-	return nil
-}
 
 func (d *DB) SetMeta(key, value string) error {
 	_, err := d.db.Exec(

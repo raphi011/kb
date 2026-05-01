@@ -146,6 +146,11 @@ func (kb *KB) fullIndex(headSHA string) error {
 		go func(p string, c []byte) {
 			defer wg.Done()
 			defer func() { <-sem }()
+			defer func() {
+				if r := recover(); r != nil {
+					slog.Error("panic parsing file", "path", p, "panic", r)
+				}
+			}()
 
 			doc := markdown.ParseMarkdown(string(c))
 			mu.Lock()
@@ -194,7 +199,9 @@ func (kb *KB) incrementalIndex(oldSHA, newSHA string) error {
 	}
 
 	// Read all changed file contents in one tree traversal.
-	changedPaths := append(diff.Added, diff.Modified...)
+	changedPaths := make([]string, 0, len(diff.Added)+len(diff.Modified))
+	changedPaths = append(changedPaths, diff.Added...)
+	changedPaths = append(changedPaths, diff.Modified...)
 	blobs, err := kb.repo.ReadBlobs(changedPaths)
 	if err != nil {
 		return fmt.Errorf("read blobs: %w", err)
@@ -238,7 +245,7 @@ func (kb *KB) incrementalIndex(oldSHA, newSHA string) error {
 	err = kb.idx.WithTx(func(tx *index.Tx) error {
 		for _, path := range diff.Deleted {
 			if err := tx.DeleteNote(path); err != nil {
-				slog.Warn("delete note failed", "path", path, "error", err)
+				return fmt.Errorf("delete note %s: %w", path, err)
 			}
 		}
 
@@ -255,8 +262,8 @@ func (kb *KB) incrementalIndex(oldSHA, newSHA string) error {
 			return fmt.Errorf("all %d files failed to index", skipped)
 		}
 
-		// Only resolve links if note set changed (additions/deletions affect resolution).
-		if len(diff.Added) > 0 || len(diff.Deleted) > 0 {
+		// Resolve links when notes are added, deleted, or modified (modifications may add new wiki-links).
+		if len(diff.Added) > 0 || len(diff.Deleted) > 0 || len(diff.Modified) > 0 {
 			if err := tx.ResolveLinks(); err != nil {
 				return fmt.Errorf("resolve links: %w", err)
 			}

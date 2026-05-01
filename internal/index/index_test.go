@@ -164,7 +164,9 @@ func TestResolveLinks(t *testing.T) {
 	}
 
 	// Resolve.
-	if err := db.ResolveLinks(); err != nil {
+	if err := db.WithTx(func(tx *Tx) error {
+		return tx.ResolveLinks()
+	}); err != nil {
 		t.Fatal(err)
 	}
 

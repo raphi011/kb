@@ -307,19 +307,25 @@ func (r *Repo) ReadBlobs(paths []string) (map[string][]byte, error) {
 	}
 
 	blobs := make(map[string][]byte, len(paths))
-	tree.Files().ForEach(func(f *object.File) error {
+	err = tree.Files().ForEach(func(f *object.File) error {
 		if _, ok := need[f.Name]; !ok {
 			return nil
 		}
 		reader, err := f.Reader()
 		if err != nil {
-			return nil
+			return fmt.Errorf("read %s: %w", f.Name, err)
 		}
 		defer reader.Close()
-		data, _ := io.ReadAll(reader)
+		data, err := io.ReadAll(reader)
+		if err != nil {
+			return fmt.Errorf("read all %s: %w", f.Name, err)
+		}
 		blobs[f.Name] = data
 		return nil
 	})
+	if err != nil {
+		return nil, fmt.Errorf("read blobs: %w", err)
+	}
 	return blobs, nil
 }
 
