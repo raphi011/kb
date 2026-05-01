@@ -56,6 +56,7 @@ type Store interface {
 	NotesWithFlashcards() ([]index.NoteFlashcardCount, error)
 	ReviewSummaryForNote(notePath string) (index.ReviewSummary, error)
 	CardOverviewsForNote(notePath string) ([]index.CardOverview, error)
+	IndexSHA() (string, error)
 }
 
 // ReIndexer refreshes the git HEAD and re-indexes changed notes.

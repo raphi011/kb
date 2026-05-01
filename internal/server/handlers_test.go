@@ -119,6 +119,7 @@ func (m *mockKB) FlashcardsForNote(path string) ([]srs.Card, error)           { 
 func (m *mockKB) NotesWithFlashcards() ([]index.NoteFlashcardCount, error)    { return nil, nil }
 func (m *mockKB) ReviewSummaryForNote(string) (index.ReviewSummary, error)    { return index.ReviewSummary{}, nil }
 func (m *mockKB) CardOverviewsForNote(string) ([]index.CardOverview, error)  { return nil, nil }
+func (m *mockKB) IndexSHA() (string, error)                                  { return "abc123", nil }
 
 func newTestServer(t *testing.T) *Server {
 	t.Helper()

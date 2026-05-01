@@ -21,6 +21,7 @@ type noteCache struct {
 	calendarYear  int
 	calendarMonth int
 	activeDays    map[int]bool
+	indexSHA      string
 }
 
 func buildNoteCache(store Store) (*noteCache, error) {
@@ -60,6 +61,8 @@ func buildNoteCache(store Store) (*noteCache, error) {
 		activeDays = map[int]bool{}
 	}
 
+	sha, _ := store.IndexSHA()
+
 	return &noteCache{
 		notes:         notes,
 		tags:          tags,
@@ -71,6 +74,7 @@ func buildNoteCache(store Store) (*noteCache, error) {
 		calendarYear:  year,
 		calendarMonth: month,
 		activeDays:    activeDays,
+		indexSHA:      sha,
 	}, nil
 }
 

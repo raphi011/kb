@@ -541,6 +541,10 @@ func (kb *KB) ReviewSummaryForNote(notePath string) (index.ReviewSummary, error)
 	return summary, nil
 }
 
+func (kb *KB) IndexSHA() (string, error) {
+	return kb.idx.GetMeta("head_commit")
+}
+
 func (kb *KB) CardOverviewsForNote(notePath string) ([]index.CardOverview, error) {
 	overviews, err := kb.srs.CardOverviewsForNote(notePath)
 	if err != nil {
