@@ -68,7 +68,7 @@ templ GitHistoryItems(commits []gitrepo.FileCommit, notePath string) {
 	}
 }
 
-templ DetailPanel(oob bool, calYear int, calMonth int, activeDays map[int]bool, flashcardPanel *FlashcardPanelData, slidePanel *SlidePanelData, notePath string) {
+templ DetailPanel(oob bool, flashcardPanel *FlashcardPanelData, slidePanel *SlidePanelData, notePath string) {
 	<aside
 		id="detail-panel"
 		if oob {
@@ -76,10 +76,6 @@ templ DetailPanel(oob bool, calYear int, calMonth int, activeDays map[int]bool, 
 		}
 	>
 		if flashcardPanel == nil || !flashcardPanel.ReviewMode {
-			if calYear > 0 {
-				@Calendar(calYear, calMonth, activeDays, 0)
-				<div class="resize-handle-v" data-resize-target="next"></div>
-			}
 			if notePath != "" {
 				<div
 					id="detail-panels-lazy"

@@ -47,15 +47,21 @@ templ TagList(tags []index.Tag) {
 	}
 }
 
-templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFlashcardCount, bookmarks []BookmarkEntry) {
+templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFlashcardCount, bookmarks []BookmarkEntry, calYear int, calMonth int, activeDays map[int]bool) {
 	<div id="active-filters"></div>
 	<div id="sidebar-inner" class="scrollable">
 		if len(nodes) > 0 {
+			<span class="section-label panel-label panel-label-static">Files</span>
 			<div class="server-tree">
 				@Tree(nodes)
 			</div>
 		}
 	</div>
+	if calYear > 0 {
+		@PanelSection(PanelProps{Label: "Calendar", ID: "calendar", Open: true}) {
+			@Calendar(calYear, calMonth, activeDays, 0)
+		}
+	}
 	@BookmarksPanel(bookmarks)
 	if len(flashcardNotes) > 0 {
 		<div class="resize-handle-v server-tree" data-resize-target="next"></div>

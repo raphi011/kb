@@ -128,7 +128,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = Sidebar(p.Tree, p.Tags, p.FlashcardNotes, p.Bookmarks).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Sidebar(p.Tree, p.Tags, p.FlashcardNotes, p.Bookmarks, p.CalendarYear, p.CalendarMonth, p.ActiveDays).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -144,7 +144,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = DetailPanel(false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel, p.NotePath).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DetailPanel(false, p.FlashcardPanel, p.SlidePanel, p.NotePath).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

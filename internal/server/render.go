@@ -42,8 +42,7 @@ func (s *Server) renderContent(w http.ResponseWriter, r *http.Request, title str
 
 // renderDetailPanel renders the detail panel as an OOB swap for HTMX requests.
 func (s *Server) renderDetailPanel(w http.ResponseWriter, r *http.Request, dp DetailPanelData) {
-	calYear, calMonth, activeDays := s.calendarData()
-	if err := views.DetailPanel(true, calYear, calMonth, activeDays, dp.FlashcardPanel, dp.SlidePanel, dp.NotePath).Render(r.Context(), w); err != nil {
+	if err := views.DetailPanel(true, dp.FlashcardPanel, dp.SlidePanel, dp.NotePath).Render(r.Context(), w); err != nil {
 		slog.Error("render detail panel", "error", err)
 	}
 }

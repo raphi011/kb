@@ -81,7 +81,7 @@ templ Layout(p LayoutParams) {
 		<div id="drawer-backdrop"></div>
 		<div id="layout">
 			<nav id="sidebar">
-				@Sidebar(p.Tree, p.Tags, p.FlashcardNotes, p.Bookmarks)
+				@Sidebar(p.Tree, p.Tags, p.FlashcardNotes, p.Bookmarks, p.CalendarYear, p.CalendarMonth, p.ActiveDays)
 				<a
 					class="sidebar-footer"
 					href="/settings"
@@ -96,7 +96,7 @@ templ Layout(p LayoutParams) {
 			<div id="main">
 				@p.ContentCol
 				<div class="resize-handle" id="detail-resize"></div>
-				@DetailPanel(false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel, p.NotePath)
+				@DetailPanel(false, p.FlashcardPanel, p.SlidePanel, p.NotePath)
 			</div>
 		</div>
 		<dialog id="cmd-dialog">
