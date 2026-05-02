@@ -1,5 +1,5 @@
-// Command genchroma writes a static chroma.css combining the dark (dracula)
-// and light (github) Chroma styles, scoped via the [data-theme] attribute on
+// Command genchroma writes a static chroma.css combining the dark (gruvbox)
+// and light (gruvbox-light) Chroma styles, scoped via the [data-theme] attribute on
 // <html> so a single stylesheet can drive both themes.
 //
 // The output is a build artifact consumed by the asset fingerprinter; doing
@@ -20,8 +20,8 @@ import (
 
 func main() {
 	out := flag.String("out", "internal/server/static/chroma.css", "output path")
-	darkStyle := flag.String("dark", "dracula", "Chroma style name for dark mode")
-	lightStyle := flag.String("light", "github", "Chroma style name for light mode")
+	darkStyle := flag.String("dark", "gruvbox", "Chroma style name for dark mode")
+	lightStyle := flag.String("light", "gruvbox-light", "Chroma style name for light mode")
 	flag.Parse()
 
 	dark, err := buildChromaCSS(*darkStyle)

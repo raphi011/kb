@@ -22,13 +22,13 @@ func TestPreloadHeaders(t *testing.T) {
 		}
 		links := w.Header().Values("Link")
 		joined := strings.Join(links, ", ")
-		if !strings.Contains(joined, "style.min.css") {
+		if !strings.Contains(joined, "style.min") {
 			t.Errorf("missing CSS preload in Link headers: %q", joined)
 		}
-		if !strings.Contains(joined, "htmx.min.js") {
+		if !strings.Contains(joined, "htmx.min") {
 			t.Errorf("missing htmx preload in Link headers: %q", joined)
 		}
-		if !strings.Contains(joined, "app.min.js") {
+		if !strings.Contains(joined, "app.min") {
 			t.Errorf("missing app.min.js preload in Link headers: %q", joined)
 		}
 	})

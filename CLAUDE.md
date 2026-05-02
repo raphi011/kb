@@ -29,6 +29,12 @@ just clean          # rm -f kb
 templ generate      # regenerate *_templ.go from *.templ
 ```
 
+## Asset Change Pipeline
+
+Static assets are embedded (`//go:embed static`) and served fingerprinted from `static/dist/`.
+Changing a source file (e.g. `chroma.css`, JS, CSS) requires: `just bundle` → rebuild binary.
+`just dev` handles this automatically via watch mode; manual builds do not.
+
 ## Environment Variables
 
 | Variable | Purpose |
