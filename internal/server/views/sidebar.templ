@@ -58,7 +58,7 @@ templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFl
 		}
 	</div>
 	if calYear > 0 {
-		@PanelSection(PanelProps{Label: "Calendar", ID: "calendar", Open: true}) {
+		@PanelSection(PanelProps{Label: "Calendar", ID: "calendar", Open: true, HideCount: true}) {
 			@Calendar(calYear, calMonth, activeDays, 0)
 		}
 	}

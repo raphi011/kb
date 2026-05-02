@@ -31,6 +31,7 @@
     min-height: 0;
     overflow-y: auto;
     padding: 0 0 env(safe-area-inset-bottom);
+    background: var(--surface);
 
     > :first-child { margin-top: var(--space-4); }
   }

@@ -59,6 +59,12 @@ func nextMonth(year, month int) (int, int) {
 	return t.Year(), int(t.Month())
 }
 
+// currentMonth returns year, month for the current month.
+func currentMonth() (int, int) {
+	now := time.Now()
+	return now.Year(), int(now.Month())
+}
+
 // isToday returns true if the given date is today.
 func isToday(year, month, day int) bool {
 	now := time.Now()
@@ -98,16 +104,22 @@ templ Calendar(year, month int, activeDays map[int]bool, selectedDay int) {
 				aria-label="Previous month"
 				hx-get={ calendarNavURL(prevMonth(year, month)) }
 				hx-target="#calendar"
-				hx-swap="outerHTML transition:true"
+				hx-swap="outerHTML"
 				hx-sync="closest #calendar:replace"
 			>&lsaquo;</button>
-			<span class="section-label cal-month-label">{ monthLabel(year, month) }</span>
+			<span
+				class="section-label cal-month-label"
+				hx-get={ calendarNavURL(currentMonth()) }
+				hx-target="#calendar"
+				hx-swap="outerHTML"
+				hx-sync="closest #calendar:replace"
+			>{ monthLabel(year, month) }</span>
 			<button
 				class="btn btn-icon cal-nav"
 				aria-label="Next month"
 				hx-get={ calendarNavURL(nextMonth(year, month)) }
 				hx-target="#calendar"
-				hx-swap="outerHTML transition:true"
+				hx-swap="outerHTML"
 				hx-sync="closest #calendar:replace"
 			>&rsaquo;</button>
 		</div>
@@ -127,8 +139,6 @@ templ Calendar(year, month int, activeDays map[int]bool, selectedDay int) {
 						<a
 							class={ calendarDayClasses(year, month, day, selectedDay, true) }
 							href={ templ.SafeURL(calendarURL(year, month, day)) }
-							hx-get={ calendarURL(year, month, day) }
-							hx-target="#sidebar-inner"
 							data-date={ fmt.Sprintf("%04d-%02d-%02d", year, month, day) }
 						>{ intStr(day) }</a>
 					} else {
