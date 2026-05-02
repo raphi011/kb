@@ -131,6 +131,14 @@
   &:hover { color: var(--text-muted); }
 }
 
+.panel-label-static {
+  cursor: default;
+  padding-top: var(--space-4);
+  padding-bottom: 0;
+
+  &:hover { color: inherit; }
+}
+
 .panel-count {
   font-size: 10px;
   background: var(--bg-active);
