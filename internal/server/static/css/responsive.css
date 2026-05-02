@@ -3,6 +3,7 @@
 @media (max-width: 850px) {
   #topbar {
     #mob-menu-btn { display: flex; }
+    #mob-detail-btn { display: flex; }
     #cmd-trigger { min-width: 0; flex: 1; font-size: 12px; }
   }
   #topbar #zen-toggle { display: none; }
@@ -24,10 +25,26 @@
     &.mob-open { transform: translateX(0); }
   }
 
-  #sidebar-backdrop.mob-open { opacity: 1; visibility: visible; }
+  #drawer-backdrop.mob-open { opacity: 1; visibility: visible; }
 
   .resize-handle { display: none; }
-  #detail-panel { display: none; }
+
+  #detail-panel {
+    position: fixed;
+    top: calc(var(--topbar-height) + env(safe-area-inset-top));
+    right: 0;
+    bottom: 0;
+    height: auto;
+    align-self: auto;
+    width: 70% !important;
+    max-width: 300px;
+    z-index: 200;
+    transform: translateX(100%);
+    transition: transform 0.22s ease;
+    box-shadow: -4px 0 20px oklch(0.15 0.02 70 / 0.15);
+
+    &.mob-open { transform: translateX(0); }
+  }
 
   #article { padding: 20px 18px 60px; }
   #breadcrumb { padding: 0 14px; font-size: 10px; }

@@ -65,6 +65,15 @@
     &:hover { color: var(--text); }
   }
 
+  #mob-detail-btn {
+    display: none;
+    color: var(--text-muted);
+    font-size: 16px;
+    flex-shrink: 0;
+
+    &:hover { color: var(--text); }
+  }
+
   #logo {
     display: flex;
     align-items: center;
@@ -139,9 +148,9 @@
   }
 }
 
-/* ── Sidebar backdrop (mobile) ─────────────────────────────── */
+/* ── Drawer backdrop (mobile) ──────────────────────────────── */
 
-#sidebar-backdrop {
+#drawer-backdrop {
   position: fixed;
   top: calc(var(--topbar-height) + env(safe-area-inset-top));
   left: 0;
