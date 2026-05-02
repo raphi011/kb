@@ -110,7 +110,7 @@ document.addEventListener('htmx:afterSettle', (e) => {
     closeMobileDrawer();
     updateTreeActive();
     registry.init(e.detail.target);
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   }
   if (id === 'calendar' || id === 'detail-panel') {
     registry.init(e.detail.target);
