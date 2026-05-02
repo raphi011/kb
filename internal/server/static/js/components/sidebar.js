@@ -4,11 +4,12 @@ import { Events } from '../lib/events.js';
 let selectedTags = [];
 let selectedDate = null;
 
-let filtersEl, sidebarInner, sidebar;
+let filtersEl, sidebarInner, sidebarTree, sidebar;
 
 export function initSidebar() {
   filtersEl = document.getElementById('active-filters');
   sidebarInner = document.getElementById('sidebar-inner');
+  sidebarTree = document.getElementById('sidebar-tree');
   sidebar = document.getElementById('sidebar');
 
   if (!sidebarInner) return;
@@ -55,7 +56,7 @@ export function initSidebar() {
 export function setDateFilter(date) {
   selectedDate = date;
   renderFilters();
-  htmx.ajax('GET', '/search?date=' + date, { target: '#sidebar-inner', swap: 'innerHTML' });
+  htmx.ajax('GET', '/search?date=' + date, { target: '#sidebar-tree', swap: 'innerHTML' });
 }
 
 // clearDateFilter removes the date filter, updates the filter bar,
@@ -86,7 +87,7 @@ function restoreSidebar() {
   } else {
     // No other filters — re-fetch the tree from the server since the
     // date filter's HTMX swap destroyed the original .server-tree DOM.
-    htmx.ajax('GET', '/search', { target: '#sidebar-inner', swap: 'innerHTML' });
+    htmx.ajax('GET', '/search', { target: '#sidebar-tree', swap: 'innerHTML' });
   }
 }
 
@@ -117,20 +118,20 @@ function render() {
   const hasTags = selectedTags.length > 0;
 
   if (!hasTags) {
-    for (const el of sidebarInner.children) {
+    for (const el of sidebarTree.children) {
       if (!el.classList.contains('client-results')) el.style.display = '';
     }
-    sidebarInner.querySelectorAll('.client-results').forEach(el => el.remove());
+    sidebarTree.querySelectorAll('.client-results').forEach(el => el.remove());
     return;
   }
 
-  for (const el of sidebarInner.children) {
+  for (const el of sidebarTree.children) {
     if (!el.classList.contains('client-results')) el.style.display = 'none';
   }
 
   let results = getManifest().filter(n => selectedTags.every(t => n.tags.includes(t)));
 
-  sidebarInner.querySelectorAll('.client-results').forEach(el => el.remove());
+  sidebarTree.querySelectorAll('.client-results').forEach(el => el.remove());
 
   const container = document.createElement('div');
   container.className = 'client-results';
@@ -149,7 +150,7 @@ function render() {
     `).join('');
   }
 
-  sidebarInner.appendChild(container);
+  sidebarTree.appendChild(container);
   htmx.process(container);
 }
 

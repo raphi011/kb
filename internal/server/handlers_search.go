@@ -58,7 +58,7 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, notes)
 			return
 		}
-		if err := views.Tree(buildTree(notes, "")).Render(r.Context(), w); err != nil {
+		if err := views.SidebarTree(buildTree(notes, "")).Render(r.Context(), w); err != nil {
 			slog.Error("render component", "error", err)
 		}
 		return

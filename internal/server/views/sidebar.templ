@@ -37,6 +37,12 @@ templ Tree(nodes []*FileNode) {
 	}
 }
 
+templ SidebarTree(nodes []*FileNode) {
+	<div class="server-tree">
+		@Tree(nodes)
+	</div>
+}
+
 templ TagList(tags []index.Tag) {
 	@PanelSection(PanelProps{Label: "Tags", Count: len(tags), ID: "tags", Open: true, Class: "panel-links-section server-tree", BodyClass: "panel-tags-body"}) {
 		for _, tag := range tags {
@@ -50,12 +56,14 @@ templ TagList(tags []index.Tag) {
 templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFlashcardCount, bookmarks []BookmarkEntry, calYear int, calMonth int, activeDays map[int]bool) {
 	<div id="active-filters"></div>
 	<div id="sidebar-inner" class="scrollable">
-		if len(nodes) > 0 {
-			<span class="section-label panel-label panel-label-static">Files</span>
-			<div class="server-tree">
-				@Tree(nodes)
-			</div>
-		}
+		<span class="section-label panel-label panel-label-static">Files</span>
+		<div id="sidebar-tree">
+			if len(nodes) > 0 {
+				<div class="server-tree">
+					@Tree(nodes)
+				</div>
+			}
+		</div>
 	</div>
 	if calYear > 0 {
 		@PanelSection(PanelProps{Label: "Calendar", ID: "calendar", Open: true, HideCount: true}) {
