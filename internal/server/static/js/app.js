@@ -23,6 +23,7 @@ import './components/mermaid.js';
 
 import { navigateTo, fetchContent, isPathChange, updateTreeActive } from './navigation.js';
 import { initSidebar } from './components/sidebar.js';
+import { initDrawers } from './components/drawer.js';
 import { initCalendar } from './components/calendar.js';
 import { initCommandPalette } from './components/command-palette.js';
 import { initFlashcards } from './components/flashcards.js';
@@ -34,6 +35,7 @@ import { initPreview } from './components/preview.js';
 initTheme();
 initKeys();
 initSidebar();
+initDrawers();
 initCalendar();
 initCommandPalette();
 initFlashcards();
@@ -147,8 +149,8 @@ if (location.pathname.startsWith('/notes/')) {
 // ── Helpers ─────────────────────────────────────────────────
 
 function closeMobileDrawer() {
-  const sidebar = document.getElementById('sidebar');
-  const backdrop = document.getElementById('sidebar-backdrop');
-  if (sidebar) sidebar.classList.remove('mob-open');
-  if (backdrop) backdrop.classList.remove('mob-open');
+  const backdrop = document.getElementById('drawer-backdrop');
+  for (const el of document.querySelectorAll('.mob-open')) {
+    el.classList.remove('mob-open');
+  }
 }

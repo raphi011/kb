@@ -32,29 +32,15 @@ export function initSidebar() {
     }
   });
 
-  // Mobile sidebar toggle.
-  const menuBtn = document.getElementById('mob-menu-btn');
-  const backdrop = document.getElementById('sidebar-backdrop');
-  if (menuBtn && sidebar && backdrop) {
-    menuBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('mob-open');
-      backdrop.classList.toggle('mob-open');
+  // Tap topbar while left drawer is open → scroll file tree to top.
+  const topbar = document.getElementById('topbar');
+  const inner = document.getElementById('sidebar-inner');
+  if (topbar && inner && sidebar) {
+    topbar.addEventListener('click', (e) => {
+      if (!sidebar.classList.contains('mob-open')) return;
+      if (e.target.closest?.('button, a')) return;
+      inner.scrollTo({ top: 0, behavior: 'smooth' });
     });
-    backdrop.addEventListener('click', () => {
-      sidebar.classList.remove('mob-open');
-      backdrop.classList.remove('mob-open');
-    });
-
-    // Tap topbar while drawer is open → scroll file tree to top.
-    const topbar = document.getElementById('topbar');
-    const inner = document.getElementById('sidebar-inner');
-    if (topbar && inner) {
-      topbar.addEventListener('click', (e) => {
-        if (!sidebar.classList.contains('mob-open')) return;
-        if (e.target.closest?.('button, a')) return;
-        inner.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    }
   }
 
   document.addEventListener(Events.MANIFEST_CHANGED, () => {
@@ -105,10 +91,10 @@ function restoreSidebar() {
 }
 
 function openDrawer() {
-  const backdrop = document.getElementById('sidebar-backdrop');
-  if (sidebar && backdrop) {
+  if (sidebar) {
     sidebar.classList.add('mob-open');
-    backdrop.classList.add('mob-open');
+    const backdrop = document.getElementById('drawer-backdrop');
+    if (backdrop) backdrop.classList.add('mob-open');
   }
 }
 
