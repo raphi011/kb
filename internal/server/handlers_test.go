@@ -101,7 +101,7 @@ func (m *mockKB) NotePathForShareToken(token string) (string, error) {
 func (m *mockKB) ReIndex() error                                              { return nil }
 func (m *mockKB) ForceReIndex() error                                         { return m.forceReIndexErr }
 func (m *mockKB) Sync(context.Context, string) (*gitrepo.SyncResult, error)   { return &gitrepo.SyncResult{}, nil }
-func (m *mockKB) RenderWithTags(src []byte, _ []string) (markdown.RenderResult, error) {
+func (m *mockKB) RenderWithFlashcards(src []byte, _ bool) (markdown.RenderResult, error) {
 	return markdown.Render(src, nil, nil, false)
 }
 func (m *mockKB) RenderShared(src []byte) (markdown.RenderResult, error) {

@@ -44,7 +44,7 @@ templ generate      # regenerate *_templ.go from *.templ
 
 ## Flashcard Decks
 
-Notes become flashcard decks when tagged with `#flashcards` (inline) or `tags: [flashcards]` in frontmatter. Subtags like `tags: [flashcards/go]` also work.
+Notes become flashcard decks when `flashcards: true` is set in frontmatter (same pattern as `marp: true`).
 
 ### Card Formats
 

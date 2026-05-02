@@ -42,7 +42,7 @@ func (d *DB) searchFTS(q string, tags []string) ([]Note, error) {
 	}
 
 	query := fmt.Sprintf(`
-		SELECT n.path, n.title, n.lead, n.word_count, n.is_marp,
+		SELECT n.path, n.title, n.lead, n.word_count, n.is_marp, n.has_flashcards,
 		       n.created, n.modified, n.metadata,
 		       COALESCE(GROUP_CONCAT(t.name, char(1)), '') AS tags
 		FROM (
@@ -71,7 +71,7 @@ func (d *DB) searchByTags(tags []string) ([]Note, error) {
 	}
 
 	query := fmt.Sprintf(`
-		SELECT n.path, n.title, n.lead, n.word_count, n.is_marp,
+		SELECT n.path, n.title, n.lead, n.word_count, n.is_marp, n.has_flashcards,
 		       n.created, n.modified, n.metadata,
 		       COALESCE(GROUP_CONCAT(t.name, char(1)), '') AS tags
 		FROM notes n

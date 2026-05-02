@@ -26,18 +26,19 @@ func (t *Tx) UpsertNote(n Note) error {
 	}
 
 	_, err := t.tx.Exec(`
-		INSERT INTO notes (path, title, body, lead, word_count, is_marp, created, modified, metadata)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+		INSERT INTO notes (path, title, body, lead, word_count, is_marp, has_flashcards, created, modified, metadata)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		ON CONFLICT(path) DO UPDATE SET
 			title = excluded.title,
 			body = excluded.body,
 			lead = excluded.lead,
 			word_count = excluded.word_count,
 			is_marp = excluded.is_marp,
+			has_flashcards = excluded.has_flashcards,
 			created = excluded.created,
 			modified = excluded.modified,
 			metadata = excluded.metadata`,
-		n.Path, n.Title, n.Body, n.Lead, n.WordCount, n.IsMarp,
+		n.Path, n.Title, n.Body, n.Lead, n.WordCount, n.IsMarp, n.HasFlashcards,
 		formatTime(n.Created), formatTime(n.Modified),
 		string(metadataJSON),
 	)

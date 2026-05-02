@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS notes (
     lead        TEXT,
     word_count  INTEGER NOT NULL,
     is_marp     BOOLEAN NOT NULL DEFAULT 0,
+    has_flashcards BOOLEAN NOT NULL DEFAULT 0,
     created     DATETIME,
     modified    DATETIME,
     metadata    TEXT
@@ -106,4 +107,5 @@ CREATE TABLE IF NOT EXISTS shared_notes (
 // ALTER TABLE ... ADD COLUMN is a no-op if the column already exists (SQLite ≥ 3.35).
 const migrationsSQL = `
 ALTER TABLE notes ADD COLUMN is_marp BOOLEAN NOT NULL DEFAULT 0;
+ALTER TABLE notes ADD COLUMN has_flashcards BOOLEAN NOT NULL DEFAULT 0;
 `

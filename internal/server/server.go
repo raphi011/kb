@@ -37,7 +37,7 @@ type NoteReader interface {
 // NoteRenderer renders markdown to HTML with wiki-link resolution.
 type NoteRenderer interface {
 	Render(src []byte) (markdown.RenderResult, error)
-	RenderWithTags(src []byte, tags []string) (markdown.RenderResult, error)
+	RenderWithFlashcards(src []byte, flashcards bool) (markdown.RenderResult, error)
 	RenderShared(src []byte) (markdown.RenderResult, error)
 	RenderPreview(src []byte) (markdown.RenderResult, error)
 }

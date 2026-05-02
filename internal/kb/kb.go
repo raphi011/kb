@@ -85,15 +85,16 @@ type indexedNote struct {
 // writeNote persists a parsed note to the index within a transaction.
 func writeNote(tx *index.Tx, n indexedNote) error {
 	note := index.Note{
-		Path:      n.path,
-		Title:     n.doc.Title,
-		Body:      n.doc.Body,
-		Lead:      n.doc.Lead,
-		WordCount: n.doc.WordCount,
-		IsMarp:    n.doc.IsMarp,
-		Created:   n.ts.Created,
-		Modified:  n.ts.Modified,
-		Metadata:  n.doc.Frontmatter,
+		Path:          n.path,
+		Title:         n.doc.Title,
+		Body:          n.doc.Body,
+		Lead:          n.doc.Lead,
+		WordCount:     n.doc.WordCount,
+		IsMarp:        n.doc.IsMarp,
+		HasFlashcards: len(n.doc.Flashcards) > 0,
+		Created:       n.ts.Created,
+		Modified:      n.ts.Modified,
+		Metadata:      n.doc.Frontmatter,
 	}
 
 	if note.Title == "" {
@@ -151,6 +152,7 @@ func (kb *KB) fullIndex(headSHA string) error {
 	notes := make([]indexedNote, 0, len(blobs))
 	var mu sync.Mutex
 	var wg sync.WaitGroup
+	var parseErrors int
 	sem := make(chan struct{}, runtime.NumCPU())
 
 	for path, content := range blobs {
@@ -161,7 +163,10 @@ func (kb *KB) fullIndex(headSHA string) error {
 			defer func() { <-sem }()
 			defer func() {
 				if r := recover(); r != nil {
-					slog.Error("panic parsing file", "path", p, "panic", r)
+					slog.Error("panic parsing file, skipping", "path", p, "panic", fmt.Sprintf("%v", r))
+					mu.Lock()
+					parseErrors++
+					mu.Unlock()
 				}
 			}()
 
@@ -172,6 +177,10 @@ func (kb *KB) fullIndex(headSHA string) error {
 		}(path, content)
 	}
 	wg.Wait()
+
+	if parseErrors > 0 {
+		slog.Warn("some files failed to parse", "failed", parseErrors, "total", len(blobs))
+	}
 
 	// Phase 2: sequential DB write in single transaction
 	var count, skipped int
@@ -350,19 +359,19 @@ func (kb *KB) refreshRenderer() error {
 	return nil
 }
 
-// Render renders markdown bytes to HTML using the wiki-link lookup from the index.
+// Render renders markdown bytes to HTML without flashcard transforms.
 func (kb *KB) Render(src []byte) (markdown.RenderResult, error) {
-	return kb.RenderWithTags(src, nil)
+	return kb.RenderWithFlashcards(src, false)
 }
 
-// RenderWithTags renders markdown with optional flashcard support based on tags.
-func (kb *KB) RenderWithTags(src []byte, tags []string) (markdown.RenderResult, error) {
+// RenderWithFlashcards renders markdown with optional flashcard AST transforms.
+func (kb *KB) RenderWithFlashcards(src []byte, flashcards bool) (markdown.RenderResult, error) {
 	if kb.renderer == nil {
 		if err := kb.refreshRenderer(); err != nil {
 			return markdown.RenderResult{}, err
 		}
 	}
-	return kb.renderer.Render(src, hasFlashcardsTag(tags))
+	return kb.renderer.Render(src, flashcards)
 }
 
 func (kb *KB) RenderShared(src []byte) (markdown.RenderResult, error) {
@@ -385,12 +394,4 @@ func (kb *KB) RenderPreview(src []byte) (markdown.RenderResult, error) {
 	return markdown.RenderPreview(src, lookup, titleLookup)
 }
 
-func hasFlashcardsTag(tags []string) bool {
-	for _, t := range tags {
-		if t == "flashcards" || strings.HasPrefix(t, "flashcards/") {
-			return true
-		}
-	}
-	return false
-}
 

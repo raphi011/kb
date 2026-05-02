@@ -112,19 +112,6 @@ func buildManifestJSON(notes []index.Note, bookmarkedPaths []string) (string, er
 	return string(b), nil
 }
 
-func buildBreadcrumbs(notePath string) []views.BreadcrumbSegment {
-	parts := strings.Split(notePath, "/")
-	dirs := parts[:len(parts)-1]
-	crumbs := make([]views.BreadcrumbSegment, len(dirs))
-	for i, name := range dirs {
-		crumbs[i] = views.BreadcrumbSegment{
-			Name:       name,
-			FolderPath: strings.Join(parts[:i+1], "/"),
-		}
-	}
-	return crumbs
-}
-
 func buildTree(notes []index.Note, activePath string) []*views.FileNode {
 	type treeEntry struct {
 		node     *views.FileNode

@@ -15,16 +15,17 @@ import (
 var ErrNotFound = errors.New("not found")
 
 type Note struct {
-	Path      string
-	Title     string
-	Body      string
-	Lead      string
-	WordCount int
-	IsMarp    bool
-	Created   time.Time
-	Modified  time.Time
-	Metadata  map[string]any
-	Tags      []string
+	Path          string
+	Title         string
+	Body          string
+	Lead          string
+	WordCount     int
+	IsMarp        bool
+	HasFlashcards bool
+	Created       time.Time
+	Modified      time.Time
+	Metadata      map[string]any
+	Tags          []string
 }
 
 type Tag struct {
@@ -150,7 +151,7 @@ func (d *DB) IndexSHA() (string, error) {
 
 func (d *DB) NoteByPath(path string) (*Note, error) {
 	row := d.db.QueryRow(`
-		SELECT path, title, body, lead, word_count, is_marp, created, modified, metadata
+		SELECT path, title, body, lead, word_count, is_marp, has_flashcards, created, modified, metadata
 		FROM notes WHERE path = ?`, path)
 
 	n, err := scanNote(row)
@@ -195,7 +196,7 @@ func scanNote(row *sql.Row) (*Note, error) {
 		modifiedRaw sql.NullString
 		metadataRaw sql.NullString
 	)
-	if err := row.Scan(&n.Path, &n.Title, &n.Body, &n.Lead, &n.WordCount, &n.IsMarp,
+	if err := row.Scan(&n.Path, &n.Title, &n.Body, &n.Lead, &n.WordCount, &n.IsMarp, &n.HasFlashcards,
 		&createdRaw, &modifiedRaw, &metadataRaw); err != nil {
 		return nil, err
 	}

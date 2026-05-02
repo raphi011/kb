@@ -167,11 +167,19 @@ func TestCardHash_Distinctness(t *testing.T) {
 	}
 }
 
-func TestParseMarkdown_FlashcardsTag(t *testing.T) {
+func TestParseMarkdown_FlashcardsTagOnly_NoExtraction(t *testing.T) {
 	content := "#flashcards\n\nWhat is Go::A programming language\n"
 	doc := ParseMarkdown(content)
+	if len(doc.Flashcards) != 0 {
+		t.Errorf("tags alone should not trigger flashcard extraction, got %d cards", len(doc.Flashcards))
+	}
+}
+
+func TestParseMarkdown_FlashcardsFrontmatter(t *testing.T) {
+	content := "---\nflashcards: true\n---\n\nWhat is Go::A programming language\n"
+	doc := ParseMarkdown(content)
 	if len(doc.Flashcards) == 0 {
-		t.Fatal("expected flashcards to be extracted when #flashcards tag present")
+		t.Fatal("expected flashcards to be extracted when flashcards: true in frontmatter")
 	}
 	if doc.Flashcards[0].Question != "What is Go" {
 		t.Errorf("question = %q", doc.Flashcards[0].Question)

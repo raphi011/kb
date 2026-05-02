@@ -47,10 +47,15 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(cards) == 0 {
-		stats, _ := s.flashcards.FlashcardStats()
+		stats, err := s.flashcards.FlashcardStats()
+		if err != nil {
+			slog.Error("flashcard stats", "error", err)
+		}
 		var summary index.ReviewSummary
 		if notePath != "" {
-			summary, _ = s.flashcards.ReviewSummaryForNote(notePath)
+			if summary, err = s.flashcards.ReviewSummaryForNote(notePath); err != nil {
+				slog.Error("review summary", "note", notePath, "error", err)
+			}
 		}
 		var fcPanel *views.FlashcardPanelData
 		if notePath != "" {

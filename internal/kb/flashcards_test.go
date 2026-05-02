@@ -24,7 +24,7 @@ func setupFlashcardRepo(t *testing.T) *KB {
 		t.Fatal(err)
 	}
 
-	writeFile(t, dir, "notes/cards.md", "---\ntags: [flashcards]\n---\n\nQ1::A1\n")
+	writeFile(t, dir, "notes/cards.md", "---\nflashcards: true\n---\n\nQ1::A1\n")
 	wt.Add(".")
 	wt.Commit("initial", &git.CommitOptions{
 		Author: &object.Signature{Name: "test", Email: "t@t.com", When: time.Date(2025, 1, 15, 10, 0, 0, 0, time.UTC)},
