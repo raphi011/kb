@@ -143,6 +143,11 @@ func (d *DB) GetMeta(key string) (string, error) {
 	return value, err
 }
 
+// IndexSHA returns the currently indexed commit hash.
+func (d *DB) IndexSHA() (string, error) {
+	return d.GetMeta("head_commit")
+}
+
 func (d *DB) NoteByPath(path string) (*Note, error) {
 	row := d.db.QueryRow(`
 		SELECT path, title, body, lead, word_count, is_marp, created, modified, metadata

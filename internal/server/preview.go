@@ -22,7 +22,7 @@ func (s *Server) handlePreview(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	raw, err := s.store.ReadFile(notePath)
+	raw, err := s.files.ReadFile(notePath)
 	if err != nil {
 		slog.Error("read file for preview", "path", notePath, "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -41,7 +41,7 @@ func (s *Server) handlePreview(w http.ResponseWriter, r *http.Request) {
 
 	var contentHTML string
 	if section != "" {
-		result, err := s.store.RenderPreview([]byte(section))
+		result, err := s.renderer.RenderPreview([]byte(section))
 		if err != nil {
 			slog.Error("render preview", "path", notePath, "error", err)
 		} else {

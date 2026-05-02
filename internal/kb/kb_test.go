@@ -53,7 +53,7 @@ func TestFullIndex(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	notes, err := kb.AllNotes()
+	notes, err := kb.DB().AllNotes()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,7 +71,7 @@ func TestSearch(t *testing.T) {
 	defer kb.Close()
 	kb.Index(false)
 
-	results, err := kb.Search("hello", nil)
+	results, err := kb.DB().Search("hello", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +89,7 @@ func TestNoteByPath(t *testing.T) {
 	defer kb.Close()
 	kb.Index(false)
 
-	note, err := kb.NoteByPath("notes/hello.md")
+	note, err := kb.DB().NoteByPath("notes/hello.md")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,7 +110,7 @@ func TestTags(t *testing.T) {
 	defer kb.Close()
 	kb.Index(false)
 
-	tags, err := kb.AllTags()
+	tags, err := kb.DB().AllTags()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -159,7 +159,7 @@ func TestIncrementalIndex(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	notes, err := kb.AllNotes()
+	notes, err := kb.DB().AllNotes()
 	if err != nil {
 		t.Fatal(err)
 	}

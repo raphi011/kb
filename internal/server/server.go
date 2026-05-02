@@ -24,28 +24,46 @@ import (
 //go:embed static
 var staticFS embed.FS
 
-// Store is the data-access interface consumed by the server.
-type Store interface {
-	AllNotes() ([]index.Note, error)
-	AllTags() ([]index.Tag, error)
-	Search(q string, tags []string) ([]index.Note, error)
+// NoteReader provides read-only access to indexed notes.
+type NoteReader interface {
 	NoteByPath(path string) (*index.Note, error)
+	Search(q string, tags []string) ([]index.Note, error)
+	NotesByDate(date string) ([]index.Note, error)
 	OutgoingLinks(path string) ([]index.Link, error)
 	Backlinks(path string) ([]index.Link, error)
 	ActivityDays(year, month int) (map[int]bool, error)
-	NotesByDate(date string) ([]index.Note, error)
-	ReadFile(path string) ([]byte, error)
+}
+
+// NoteRenderer renders markdown to HTML with wiki-link resolution.
+type NoteRenderer interface {
 	Render(src []byte) (markdown.RenderResult, error)
+	RenderWithTags(src []byte, tags []string) (markdown.RenderResult, error)
+	RenderShared(src []byte) (markdown.RenderResult, error)
+	RenderPreview(src []byte) (markdown.RenderResult, error)
+}
+
+// FileReader reads raw file content from the repository.
+type FileReader interface {
+	ReadFile(path string) ([]byte, error)
+}
+
+// BookmarkStore manages note bookmarks.
+type BookmarkStore interface {
 	BookmarkedPaths() ([]string, error)
 	AddBookmark(path string) error
 	RemoveBookmark(path string) error
+}
+
+// ShareStore manages shared note tokens.
+type ShareStore interface {
 	ShareNote(path string) (string, error)
 	UnshareNote(path string) error
 	ShareTokenForNote(path string) (string, error)
 	NotePathForShareToken(token string) (string, error)
-	RenderWithTags(src []byte, tags []string) (markdown.RenderResult, error)
-	RenderShared(src []byte) (markdown.RenderResult, error)
-	RenderPreview(src []byte) (markdown.RenderResult, error)
+}
+
+// FlashcardReviewer provides SRS flashcard operations.
+type FlashcardReviewer interface {
 	DueCards(notePath string, limit int) ([]srs.Card, error)
 	CardByHash(hash string) (srs.Card, error)
 	ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error)
@@ -55,6 +73,14 @@ type Store interface {
 	NotesWithFlashcards() ([]index.NoteFlashcardCount, error)
 	ReviewSummaryForNote(notePath string) (index.ReviewSummary, error)
 	CardOverviewsForNote(notePath string) ([]index.CardOverview, error)
+}
+
+// CacheSource provides bulk data for building the server's view cache.
+type CacheSource interface {
+	AllNotes() ([]index.Note, error)
+	AllTags() ([]index.Tag, error)
+	BookmarkedPaths() ([]string, error)
+	ActivityDays(year, month int) (map[int]bool, error)
 	IndexSHA() (string, error)
 }
 
@@ -69,37 +95,62 @@ type Syncer interface {
 	Sync(ctx context.Context, token string) (*gitrepo.SyncResult, error)
 }
 
+// Deps holds all dependencies for the server, split by role.
+type Deps struct {
+	Notes      NoteReader
+	Renderer   NoteRenderer
+	Files      FileReader
+	Bookmarks  BookmarkStore
+	Shares     ShareStore
+	Flashcards FlashcardReviewer
+	Cache      CacheSource
+	ReIndexer  ReIndexer
+	Syncer     Syncer
+}
+
 type Server struct {
 	mux         *http.ServeMux
 	handler     http.Handler
-	store       Store
+	notes       NoteReader
+	renderer    NoteRenderer
+	files       FileReader
+	bookmarks   BookmarkStore
+	shares      ShareStore
+	flashcards  FlashcardReviewer
+	cacheSource CacheSource
 	reindexer   ReIndexer
 	syncer      Syncer
 	token       string
 	originToken string
 	repoPath    string
 	cache       atomic.Pointer[noteCache]
-	renderCache *renderCache
+	renderCache *viewCache
 }
 
-func New(store Store, reindexer ReIndexer, syncer Syncer, token, originToken, repoPath string) (*Server, error) {
+func New(deps Deps, token, originToken, repoPath string) (*Server, error) {
 	if token == "" {
 		slog.Warn("kb running with authentication disabled; do not expose without an external auth proxy in front")
 	}
 	loadAssetManifest()
-	cache, err := buildNoteCache(store)
-	if err != nil {
-		return nil, fmt.Errorf("build cache: %w", err)
-	}
 	s := &Server{
 		mux:         http.NewServeMux(),
-		store:       store,
-		reindexer:   reindexer,
-		syncer:      syncer,
+		notes:       deps.Notes,
+		renderer:    deps.Renderer,
+		files:       deps.Files,
+		bookmarks:   deps.Bookmarks,
+		shares:      deps.Shares,
+		flashcards:  deps.Flashcards,
+		cacheSource: deps.Cache,
+		reindexer:   deps.ReIndexer,
+		syncer:      deps.Syncer,
 		token:       token,
 		originToken: originToken,
 		repoPath:    repoPath,
-		renderCache: newRenderCache(),
+		renderCache: newViewCache(),
+	}
+	cache, err := buildNoteCache(s.cacheSource, s.bookmarks)
+	if err != nil {
+		return nil, fmt.Errorf("build cache: %w", err)
 	}
 	s.cache.Store(cache)
 	if err := s.registerRoutes(); err != nil {
@@ -211,7 +262,7 @@ func (s *Server) ListenAndServe(ctx context.Context, addr string) error {
 }
 
 func (s *Server) RefreshCache() error {
-	cache, err := buildNoteCache(s.store)
+	cache, err := buildNoteCache(s.cacheSource, s.bookmarks)
 	if err != nil {
 		return err
 	}

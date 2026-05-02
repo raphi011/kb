@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+
 func main() {
 	root := &cobra.Command{
 		Use:   "kb",
@@ -114,7 +115,7 @@ func searchCmd() *cobra.Command {
 				tagFilter = strings.Split(tags, ",")
 			}
 
-			results, err := k.Search(strings.Join(args, " "), tagFilter)
+			results, err := k.DB().Search(strings.Join(args, " "), tagFilter)
 			if err != nil {
 				return err
 			}
@@ -150,7 +151,7 @@ func listCmd() *cobra.Command {
 			}
 			defer k.Close()
 
-			notes, err := k.AllNotes()
+			notes, err := k.DB().AllNotes()
 			if err != nil {
 				return err
 			}
@@ -180,7 +181,7 @@ func tagsCmd() *cobra.Command {
 			}
 			defer k.Close()
 
-			tags, err := k.AllTags()
+			tags, err := k.DB().AllTags()
 			if err != nil {
 				return err
 			}
@@ -204,7 +205,7 @@ func linksCmd() *cobra.Command {
 			}
 			defer k.Close()
 
-			links, err := k.OutgoingLinks(args[0])
+			links, err := k.DB().OutgoingLinks(args[0])
 			if err != nil {
 				return err
 			}
@@ -232,7 +233,7 @@ func backlinksCmd() *cobra.Command {
 			}
 			defer k.Close()
 
-			links, err := k.Backlinks(args[0])
+			links, err := k.DB().Backlinks(args[0])
 			if err != nil {
 				return err
 			}
@@ -277,7 +278,7 @@ func editCmd() *cobra.Command {
 			}
 			defer k.Close()
 
-			notes, err := k.AllNotes()
+			notes, err := k.DB().AllNotes()
 			if err != nil {
 				return err
 			}
@@ -421,7 +422,18 @@ func serveCmd() *cobra.Command {
 				return fmt.Errorf("index: %w", err)
 			}
 
-			srv, err := server.New(k, k, k, token, originToken, repoPath)
+			db := k.DB()
+			srv, err := server.New(server.Deps{
+				Notes:      db,
+				Renderer:   k,
+				Files:      k,
+				Bookmarks:  db,
+				Shares:     db,
+				Flashcards: k,
+				Cache:      db,
+				ReIndexer:  k,
+				Syncer:     k,
+			}, token, originToken, repoPath)
 			if err != nil {
 				return fmt.Errorf("create server: %w", err)
 			}

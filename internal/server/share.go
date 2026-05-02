@@ -16,7 +16,7 @@ func (s *Server) handleShareCreate(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing path", http.StatusBadRequest)
 		return
 	}
-	token, err := s.store.ShareNote(path)
+	token, err := s.shares.ShareNote(path)
 	if err != nil {
 		if errors.Is(err, index.ErrNotFound) {
 			http.NotFound(w, r)
@@ -46,7 +46,7 @@ func (s *Server) handleShareDelete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing path", http.StatusBadRequest)
 		return
 	}
-	if err := s.store.UnshareNote(path); err != nil {
+	if err := s.shares.UnshareNote(path); err != nil {
 		slog.Error("unshare note", "path", path, "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
@@ -60,7 +60,7 @@ func (s *Server) handleShareGet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing path", http.StatusBadRequest)
 		return
 	}
-	token, err := s.store.ShareTokenForNote(path)
+	token, err := s.shares.ShareTokenForNote(path)
 	if err != nil {
 		slog.Error("get share token", "path", path, "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -91,26 +91,26 @@ func (s *Server) handleSharedNote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	notePath, err := s.store.NotePathForShareToken(token)
+	notePath, err := s.shares.NotePathForShareToken(token)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
 
-	note, err := s.store.NoteByPath(notePath)
+	note, err := s.notes.NoteByPath(notePath)
 	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
 
-	raw, err := s.store.ReadFile(note.Path)
+	raw, err := s.files.ReadFile(note.Path)
 	if err != nil {
 		slog.Error("read shared note", "path", note.Path, "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 
-	result, err := s.store.RenderShared(raw)
+	result, err := s.renderer.RenderShared(raw)
 	if err != nil {
 		slog.Error("render shared note", "path", note.Path, "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)

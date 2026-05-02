@@ -29,11 +29,11 @@ func (s *Server) handleNotePanels(w http.ResponseWriter, r *http.Request) {
 	// Prepend the note title as an h1 entry so it appears in the TOC.
 	headings = append([]markdown.Heading{{Text: note.Title, ID: "article-title", Level: 1}}, headings...)
 
-	outLinks, err := s.store.OutgoingLinks(note.Path)
+	outLinks, err := s.notes.OutgoingLinks(note.Path)
 	if err != nil {
 		slog.Error("panels: outgoing links", "path", note.Path, "error", err)
 	}
-	backlinks, err := s.store.Backlinks(note.Path)
+	backlinks, err := s.notes.Backlinks(note.Path)
 	if err != nil {
 		slog.Error("panels: backlinks", "path", note.Path, "error", err)
 	}
@@ -41,7 +41,7 @@ func (s *Server) handleNotePanels(w http.ResponseWriter, r *http.Request) {
 	var fcPanel *views.FlashcardPanelData
 	for _, tag := range note.Tags {
 		if tag == "flashcards" || strings.HasPrefix(tag, "flashcards/") {
-			if overviews, err := s.store.CardOverviewsForNote(note.Path); err == nil {
+			if overviews, err := s.flashcards.CardOverviewsForNote(note.Path); err == nil {
 				dueCount := 0
 				for _, c := range overviews {
 					if c.Status == "due" || c.Status == "new" {

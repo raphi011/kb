@@ -121,6 +121,20 @@ func (m *mockKB) ReviewSummaryForNote(string) (index.ReviewSummary, error)    { 
 func (m *mockKB) CardOverviewsForNote(string) ([]index.CardOverview, error)  { return nil, nil }
 func (m *mockKB) IndexSHA() (string, error)                                  { return "abc123", nil }
 
+func mockDeps(m *mockKB) Deps {
+	return Deps{
+		Notes:      m,
+		Renderer:   m,
+		Files:      m,
+		Bookmarks:  m,
+		Shares:     m,
+		Flashcards: m,
+		Cache:      m,
+		ReIndexer:  m,
+		Syncer:     m,
+	}
+}
+
 func newTestServer(t *testing.T) *Server {
 	t.Helper()
 	store := &mockKB{
@@ -134,7 +148,7 @@ func newTestServer(t *testing.T) *Server {
 			{Name: "golang", NoteCount: 1},
 		},
 	}
-	srv, err := New(store, store, store, "test-token", "", "")
+	srv, err := New(mockDeps(store), "test-token", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -276,7 +290,7 @@ func TestNewServerAllowsEmptyTokenAndDisablesAuth(t *testing.T) {
 		notes: []index.Note{{Path: "a.md", Title: "A", Tags: []string{}}},
 		tags:  []index.Tag{},
 	}
-	srv, err := New(store, store, store, "", "", "")
+	srv, err := New(mockDeps(store), "", "", "")
 	if err != nil {
 		t.Fatalf("New() with empty token: %v", err)
 	}
@@ -455,7 +469,7 @@ func TestGitHistoryEndpoint(t *testing.T) {
 		},
 		tags: []index.Tag{},
 	}
-	srv, err := New(store, store, store, "test-token", "", dir)
+	srv, err := New(mockDeps(store), "test-token", "", dir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -505,7 +519,7 @@ func TestGitVersionEndpoint(t *testing.T) {
 		},
 		tags: []index.Tag{},
 	}
-	srv, err := New(store, store, store, "test-token", "", dir)
+	srv, err := New(mockDeps(store), "test-token", "", dir)
 	if err != nil {
 		t.Fatal(err)
 	}

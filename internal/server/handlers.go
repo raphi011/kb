@@ -66,10 +66,10 @@ func (s *Server) renderFullPage(w http.ResponseWriter, r *http.Request, p views.
 	p.CalendarYear = calYear
 	p.CalendarMonth = calMonth
 	p.ActiveDays = activeDays
-	if fcNotes, err := s.store.NotesWithFlashcards(); err == nil {
+	if fcNotes, err := s.flashcards.NotesWithFlashcards(); err == nil {
 		p.FlashcardNotes = fcNotes
 	}
-	if bookmarkedPaths, err := s.store.BookmarkedPaths(); err == nil {
+	if bookmarkedPaths, err := s.bookmarks.BookmarkedPaths(); err == nil {
 		for _, path := range bookmarkedPaths {
 			if note := cache.notesByPath[path]; note != nil {
 				p.Bookmarks = append(p.Bookmarks, views.BookmarkEntry{Path: note.Path, Title: note.Title})
@@ -132,7 +132,7 @@ func (s *Server) handleNote(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.Note) {
-	raw, err := s.store.ReadFile(note.Path)
+	raw, err := s.files.ReadFile(note.Path)
 	if err != nil {
 		slog.Error("read note", "path", note.Path, "error", err)
 		s.renderError(w, r, http.StatusInternalServerError, "Failed to read note")
@@ -173,18 +173,18 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 	if cached, ok := s.renderCache.get(note.Path, raw); ok {
 		html = cached.html
 	} else {
-		result, err := s.store.RenderWithTags(raw, note.Tags)
+		result, err := s.renderer.RenderWithTags(raw, note.Tags)
 		if err != nil {
 			slog.Error("render note", "path", note.Path, "error", err)
 			s.renderError(w, r, http.StatusInternalServerError, "Failed to render note")
 			return
 		}
 		html = result.HTML
-		s.renderCache.put(note.Path, raw, renderCacheEntry{html: html, headings: result.Headings})
+		s.renderCache.put(note.Path, raw, renderEntry{html: html, headings: result.Headings})
 	}
 
 	breadcrumbs := buildBreadcrumbs(note.Path)
-	shareToken, _ := s.store.ShareTokenForNote(note.Path)
+	shareToken, _ := s.shares.ShareTokenForNote(note.Path)
 
 	dp := DetailPanelData{
 		NotePath: note.Path,
@@ -209,7 +209,7 @@ func (s *Server) renderMarpNote(w http.ResponseWriter, r *http.Request, note *in
 		slidePanel = &views.SlidePanelData{Slides: doc.Slides}
 	}
 
-	shareToken, _ := s.store.ShareTokenForNote(note.Path)
+	shareToken, _ := s.shares.ShareTokenForNote(note.Path)
 
 	dp := DetailPanelData{
 		SlidePanel: slidePanel,
@@ -268,7 +268,7 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if date != "" {
-		notes, err := s.store.NotesByDate(date)
+		notes, err := s.notes.NotesByDate(date)
 		if err != nil {
 			slog.Error("search by date", "date", date, "error", err)
 			http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -316,7 +316,7 @@ func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	if tagsParam != "" {
 		tagFilter = []string{tagsParam}
 	}
-	notes, err := s.store.Search(q, tagFilter)
+	notes, err := s.notes.Search(q, tagFilter)
 	if err != nil {
 		slog.Error("search", "query", q, "tags", tagFilter, "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -358,7 +358,7 @@ func (s *Server) handleCalendar(w http.ResponseWriter, r *http.Request) {
 		month = m
 	}
 
-	days, err := s.store.ActivityDays(year, month)
+	days, err := s.notes.ActivityDays(year, month)
 	if err != nil {
 		slog.Error("activity days", "year", year, "month", month, "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
@@ -386,7 +386,7 @@ func (s *Server) handleBookmarkPut(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing path", http.StatusBadRequest)
 		return
 	}
-	if err := s.store.AddBookmark(path); err != nil {
+	if err := s.bookmarks.AddBookmark(path); err != nil {
 		if errors.Is(err, index.ErrNotFound) {
 			http.NotFound(w, r)
 			return
@@ -404,7 +404,7 @@ func (s *Server) handleBookmarkDelete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing path", http.StatusBadRequest)
 		return
 	}
-	if err := s.store.RemoveBookmark(path); err != nil {
+	if err := s.bookmarks.RemoveBookmark(path); err != nil {
 		slog.Error("remove bookmark", "path", path, "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
@@ -414,7 +414,7 @@ func (s *Server) handleBookmarkDelete(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleBookmarksPanel(w http.ResponseWriter, r *http.Request) {
 	cache := s.noteCache()
-	bookmarkedPaths, err := s.store.BookmarkedPaths()
+	bookmarkedPaths, err := s.bookmarks.BookmarkedPaths()
 	if err != nil {
 		slog.Error("bookmarked paths", "error", err)
 		bookmarkedPaths = nil
@@ -505,7 +505,7 @@ func (s *Server) handleGitVersion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := s.store.Render(raw)
+	result, err := s.renderer.Render(raw)
 	if err != nil {
 		slog.Error("render version", "path", notePath, "hash", hash, "error", err)
 		s.renderError(w, r, http.StatusInternalServerError, "Render error")

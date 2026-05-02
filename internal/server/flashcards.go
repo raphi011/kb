@@ -14,7 +14,7 @@ import (
 )
 
 func (s *Server) handleFlashcardDashboard(w http.ResponseWriter, r *http.Request) {
-	stats, err := s.store.FlashcardStats()
+	stats, err := s.flashcards.FlashcardStats()
 	if err != nil {
 		slog.Error("flashcard stats", "error", err)
 		s.renderError(w, r, http.StatusInternalServerError, "Failed to load flashcard stats")
@@ -30,7 +30,7 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 
 	var cards []srs.Card
 	if cardHash != "" {
-		if card, err := s.store.CardByHash(cardHash); err == nil {
+		if card, err := s.flashcards.CardByHash(cardHash); err == nil {
 			cards = []srs.Card{card}
 			if notePath == "" {
 				notePath = card.NotePath
@@ -38,7 +38,7 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		var err error
-		cards, err = s.store.DueCards(notePath, 1)
+		cards, err = s.flashcards.DueCards(notePath, 1)
 		if err != nil {
 			slog.Error("due cards", "error", err)
 			s.renderError(w, r, http.StatusInternalServerError, "Failed to load cards")
@@ -47,14 +47,14 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(cards) == 0 {
-		stats, _ := s.store.FlashcardStats()
+		stats, _ := s.flashcards.FlashcardStats()
 		var summary index.ReviewSummary
 		if notePath != "" {
-			summary, _ = s.store.ReviewSummaryForNote(notePath)
+			summary, _ = s.flashcards.ReviewSummaryForNote(notePath)
 		}
 		var fcPanel *views.FlashcardPanelData
 		if notePath != "" {
-			if overviews, err := s.store.CardOverviewsForNote(notePath); err == nil {
+			if overviews, err := s.flashcards.CardOverviewsForNote(notePath); err == nil {
 				dueCount := 0
 				for _, c := range overviews {
 					if c.Status == "due" || c.Status == "new" {
@@ -74,7 +74,7 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 	}
 
 	card := cards[0]
-	previews, err := s.store.PreviewCard(card.CardHash)
+	previews, err := s.flashcards.PreviewCard(card.CardHash)
 	if err != nil {
 		slog.Error("preview card", "error", err)
 	}
@@ -88,7 +88,7 @@ func (s *Server) handleFlashcardReview(w http.ResponseWriter, r *http.Request) {
 
 	var fcPanel *views.FlashcardPanelData
 	if notePath != "" {
-		if overviews, err := s.store.CardOverviewsForNote(notePath); err == nil {
+		if overviews, err := s.flashcards.CardOverviewsForNote(notePath); err == nil {
 			fcPanel = &views.FlashcardPanelData{
 				NotePath:   notePath,
 				TotalCount: len(overviews),
@@ -111,7 +111,7 @@ func (s *Server) handleFlashcardRate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rating := fsrs.Rating(ratingInt)
-	if _, err := s.store.ReviewCard(hash, rating); err != nil {
+	if _, err := s.flashcards.ReviewCard(hash, rating); err != nil {
 		if errors.Is(err, index.ErrNotFound) {
 			http.NotFound(w, r)
 			return
@@ -134,7 +134,7 @@ func (s *Server) handleFlashcardRate(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleFlashcardsForNote(w http.ResponseWriter, r *http.Request) {
 	notePath := r.PathValue("path")
-	cards, err := s.store.FlashcardsForNote(notePath)
+	cards, err := s.flashcards.FlashcardsForNote(notePath)
 	if err != nil {
 		if errors.Is(err, index.ErrNotFound) {
 			http.NotFound(w, r)
@@ -157,7 +157,7 @@ func (s *Server) handleFlashcardsForNote(w http.ResponseWriter, r *http.Request)
 }
 
 func (s *Server) handleFlashcardStatsAPI(w http.ResponseWriter, r *http.Request) {
-	stats, err := s.store.FlashcardStats()
+	stats, err := s.flashcards.FlashcardStats()
 	if err != nil {
 		slog.Error("flashcard stats", "error", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)

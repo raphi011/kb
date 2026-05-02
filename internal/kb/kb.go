@@ -12,13 +12,12 @@ import (
 	"github.com/raphi011/kb/internal/gitrepo"
 	"github.com/raphi011/kb/internal/index"
 	"github.com/raphi011/kb/internal/markdown"
-	"github.com/raphi011/kb/internal/srs"
 )
 
 type KB struct {
 	repo     *gitrepo.Repo
 	idx      *index.DB
-	srs      *srs.Service
+	fsrs     *fsrs.FSRS
 	renderer *markdown.Renderer
 }
 
@@ -31,8 +30,12 @@ func Open(repoPath, dbPath string) (*KB, error) {
 	if err != nil {
 		return nil, fmt.Errorf("open index: %w", err)
 	}
-	srsService := srs.New(idx)
-	return &KB{repo: repo, idx: idx, srs: srsService}, nil
+	return &KB{repo: repo, idx: idx, fsrs: fsrs.NewFSRS(fsrs.DefaultParam())}, nil
+}
+
+// DB returns the underlying index database for direct read-only access.
+func (kb *KB) DB() *index.DB {
+	return kb.idx
 }
 
 func (kb *KB) Close() error {
@@ -294,113 +297,6 @@ func (kb *KB) incrementalIndex(oldSHA, newSHA string) error {
 }
 
 
-// --- Query API (delegates to index) ---
-
-func (kb *KB) Search(q string, tags []string) ([]index.Note, error) {
-	notes, err := kb.idx.Search(q, tags)
-	if err != nil {
-		return nil, fmt.Errorf("search %q: %w", q, err)
-	}
-	return notes, nil
-}
-
-func (kb *KB) NoteByPath(path string) (*index.Note, error) {
-	note, err := kb.idx.NoteByPath(path)
-	if err != nil {
-		return nil, fmt.Errorf("note by path %q: %w", path, err)
-	}
-	return note, nil
-}
-
-func (kb *KB) AllNotes() ([]index.Note, error) {
-	return kb.idx.AllNotes()
-}
-
-func (kb *KB) AllTags() ([]index.Tag, error) {
-	return kb.idx.AllTags()
-}
-
-func (kb *KB) OutgoingLinks(path string) ([]index.Link, error) {
-	links, err := kb.idx.OutgoingLinks(path)
-	if err != nil {
-		return nil, fmt.Errorf("outgoing links %q: %w", path, err)
-	}
-	return links, nil
-}
-
-func (kb *KB) Backlinks(path string) ([]index.Link, error) {
-	links, err := kb.idx.Backlinks(path)
-	if err != nil {
-		return nil, fmt.Errorf("backlinks %q: %w", path, err)
-	}
-	return links, nil
-}
-
-func (kb *KB) ActivityDays(year, month int) (map[int]bool, error) {
-	days, err := kb.idx.ActivityDays(year, month)
-	if err != nil {
-		return nil, fmt.Errorf("activity days %d-%02d: %w", year, month, err)
-	}
-	return days, nil
-}
-
-func (kb *KB) NotesByDate(date string) ([]index.Note, error) {
-	notes, err := kb.idx.NotesByDate(date)
-	if err != nil {
-		return nil, fmt.Errorf("notes by date %q: %w", date, err)
-	}
-	return notes, nil
-}
-
-func (kb *KB) BookmarkedPaths() ([]string, error) {
-	return kb.idx.BookmarkedPaths()
-}
-
-func (kb *KB) AddBookmark(path string) error {
-	if err := kb.idx.AddBookmark(path); err != nil {
-		return fmt.Errorf("add bookmark %q: %w", path, err)
-	}
-	return nil
-}
-
-func (kb *KB) RemoveBookmark(path string) error {
-	if err := kb.idx.RemoveBookmark(path); err != nil {
-		return fmt.Errorf("remove bookmark %q: %w", path, err)
-	}
-	return nil
-}
-
-func (kb *KB) ShareNote(path string) (string, error) {
-	token, err := kb.idx.ShareNote(path)
-	if err != nil {
-		return "", fmt.Errorf("share note %q: %w", path, err)
-	}
-	return token, nil
-}
-
-func (kb *KB) UnshareNote(path string) error {
-	if err := kb.idx.UnshareNote(path); err != nil {
-		return fmt.Errorf("unshare note %q: %w", path, err)
-	}
-	return nil
-}
-
-func (kb *KB) ShareTokenForNote(path string) (string, error) {
-	token, err := kb.idx.ShareTokenForNote(path)
-	if err != nil {
-		return "", fmt.Errorf("share token for %q: %w", path, err)
-	}
-	return token, nil
-}
-
-func (kb *KB) NotePathForShareToken(token string) (string, error) {
-	path, err := kb.idx.NotePathForShareToken(token)
-	if err != nil {
-		return "", fmt.Errorf("note for share token %q: %w", token, err)
-	}
-	return path, nil
-}
-
 func (kb *KB) ReadFile(path string) ([]byte, error) {
 	data, err := kb.repo.ReadBlob(path)
 	if err != nil {
@@ -428,6 +324,11 @@ func (kb *KB) ForceReIndex() error {
 		return err
 	}
 	return kb.Index(true)
+}
+
+// IndexSHA returns the currently indexed commit hash.
+func (kb *KB) IndexSHA() (string, error) {
+	return kb.idx.GetMeta("head_commit")
 }
 
 // refreshRenderer rebuilds the cached markdown renderer from current index state.
@@ -493,72 +394,3 @@ func hasFlashcardsTag(tags []string) bool {
 	return false
 }
 
-// --- Flashcard API (delegates to srs service) ---
-
-func (kb *KB) DueCards(notePath string, limit int) ([]srs.Card, error) {
-	cards, err := kb.srs.DueCards(notePath, limit)
-	if err != nil {
-		return nil, fmt.Errorf("due cards %q: %w", notePath, err)
-	}
-	return cards, nil
-}
-
-func (kb *KB) CardByHash(hash string) (srs.Card, error) {
-	card, err := kb.srs.CardByHash(hash)
-	if err != nil {
-		return srs.Card{}, fmt.Errorf("card by hash %q: %w", hash, err)
-	}
-	return card, nil
-}
-
-func (kb *KB) ReviewCard(hash string, rating fsrs.Rating) (srs.Card, error) {
-	card, err := kb.srs.Review(hash, rating)
-	if err != nil {
-		return srs.Card{}, fmt.Errorf("review card %q: %w", hash, err)
-	}
-	return card, nil
-}
-
-func (kb *KB) PreviewCard(hash string) (srs.Previews, error) {
-	previews, err := kb.srs.Preview(hash)
-	if err != nil {
-		return srs.Previews{}, fmt.Errorf("preview card %q: %w", hash, err)
-	}
-	return previews, nil
-}
-
-func (kb *KB) FlashcardStats() (srs.Stats, error) {
-	return kb.srs.Stats()
-}
-
-func (kb *KB) FlashcardsForNote(path string) ([]srs.Card, error) {
-	cards, err := kb.srs.FlashcardsForNote(path)
-	if err != nil {
-		return nil, fmt.Errorf("flashcards for note %q: %w", path, err)
-	}
-	return cards, nil
-}
-
-func (kb *KB) NotesWithFlashcards() ([]index.NoteFlashcardCount, error) {
-	return kb.srs.NotesWithFlashcards()
-}
-
-func (kb *KB) ReviewSummaryForNote(notePath string) (index.ReviewSummary, error) {
-	summary, err := kb.srs.ReviewSummaryForNote(notePath)
-	if err != nil {
-		return index.ReviewSummary{}, fmt.Errorf("review summary %q: %w", notePath, err)
-	}
-	return summary, nil
-}
-
-func (kb *KB) IndexSHA() (string, error) {
-	return kb.idx.GetMeta("head_commit")
-}
-
-func (kb *KB) CardOverviewsForNote(notePath string) ([]index.CardOverview, error) {
-	overviews, err := kb.srs.CardOverviewsForNote(notePath)
-	if err != nil {
-		return nil, fmt.Errorf("card overviews %q: %w", notePath, err)
-	}
-	return overviews, nil
-}

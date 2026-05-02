@@ -142,7 +142,17 @@ func TestE2EGitClone(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	srv, err := New(k, k, k, token, "", bareDir)
+	srv, err := New(Deps{
+		Notes:      k.DB(),
+		Renderer:   k,
+		Files:      k,
+		Bookmarks:  k.DB(),
+		Shares:     k.DB(),
+		Flashcards: k,
+		Cache:      k.DB(),
+		ReIndexer:  k,
+		Syncer:     k,
+	}, token, "", bareDir)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +198,17 @@ func TestE2EGitPushTriggersReindex(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	srv, err := New(k, k, k, token, "", bareDir)
+	srv, err := New(Deps{
+		Notes:      k.DB(),
+		Renderer:   k,
+		Files:      k,
+		Bookmarks:  k.DB(),
+		Shares:     k.DB(),
+		Flashcards: k,
+		Cache:      k.DB(),
+		ReIndexer:  k,
+		Syncer:     k,
+	}, token, "", bareDir)
 	if err != nil {
 		t.Fatal(err)
 	}

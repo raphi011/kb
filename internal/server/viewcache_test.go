@@ -5,7 +5,7 @@ import (
 )
 
 func TestRenderCache_MissOnEmpty(t *testing.T) {
-	rc := newRenderCache()
+	rc := newViewCache()
 	_, ok := rc.get("notes/foo.md", []byte("content"))
 	if ok {
 		t.Fatal("expected miss on empty cache")
@@ -13,9 +13,9 @@ func TestRenderCache_MissOnEmpty(t *testing.T) {
 }
 
 func TestRenderCache_HitAfterPut(t *testing.T) {
-	rc := newRenderCache()
+	rc := newViewCache()
 	content := []byte("# Hello")
-	entry := renderCacheEntry{html: "<h1>Hello</h1>"}
+	entry := renderEntry{html: "<h1>Hello</h1>"}
 	rc.put("notes/foo.md", content, entry)
 
 	got, ok := rc.get("notes/foo.md", content)
@@ -28,8 +28,8 @@ func TestRenderCache_HitAfterPut(t *testing.T) {
 }
 
 func TestRenderCache_MissAfterContentChange(t *testing.T) {
-	rc := newRenderCache()
-	rc.put("notes/foo.md", []byte("original"), renderCacheEntry{html: "<p>original</p>"})
+	rc := newViewCache()
+	rc.put("notes/foo.md", []byte("original"), renderEntry{html: "<p>original</p>"})
 
 	_, ok := rc.get("notes/foo.md", []byte("changed"))
 	if ok {
@@ -38,9 +38,9 @@ func TestRenderCache_MissAfterContentChange(t *testing.T) {
 }
 
 func TestRenderCache_ClearRemovesAll(t *testing.T) {
-	rc := newRenderCache()
-	rc.put("notes/a.md", []byte("a"), renderCacheEntry{html: "<p>a</p>"})
-	rc.put("notes/b.md", []byte("b"), renderCacheEntry{html: "<p>b</p>"})
+	rc := newViewCache()
+	rc.put("notes/a.md", []byte("a"), renderEntry{html: "<p>a</p>"})
+	rc.put("notes/b.md", []byte("b"), renderEntry{html: "<p>b</p>"})
 
 	rc.clear()
 

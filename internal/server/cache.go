@@ -24,16 +24,16 @@ type noteCache struct {
 	indexSHA      string
 }
 
-func buildNoteCache(store Store) (*noteCache, error) {
-	notes, err := store.AllNotes()
+func buildNoteCache(cs CacheSource, bs BookmarkStore) (*noteCache, error) {
+	notes, err := cs.AllNotes()
 	if err != nil {
 		return nil, fmt.Errorf("load notes: %w", err)
 	}
-	tags, err := store.AllTags()
+	tags, err := cs.AllTags()
 	if err != nil {
 		return nil, fmt.Errorf("load tags: %w", err)
 	}
-	bookmarkedPaths, err := store.BookmarkedPaths()
+	bookmarkedPaths, err := bs.BookmarkedPaths()
 	if err != nil {
 		return nil, fmt.Errorf("load bookmarks: %w", err)
 	}
@@ -56,12 +56,12 @@ func buildNoteCache(store Store) (*noteCache, error) {
 	tree := buildTree(notes, "")
 
 	year, month := currentYearMonth()
-	activeDays, err := store.ActivityDays(year, month)
+	activeDays, err := cs.ActivityDays(year, month)
 	if err != nil {
 		activeDays = map[int]bool{}
 	}
 
-	sha, _ := store.IndexSHA()
+	sha, _ := cs.IndexSHA()
 
 	return &noteCache{
 		notes:         notes,
