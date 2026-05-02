@@ -124,7 +124,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"><script>\n\t\t\t(function(){var d=document.documentElement,s=d.style;var u;try{u=JSON.parse(localStorage.getItem('zk-ui'))||{}}catch(e){u={}}d.setAttribute('data-theme',u.theme||(window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'));if(u.sidebarWidth)s.setProperty('--sidebar-width',u.sidebarWidth+'px');if(u.detailPanelWidth)s.setProperty('--detail-width',u.detailPanelWidth+'px');if(u.zen)d.classList.add('zen')})();\n\t\t</script></head><body hx-indicator=\"#nav-loader\"><div id=\"nav-loader\" class=\"nav-loader\"></div><div id=\"progress-bar\"></div><header id=\"topbar\"><button id=\"mob-menu-btn\" class=\"btn btn-icon\" aria-label=\"Menu\">&#9776;</button> <a id=\"logo\" href=\"/\" hx-get=\"/\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\"><span class=\"logo-dot\"></span><strong>kb</strong></a><div id=\"topbar-spacer\"></div><button id=\"cmd-trigger\" type=\"button\"><span>Search</span><kbd>&#8984;K</kbd></button> <button id=\"zen-toggle\" class=\"btn btn-icon\" type=\"button\" aria-label=\"Toggle zen mode\" title=\"Toggle zen mode\">&#8865;</button> <button id=\"theme-toggle\" class=\"btn btn-icon\" type=\"button\" aria-label=\"Toggle theme\"><span id=\"theme-icon\">&#9790;</span></button></header><div id=\"sidebar-backdrop\"></div><div id=\"layout\"><nav id=\"sidebar\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"><script>\n\t\t\t(function(){var d=document.documentElement,s=d.style;var u;try{u=JSON.parse(localStorage.getItem('zk-ui'))||{}}catch(e){u={}}d.setAttribute('data-theme',u.theme||(window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'));if(u.sidebarWidth)s.setProperty('--sidebar-width',u.sidebarWidth+'px');if(u.detailPanelWidth)s.setProperty('--detail-width',u.detailPanelWidth+'px');if(u.zen)d.classList.add('zen')})();\n\t\t</script></head><body hx-indicator=\"#nav-loader\"><div id=\"nav-loader\" class=\"nav-loader\"></div><div id=\"progress-bar\"></div><header id=\"topbar\"><button id=\"mob-menu-btn\" class=\"btn btn-icon\" data-drawer-trigger=\"sidebar\" aria-label=\"Menu\">&#9776;</button> <a id=\"logo\" href=\"/\" hx-get=\"/\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\"><span class=\"logo-dot\"></span><strong>kb</strong></a><div id=\"topbar-spacer\"></div><button id=\"cmd-trigger\" type=\"button\"><span>Search</span><kbd>&#8984;K</kbd></button> <button id=\"zen-toggle\" class=\"btn btn-icon\" type=\"button\" aria-label=\"Toggle zen mode\" title=\"Toggle zen mode\">&#8865;</button> <button id=\"theme-toggle\" class=\"btn btn-icon\" type=\"button\" aria-label=\"Toggle theme\"><span id=\"theme-icon\">&#9790;</span></button> <button id=\"mob-detail-btn\" class=\"btn btn-icon\" data-drawer-trigger=\"detail-panel\" aria-label=\"Details\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\"><rect x=\"1\" y=\"2\" width=\"14\" height=\"12\" rx=\"1.5\"></rect><line x1=\"11\" y1=\"2\" x2=\"11\" y2=\"14\"></line></svg></button></header><div id=\"drawer-backdrop\"></div><div id=\"layout\"><nav id=\"sidebar\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -163,7 +163,7 @@ func Layout(p LayoutParams) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(Asset("htmx.min.js"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 117, Col: 36}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 120, Col: 36}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -176,7 +176,7 @@ func Layout(p LayoutParams) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(Asset("app.min.js"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 118, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/layout.templ`, Line: 121, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
