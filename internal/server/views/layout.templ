@@ -61,7 +61,7 @@ templ Layout(p LayoutParams) {
 		<link rel="stylesheet" href={ Asset("style.min.css") }/>
 		<link rel="stylesheet" href={ Asset("chroma.css") }/>
 		<script>
-			(function(){var d=document.documentElement,s=d.style;var u;try{u=JSON.parse(localStorage.getItem('zk-ui'))||{}}catch(e){u={}}d.setAttribute('data-theme',u.theme||(window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'));if(u.sidebarWidth)s.setProperty('--sidebar-width',u.sidebarWidth+'px');if(u.tocPanelWidth)s.setProperty('--toc-width',u.tocPanelWidth+'px');if(u.zen)d.classList.add('zen')})();
+			(function(){var d=document.documentElement,s=d.style;var u;try{u=JSON.parse(localStorage.getItem('zk-ui'))||{}}catch(e){u={}}d.setAttribute('data-theme',u.theme||(window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'));if(u.sidebarWidth)s.setProperty('--sidebar-width',u.sidebarWidth+'px');if(u.detailPanelWidth)s.setProperty('--detail-width',u.detailPanelWidth+'px');if(u.zen)d.classList.add('zen')})();
 		</script>
 	</head>
 	<body hx-indicator="#nav-loader">
@@ -92,8 +92,8 @@ templ Layout(p LayoutParams) {
 			<div class="resize-handle" id="sidebar-resize"></div>
 			<div id="main">
 				@p.ContentCol
-				<div class="resize-handle" id="toc-resize"></div>
-				@TOCPanel(false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel, p.NotePath)
+				<div class="resize-handle" id="detail-resize"></div>
+				@DetailPanel(false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel, p.NotePath)
 			</div>
 		</div>
 		<dialog id="cmd-dialog">

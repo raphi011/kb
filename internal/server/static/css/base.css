@@ -23,7 +23,7 @@ a { text-decoration: none; color: inherit; }
 @view-transition { navigation: auto; }
 
 #content-col { view-transition-name: content; }
-#toc-panel   { view-transition-name: toc; }
+#detail-panel { view-transition-name: toc; }
 
 ::view-transition-old(content),
 ::view-transition-new(content) {

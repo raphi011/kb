@@ -1,7 +1,7 @@
 // internal/server/static/js/lib/store.js
 
 const STORAGE_KEY = 'zk-ui';
-const defaults = { theme: 'dark', zen: false, sidebarWidth: null, tocPanelWidth: null };
+const defaults = { theme: 'dark', zen: false, sidebarWidth: null, detailPanelWidth: null };
 let state = null;
 
 function load() {

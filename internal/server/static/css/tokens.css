@@ -3,7 +3,7 @@
 :root {
   /* Layout */
   --sidebar-width: 180px;
-  --toc-width: 220px;
+  --detail-width: 220px;
   --topbar-height: 36px;
   --breadcrumb-height: 35px;
 

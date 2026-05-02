@@ -38,7 +38,7 @@ templ Tree(nodes []*FileNode) {
 }
 
 templ TagList(tags []index.Tag) {
-	@PanelSection(PanelProps{Label: "Tags", Count: len(tags), ID: "tags", Open: true, Class: "toc-links-section server-tree", BodyClass: "toc-tags-body"}) {
+	@PanelSection(PanelProps{Label: "Tags", Count: len(tags), ID: "tags", Open: true, Class: "panel-links-section server-tree", BodyClass: "panel-tags-body"}) {
 		for _, tag := range tags {
 			<span class="list-item sidebar-tag-item" data-tag={ tag.Name }>
 				{ tag.Name } <span class="tag-count">{ intStr(tag.NoteCount) }</span>
@@ -59,14 +59,14 @@ templ Sidebar(nodes []*FileNode, tags []index.Tag, flashcardNotes []index.NoteFl
 	@BookmarksPanel(bookmarks)
 	if len(flashcardNotes) > 0 {
 		<div class="resize-handle-v server-tree" data-resize-target="next"></div>
-		<details class="panel-section toc-links-section server-tree" open aria-label="Flashcards" data-panel="flashcards">
+		<details class="panel-section panel-links-section server-tree" open aria-label="Flashcards" data-panel="flashcards">
 			<summary class="section-label panel-label">
 				Flashcards <span id="fc-due-badge" class="panel-count"></span>
 			</summary>
-			<div class="panel-body toc-links-body">
+			<div class="panel-body panel-links-body">
 				for _, nfc := range flashcardNotes {
 					<a
-						class="list-item toc-link-item"
+						class="list-item panel-link-item"
 						href={ templ.SafeURL("/flashcards/review?note=" + nfc.NotePath) }
 						hx-get={ "/flashcards/review?note=" + nfc.NotePath }
 						hx-target="#content-col"
@@ -98,9 +98,9 @@ type BookmarkEntry struct {
 templ BookmarksPanel(bookmarks []BookmarkEntry) {
 	<div id="bookmarks-panel">
 		if len(bookmarks) > 0 {
-			@PanelSection(PanelProps{Label: "Bookmarks", Count: len(bookmarks), ID: "bookmarks", Open: true, Class: "toc-links-section", BodyClass: "toc-links-body"}) {
+			@PanelSection(PanelProps{Label: "Bookmarks", Count: len(bookmarks), ID: "bookmarks", Open: true, Class: "panel-links-section", BodyClass: "panel-links-body"}) {
 				for _, b := range bookmarks {
-					@ContentLink("list-item toc-link-item", "/notes/" + b.Path) {
+					@ContentLink("list-item panel-link-item", "/notes/" + b.Path) {
 						{ b.Title }
 					}
 				}

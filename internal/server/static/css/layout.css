@@ -158,9 +158,9 @@
 
 html.zen, body.zen {
   --sidebar-width: 0px !important;
-  --toc-width: 0px !important;
+  --detail-width: 0px !important;
 
-  #sidebar, #toc-panel { overflow: hidden; }
+  #sidebar, #detail-panel { overflow: hidden; }
   .resize-handle { display: none; }
 }
 

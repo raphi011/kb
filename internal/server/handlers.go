@@ -53,7 +53,7 @@ func (s *Server) calendarData() (int, int, map[int]bool) {
 	return cache.calendarYear, cache.calendarMonth, cache.activeDays
 }
 
-// renderFullPage renders a complete page layout with sidebar, TOC, and calendar.
+// renderFullPage renders a complete page layout with sidebar, detail panel, and calendar.
 func (s *Server) renderFullPage(w http.ResponseWriter, r *http.Request, p views.LayoutParams) {
 	w.Header().Add("Link", `</static/style.min.css>; rel=preload; as=style`)
 	w.Header().Add("Link", `</static/htmx.min.js>; rel=preload; as=script`)
@@ -106,7 +106,7 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.renderContent(w, r, "Knowledge Base", views.FolderContentInner(nil, "Knowledge Base", entries), TOCData{})
+	s.renderContent(w, r, "Knowledge Base", views.FolderContentInner(nil, "Knowledge Base", entries), DetailPanelData{})
 }
 
 func (s *Server) handleNote(w http.ResponseWriter, r *http.Request) {
@@ -186,12 +186,12 @@ func (s *Server) renderNote(w http.ResponseWriter, r *http.Request, note *index.
 	breadcrumbs := buildBreadcrumbs(note.Path)
 	shareToken, _ := s.store.ShareTokenForNote(note.Path)
 
-	toc := TOCData{
+	dp := DetailPanelData{
 		NotePath: note.Path,
 	}
 
 	inner := views.NoteContentInner(breadcrumbs, note, html, shareToken)
-	s.renderContent(w, r, note.Title, inner, toc)
+	s.renderContent(w, r, note.Title, inner, dp)
 }
 
 func (s *Server) renderMarpNote(w http.ResponseWriter, r *http.Request, note *index.Note, raw []byte) {
@@ -211,13 +211,13 @@ func (s *Server) renderMarpNote(w http.ResponseWriter, r *http.Request, note *in
 
 	shareToken, _ := s.store.ShareTokenForNote(note.Path)
 
-	toc := TOCData{
+	dp := DetailPanelData{
 		SlidePanel: slidePanel,
 		NotePath:   note.Path,
 	}
 
 	inner := views.MarpNoteContentInner(breadcrumbs, note, string(raw), doc.Slides, baseURL, shareToken)
-	s.renderContent(w, r, note.Title, inner, toc)
+	s.renderContent(w, r, note.Title, inner, dp)
 }
 
 func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath string) {
@@ -256,7 +256,7 @@ func (s *Server) handleFolder(w http.ResponseWriter, r *http.Request, folderPath
 	}
 	breadcrumbs := buildBreadcrumbs(folderPath + "/placeholder")
 
-	s.renderContent(w, r, folderName, views.FolderContentInner(breadcrumbs, folderName, entries), TOCData{})
+	s.renderContent(w, r, folderName, views.FolderContentInner(breadcrumbs, folderName, entries), DetailPanelData{})
 }
 
 func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
@@ -444,7 +444,7 @@ func writeJSON(w http.ResponseWriter, v any) {
 func (s *Server) renderError(w http.ResponseWriter, r *http.Request, code int, message string) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(code)
-	s.renderContent(w, r, message, views.ErrorContentInner(code, message), TOCData{})
+	s.renderContent(w, r, message, views.ErrorContentInner(code, message), DetailPanelData{})
 }
 
 func sortEntries(entries []views.FolderEntry) {
@@ -538,7 +538,7 @@ func (s *Server) handleGitVersion(w http.ResponseWriter, r *http.Request) {
 
 	inner := views.VersionNoteContent(breadcrumbs, title, commitDate, commitMsg, notePath, result.HTML)
 
-	toc := TOCData{
+	dp := DetailPanelData{
 		NotePath: notePath,
 	}
 
@@ -546,7 +546,7 @@ func (s *Server) handleGitVersion(w http.ResponseWriter, r *http.Request) {
 		if err := inner.Render(r.Context(), w); err != nil {
 			slog.Error("render version content", "error", err)
 		}
-		s.renderTOC(w, r, toc)
+		s.renderDetailPanel(w, r, dp)
 		return
 	}
 

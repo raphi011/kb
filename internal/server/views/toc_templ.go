@@ -14,7 +14,7 @@ import (
 	"github.com/raphi011/kb/internal/markdown"
 )
 
-// SlidePanelData holds data for the TOC slide navigator panel.
+// SlidePanelData holds data for the detail panel slide navigator section.
 type SlidePanelData struct {
 	Slides []markdown.SlideInfo
 }
@@ -157,7 +157,7 @@ func GitHistoryPanel(notePath string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" hx-trigger=\"toggle from:closest details once\" hx-swap=\"innerHTML\"><span class=\"toc-empty\">Loading…</span></div></details>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" hx-trigger=\"toggle from:closest details once\" hx-swap=\"innerHTML\"><span class=\"panel-empty-text\">Loading…</span></div></details>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -187,7 +187,7 @@ func GitHistoryItems(commits []gitrepo.FileCommit, notePath string) templ.Compon
 		}
 		ctx = templ.ClearChildren(ctx)
 		if len(commits) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<span class=\"toc-empty\">No history</span>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<span class=\"panel-empty-text\">No history</span>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -242,7 +242,7 @@ func GitHistoryItems(commits []gitrepo.FileCommit, notePath string) templ.Compon
 	})
 }
 
-func TOCPanel(oob bool, calYear int, calMonth int, activeDays map[int]bool, flashcardPanel *FlashcardPanelData, slidePanel *SlidePanelData, notePath string) templ.Component {
+func DetailPanel(oob bool, calYear int, calMonth int, activeDays map[int]bool, flashcardPanel *FlashcardPanelData, slidePanel *SlidePanelData, notePath string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -263,7 +263,7 @@ func TOCPanel(oob bool, calYear int, calMonth int, activeDays map[int]bool, flas
 			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<aside id=\"toc-panel\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<aside id=\"detail-panel\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -293,7 +293,7 @@ func TOCPanel(oob bool, calYear int, calMonth int, activeDays map[int]bool, flas
 				return templ_7745c5c3_Err
 			}
 			if notePath != "" {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div id=\"toc-panels-lazy\" hx-get=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<div id=\"detail-panels-lazy\" hx-get=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -333,7 +333,7 @@ func TOCPanel(oob bool, calYear int, calMonth int, activeDays map[int]bool, flas
 	})
 }
 
-func TOCPanelsLazy(headings []markdown.Heading, outgoing []index.Link, backlinks []index.Link, flashcardPanel *FlashcardPanelData, notePath string) templ.Component {
+func DetailPanelsLazy(headings []markdown.Heading, outgoing []index.Link, backlinks []index.Link, flashcardPanel *FlashcardPanelData, notePath string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -418,7 +418,7 @@ func TOCPanelsLazy(headings []markdown.Heading, outgoing []index.Link, backlinks
 				return templ_7745c5c3_Err
 			}
 		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<div id=\"toc-inner\" class=\"scrollable\"><span class=\"toc-empty\">No headings</span></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "<div id=\"toc-inner\" class=\"scrollable\"><span class=\"panel-empty-text\">No headings</span></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -438,14 +438,14 @@ func TOCPanelsLazy(headings []markdown.Heading, outgoing []index.Link, backlinks
 				ctx = templ.InitializeContext(ctx)
 				for _, link := range outgoing {
 					if link.External {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<a class=\"list-item toc-link-item toc-link-out\" href=\"")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<a class=\"list-item panel-link-item panel-link-out\" href=\"")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var21 templ.SafeURL
 						templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(link.TargetPath))
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/toc.templ`, Line: 119, Col: 90}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/toc.templ`, Line: 119, Col: 94}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 						if templ_7745c5c3_Err != nil {
@@ -516,19 +516,19 @@ func TOCPanelsLazy(headings []markdown.Heading, outgoing []index.Link, backlinks
 							}
 							return nil
 						})
-						templ_7745c5c3_Err = ContentLink("list-item toc-link-item toc-link-out", "/notes/"+link.TargetPath).Render(templ.WithChildren(ctx, templ_7745c5c3_Var24), templ_7745c5c3_Buffer)
+						templ_7745c5c3_Err = ContentLink("list-item panel-link-item panel-link-out", "/notes/"+link.TargetPath).Render(templ.WithChildren(ctx, templ_7745c5c3_Var24), templ_7745c5c3_Buffer)
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 					} else {
-						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<span class=\"list-item toc-link-item toc-link-out\">")
+						templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<span class=\"list-item panel-link-item panel-link-out\">")
 						if templ_7745c5c3_Err != nil {
 							return templ_7745c5c3_Err
 						}
 						var templ_7745c5c3_Var27 string
 						templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(link.Title)
 						if templ_7745c5c3_Err != nil {
-							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/toc.templ`, Line: 135, Col: 68}
+							return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/server/views/toc.templ`, Line: 135, Col: 72}
 						}
 						_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 						if templ_7745c5c3_Err != nil {
@@ -542,7 +542,7 @@ func TOCPanelsLazy(headings []markdown.Heading, outgoing []index.Link, backlinks
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = PanelSection(PanelProps{Label: "Links", Count: len(outgoing), ID: "links", Open: true, Class: "toc-links-section", BodyClass: "toc-links-body"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var20), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = PanelSection(PanelProps{Label: "Links", Count: len(outgoing), ID: "links", Open: false, Class: "panel-links-section", BodyClass: "panel-links-body"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var20), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -589,14 +589,14 @@ func TOCPanelsLazy(headings []markdown.Heading, outgoing []index.Link, backlinks
 						}
 						return nil
 					})
-					templ_7745c5c3_Err = ContentLink("list-item toc-link-item toc-link-in", "/notes/"+link.SourcePath).Render(templ.WithChildren(ctx, templ_7745c5c3_Var29), templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = ContentLink("list-item panel-link-item panel-link-in", "/notes/"+link.SourcePath).Render(templ.WithChildren(ctx, templ_7745c5c3_Var29), templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
 				return nil
 			})
-			templ_7745c5c3_Err = PanelSection(PanelProps{Label: "Backlinks", Count: len(backlinks), ID: "backlinks", Open: true, Class: "toc-links-section", BodyClass: "toc-links-body"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var28), templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = PanelSection(PanelProps{Label: "Backlinks", Count: len(backlinks), ID: "backlinks", Open: false, Class: "panel-links-section", BodyClass: "panel-links-body"}).Render(templ.WithChildren(ctx, templ_7745c5c3_Var28), templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

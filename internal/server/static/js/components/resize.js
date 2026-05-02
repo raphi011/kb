@@ -11,7 +11,7 @@ export function initResize() {
 
   // Saved widths are restored in the inline <head> script to prevent FOUC.
   setupHandle('sidebar-resize', '--sidebar-width', 'sidebar', 120, 360, false, hSignal);
-  setupHandle('toc-resize', '--toc-width', 'toc-panel', 140, 360, true, hSignal);
+  setupHandle('detail-resize', '--detail-width', 'detail-panel', 140, 360, true, hSignal);
   setupVerticalHandles();
 }
 
@@ -40,7 +40,7 @@ function setupHandle(handleId, cssVar, panelId, min, max, invert, signal) {
       handle.removeEventListener('pointermove', onMove);
       handle.removeEventListener('pointerup', onUp);
       const finalWidth = Math.round(panel.getBoundingClientRect().width);
-      set(panelId === 'sidebar' ? 'sidebarWidth' : 'tocPanelWidth', finalWidth);
+      set(panelId === 'sidebar' ? 'sidebarWidth' : 'detailPanelWidth', finalWidth);
     }
 
     handle.addEventListener('pointermove', onMove);
@@ -100,7 +100,7 @@ function setupVerticalHandles() {
 }
 
 function sectionBody(section) {
-  return section.querySelector('.panel-body, .toc-links-body, .toc-tags-body');
+  return section.querySelector('.panel-body, .panel-links-body, .panel-tags-body');
 }
 
 function applyHeight(body, height) {

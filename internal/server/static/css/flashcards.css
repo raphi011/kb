@@ -144,7 +144,7 @@
   padding: var(--space-5);
 }
 
-/* --- Flashcard TOC panel --- */
+/* --- Flashcard detail panel --- */
 
 .fc-panel-body {
   padding: var(--space-3) var(--space-5) var(--space-4);

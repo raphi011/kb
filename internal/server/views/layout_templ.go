@@ -124,7 +124,7 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"><script>\n\t\t\t(function(){var d=document.documentElement,s=d.style;var u;try{u=JSON.parse(localStorage.getItem('zk-ui'))||{}}catch(e){u={}}d.setAttribute('data-theme',u.theme||(window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'));if(u.sidebarWidth)s.setProperty('--sidebar-width',u.sidebarWidth+'px');if(u.tocPanelWidth)s.setProperty('--toc-width',u.tocPanelWidth+'px');if(u.zen)d.classList.add('zen')})();\n\t\t</script></head><body hx-indicator=\"#nav-loader\"><div id=\"nav-loader\" class=\"nav-loader\"></div><div id=\"progress-bar\"></div><header id=\"topbar\"><button id=\"mob-menu-btn\" class=\"btn btn-icon\" aria-label=\"Menu\">&#9776;</button> <a id=\"logo\" href=\"/\" hx-get=\"/\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\"><span class=\"logo-dot\"></span><strong>kb</strong></a><div id=\"topbar-spacer\"></div><button id=\"cmd-trigger\" type=\"button\"><span>Search</span><kbd>&#8984;K</kbd></button> <button id=\"zen-toggle\" class=\"btn btn-icon\" type=\"button\" aria-label=\"Toggle zen mode\" title=\"Toggle zen mode\">&#8865;</button> <button id=\"theme-toggle\" class=\"btn btn-icon\" type=\"button\" aria-label=\"Toggle theme\"><span id=\"theme-icon\">&#9790;</span></button></header><div id=\"sidebar-backdrop\"></div><div id=\"layout\"><nav id=\"sidebar\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"><script>\n\t\t\t(function(){var d=document.documentElement,s=d.style;var u;try{u=JSON.parse(localStorage.getItem('zk-ui'))||{}}catch(e){u={}}d.setAttribute('data-theme',u.theme||(window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'));if(u.sidebarWidth)s.setProperty('--sidebar-width',u.sidebarWidth+'px');if(u.detailPanelWidth)s.setProperty('--detail-width',u.detailPanelWidth+'px');if(u.zen)d.classList.add('zen')})();\n\t\t</script></head><body hx-indicator=\"#nav-loader\"><div id=\"nav-loader\" class=\"nav-loader\"></div><div id=\"progress-bar\"></div><header id=\"topbar\"><button id=\"mob-menu-btn\" class=\"btn btn-icon\" aria-label=\"Menu\">&#9776;</button> <a id=\"logo\" href=\"/\" hx-get=\"/\" hx-target=\"#content-col\" hx-swap=\"innerHTML transition:true\" hx-push-url=\"true\"><span class=\"logo-dot\"></span><strong>kb</strong></a><div id=\"topbar-spacer\"></div><button id=\"cmd-trigger\" type=\"button\"><span>Search</span><kbd>&#8984;K</kbd></button> <button id=\"zen-toggle\" class=\"btn btn-icon\" type=\"button\" aria-label=\"Toggle zen mode\" title=\"Toggle zen mode\">&#8865;</button> <button id=\"theme-toggle\" class=\"btn btn-icon\" type=\"button\" aria-label=\"Toggle theme\"><span id=\"theme-icon\">&#9790;</span></button></header><div id=\"sidebar-backdrop\"></div><div id=\"layout\"><nav id=\"sidebar\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -140,11 +140,11 @@ func Layout(p LayoutParams) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"resize-handle\" id=\"toc-resize\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"resize-handle\" id=\"detail-resize\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = TOCPanel(false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel, p.NotePath).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = DetailPanel(false, p.CalendarYear, p.CalendarMonth, p.ActiveDays, p.FlashcardPanel, p.SlidePanel, p.NotePath).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

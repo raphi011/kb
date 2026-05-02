@@ -60,7 +60,7 @@ func (s *Server) handleNotePanels(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := views.TOCPanelsLazy(headings, outLinks, backlinks, fcPanel, note.Path).Render(r.Context(), w); err != nil {
+	if err := views.DetailPanelsLazy(headings, outLinks, backlinks, fcPanel, note.Path).Render(r.Context(), w); err != nil {
 		slog.Error("render panels", "error", err)
 	}
 }

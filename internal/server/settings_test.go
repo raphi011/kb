@@ -47,8 +47,8 @@ func TestHandleSettingsHTMX(t *testing.T) {
 	if !strings.Contains(body, "Settings") {
 		t.Error("HTMX response should contain 'Settings' heading")
 	}
-	if !strings.Contains(body, "toc-panel") {
-		t.Error("HTMX response should contain OOB toc-panel swap")
+	if !strings.Contains(body, "detail-panel") {
+		t.Error("HTMX response should contain OOB detail-panel swap")
 	}
 }
 

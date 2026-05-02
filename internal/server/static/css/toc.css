@@ -1,11 +1,11 @@
-/* ── TOC panel ─────────────────────────────────────────────── */
+/* ── Detail panel (right sidebar) ──────────────────────────── */
 
-#toc-panel {
+#detail-panel {
   position: sticky;
   top: calc(var(--topbar-height) + env(safe-area-inset-top));
   height: calc(100dvh - var(--topbar-height) - env(safe-area-inset-top));
   align-self: flex-start;
-  width: var(--toc-width);
+  width: var(--detail-width);
   flex-shrink: 0;
   transition: width 0.25s ease;
   background: var(--surface);
@@ -158,15 +158,15 @@
   &.h3 { padding-left: 28px; }
 }
 
-/* ── TOC links/backlinks sections ──────────────────────────── */
+/* ── Panel links/backlinks sections ───────────────────────── */
 
-.toc-links-section:first-of-type { margin-top: auto; }
+.panel-links-section:first-of-type { margin-top: auto; }
 
-.toc-links-body {
+.panel-links-body {
   padding: var(--space-1) 0 var(--space-2);
 }
 
-.toc-tags-body {
+.panel-tags-body {
   padding: var(--space-2) 10px var(--space-4);
   display: flex;
   flex-wrap: wrap;
@@ -174,7 +174,7 @@
   align-content: flex-start;
 }
 
-.toc-empty {
+.panel-empty-text {
   display: block;
   padding: var(--space-2) 14px;
   font-size: 11px;
@@ -182,7 +182,7 @@
   color: var(--text-faint);
 }
 
-.toc-link-item {
+.panel-link-item {
   padding: var(--space-1) 14px;
   font-size: 11px;
   font-family: var(--font-prose);

@@ -8,8 +8,8 @@ import (
 	"github.com/raphi011/kb/internal/server/views"
 )
 
-// TOCData holds everything needed for the OOB TOC panel.
-type TOCData struct {
+// DetailPanelData holds everything needed for the OOB detail panel.
+type DetailPanelData struct {
 	FlashcardPanel *views.FlashcardPanelData
 	SlidePanel     *views.SlidePanelData
 	NotePath       string
@@ -17,16 +17,16 @@ type TOCData struct {
 
 // renderContent handles the HTMX-vs-full-page branching that every page handler needs.
 // inner is the content to display (typically Breadcrumb + ContentArea + page content).
-// For HTMX requests: renders inner + OOB TOC.
+// For HTMX requests: renders inner + OOB detail panel.
 // For full page: wraps in layout with sidebar, calendar, etc.
-func (s *Server) renderContent(w http.ResponseWriter, r *http.Request, title string, inner templ.Component, toc TOCData) {
+func (s *Server) renderContent(w http.ResponseWriter, r *http.Request, title string, inner templ.Component, dp DetailPanelData) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if isHTMX(r) {
 		if err := inner.Render(r.Context(), w); err != nil {
 			slog.Error("render content", "error", err)
 		}
-		s.renderTOC(w, r, toc)
+		s.renderDetailPanel(w, r, dp)
 		return
 	}
 
@@ -34,16 +34,16 @@ func (s *Server) renderContent(w http.ResponseWriter, r *http.Request, title str
 		Title:          title,
 		Tree:           s.noteCache().tree,
 		ContentCol:     views.ContentCol(inner),
-		FlashcardPanel: toc.FlashcardPanel,
-		SlidePanel:     toc.SlidePanel,
-		NotePath:       toc.NotePath,
+		FlashcardPanel: dp.FlashcardPanel,
+		SlidePanel:     dp.SlidePanel,
+		NotePath:       dp.NotePath,
 	})
 }
 
-// renderTOC renders the TOC panel as an OOB swap for HTMX requests.
-func (s *Server) renderTOC(w http.ResponseWriter, r *http.Request, toc TOCData) {
+// renderDetailPanel renders the detail panel as an OOB swap for HTMX requests.
+func (s *Server) renderDetailPanel(w http.ResponseWriter, r *http.Request, dp DetailPanelData) {
 	calYear, calMonth, activeDays := s.calendarData()
-	if err := views.TOCPanel(true, calYear, calMonth, activeDays, toc.FlashcardPanel, toc.SlidePanel, toc.NotePath).Render(r.Context(), w); err != nil {
-		slog.Error("render TOC", "error", err)
+	if err := views.DetailPanel(true, calYear, calMonth, activeDays, dp.FlashcardPanel, dp.SlidePanel, dp.NotePath).Render(r.Context(), w); err != nil {
+		slog.Error("render detail panel", "error", err)
 	}
 }

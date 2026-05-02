@@ -35,7 +35,7 @@
   &:hover { opacity: 0.9; }
 }
 
-/* Interactive list row — tree items, sidebar panels, TOC links, folder links, etc. */
+/* Interactive list row — tree items, sidebar panels, panel links, folder links, etc. */
 .list-item {
   display: block;
   padding: var(--space-1) var(--space-4);

@@ -46,7 +46,7 @@ initPreview();
 
 document.addEventListener('toggle', (e) => {
   const el = e.target;
-  if (el.matches('details[data-panel]')) {
+  if (el.matches('details[data-panel]') && el.dataset.panelReady) {
     set('panel.' + el.dataset.panel, el.open);
   }
 }, true);
@@ -55,9 +55,13 @@ document.addEventListener('toggle', (e) => {
 registry.register('details[data-panel]', {
   init(root) {
     for (const el of root.querySelectorAll('details[data-panel]')) {
-      if (get('panel.' + el.dataset.panel) === false) {
+      const stored = get('panel.' + el.dataset.panel);
+      if (stored === false) {
         el.removeAttribute('open');
+      } else if (stored === true) {
+        el.setAttribute('open', '');
       }
+      el.dataset.panelReady = '1';
     }
   }
 });
@@ -106,8 +110,14 @@ document.addEventListener('htmx:afterSettle', (e) => {
     registry.init(e.detail.target);
     window.scrollTo(0, 0);
   }
-  if (id === 'calendar' || id === 'toc-panel') {
+  if (id === 'calendar' || id === 'detail-panel') {
     registry.init(e.detail.target);
+  }
+  // outerHTML swaps inside detail-panel (e.g. detail-panels-lazy) fire
+  // afterSettle on the new elements, not the parent. Detect via bubbling.
+  const detailPanel = id !== 'detail-panel' && e.target.closest?.('#detail-panel');
+  if (detailPanel) {
+    registry.init(detailPanel);
   }
 });
 

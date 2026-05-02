@@ -8,7 +8,7 @@ export function initCalendar() {
     highlightDay(urlDate);
   }
 
-  // Delegate on document so it survives OOB TOC panel swaps.
+  // Delegate on document so it survives OOB detail panel swaps.
   document.addEventListener('click', (e) => {
     const dayEl = e.target.closest?.('#calendar .cal-day-active');
     if (!dayEl) return;

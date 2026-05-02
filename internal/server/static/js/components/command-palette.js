@@ -63,7 +63,7 @@ export function initCommandPalette() {
 
 function openPalette(dialog, input, results) {
   dialog.showModal();
-  input.focus();
+  if (window.innerWidth > 850) input.focus();
   renderResults('', results);
 }
 

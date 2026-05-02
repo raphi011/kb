@@ -27,7 +27,7 @@
   #sidebar-backdrop.mob-open { opacity: 1; visibility: visible; }
 
   .resize-handle { display: none; }
-  #toc-panel { display: none; }
+  #detail-panel { display: none; }
 
   #article { padding: 20px 18px 60px; }
   #breadcrumb { padding: 0 14px; font-size: 10px; }

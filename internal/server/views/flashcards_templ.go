@@ -23,7 +23,7 @@ type ReviewCardData struct {
 	AnswerHTML   string
 }
 
-// FlashcardPanelData holds data for the TOC flashcard panel.
+// FlashcardPanelData holds data for the detail panel flashcard section.
 type FlashcardPanelData struct {
 	NotePath   string
 	DueCount   int
