@@ -176,6 +176,12 @@ func TestParseMarkdown_Headings(t *testing.T) {
 	if doc.Headings[1].Text != "Subsection" || doc.Headings[1].Level != 3 {
 		t.Errorf("Headings[1] = %+v, want Subsection level 3", doc.Headings[1])
 	}
+	wantIDs := []string{"section-a", "subsection", "section-b"}
+	for i, want := range wantIDs {
+		if doc.Headings[i].ID != want {
+			t.Errorf("Headings[%d].ID = %q, want %q", i, doc.Headings[i].ID, want)
+		}
+	}
 }
 
 func TestParseMarkdown_IsMarp(t *testing.T) {

@@ -22,6 +22,9 @@ func init() {
 			&wikilink.Extender{},
 			meta.Meta,
 		),
+		goldmark.WithParserOptions(
+			parser.WithAutoHeadingID(),
+		),
 	)
 }
 

@@ -254,7 +254,11 @@ func (w *astWalker) visitBlock(node ast.Node) {
 			w.firstH1 = text
 		}
 		if n.Level >= 2 && n.Level <= 3 {
-			w.headings = append(w.headings, Heading{Text: text, Level: n.Level})
+			h := Heading{Text: text, Level: n.Level}
+			if id, ok := n.AttributeString("id"); ok {
+				h.ID = string(id.([]byte))
+			}
+			w.headings = append(w.headings, h)
 		}
 		w.collectText(n)
 	case *ast.FencedCodeBlock, *ast.CodeBlock:
