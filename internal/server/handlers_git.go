@@ -96,6 +96,7 @@ func (s *Server) handleGitVersion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if isHTMX(r) {
+		writeTitle(w, title+" (version)")
 		if err := inner.Render(r.Context(), w); err != nil {
 			slog.Error("render version content", "error", err)
 		}

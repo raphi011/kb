@@ -1,6 +1,7 @@
 package server
 
 import (
+	"html"
 	"log/slog"
 	"net/http"
 
@@ -23,6 +24,7 @@ func (s *Server) renderContent(w http.ResponseWriter, r *http.Request, title str
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	if isHTMX(r) {
+		writeTitle(w, title)
 		if err := inner.Render(r.Context(), w); err != nil {
 			slog.Error("render content", "error", err)
 		}
@@ -38,6 +40,18 @@ func (s *Server) renderContent(w http.ResponseWriter, r *http.Request, title str
 		SlidePanel:     dp.SlidePanel,
 		NotePath:       dp.NotePath,
 	})
+}
+
+// writeTitle emits a <title> element so htmx updates document.title on swap.
+// Format mirrors views.Layout: "{title} — kb" or just "kb" when empty.
+func writeTitle(w http.ResponseWriter, title string) {
+	t := "kb"
+	if title != "" {
+		t = html.EscapeString(title) + " — kb"
+	}
+	if _, err := w.Write([]byte("<title>" + t + "</title>")); err != nil {
+		slog.Error("write title", "error", err)
+	}
 }
 
 // renderDetailPanel renders the detail panel as an OOB swap for HTMX requests.
