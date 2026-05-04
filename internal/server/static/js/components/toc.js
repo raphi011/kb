@@ -80,7 +80,7 @@ export function initToc() {
         e.preventDefault();
         const id = link.getAttribute('href')?.replace('#', '');
         const target = id ? document.getElementById(id) : null;
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (target) target.scrollIntoView({ block: 'start' });
         mobDetails.open = false;
       }
     });

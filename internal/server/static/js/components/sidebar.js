@@ -40,7 +40,7 @@ export function initSidebar() {
     topbar.addEventListener('click', (e) => {
       if (!sidebar.classList.contains('mob-open')) return;
       if (e.target.closest?.('button, a')) return;
-      inner.scrollTo({ top: 0, behavior: 'smooth' });
+      inner.scrollTo({ top: 0 });
     });
   }
 

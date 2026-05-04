@@ -26,7 +26,7 @@ function handleKey(e) {
     const el = scrollTarget();
     if (!el) return;
     const half = el.clientHeight / SCROLL_FAST_DIVISOR;
-    el.scrollBy({ top: e.key === 'd' ? half : -half, behavior: 'smooth' });
+    el.scrollBy({ top: e.key === 'd' ? half : -half });
     return;
   }
 
@@ -59,13 +59,13 @@ function handleKey(e) {
 
     case 'G':
       e.preventDefault();
-      scrollTarget()?.scrollTo({ top: 999999, behavior: 'smooth' });
+      scrollTarget()?.scrollTo({ top: 999999 });
       break;
 
     case 'g':
       if (lastKey === 'g' && Date.now() - lastKeyTime < 500) {
         e.preventDefault();
-        scrollTarget()?.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollTarget()?.scrollTo({ top: 0 });
         lastKey = '';
         return; // skip lastKey update below
       }

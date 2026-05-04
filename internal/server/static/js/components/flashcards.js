@@ -24,7 +24,7 @@ export function initFlashcards() {
     // In reading mode: scroll to the card in the note.
     const target = document.querySelector(`.flashcard[data-card-hash="${hash}"]`);
     if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.scrollIntoView({ block: 'center' });
     }
   });
 
