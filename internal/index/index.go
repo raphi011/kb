@@ -46,11 +46,15 @@ type DB struct {
 }
 
 func Open(dbPath string) (*DB, error) {
+	// temp_store=memory keeps SQLite's temporary tables/indexes off disk, which
+	// matters when the container runs with a read-only root filesystem (kb's
+	// production deployment). Without this, FTS5 indexing of larger notes fails
+	// with SQLITE_IOERR_GETTEMPPATH.
 	dsn := dbPath
 	if dbPath != ":memory:" {
-		dsn = fmt.Sprintf("file:%s?_pragma=journal_mode(wal)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(on)", dbPath)
+		dsn = fmt.Sprintf("file:%s?_pragma=journal_mode(wal)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(on)&_pragma=temp_store(memory)", dbPath)
 	} else {
-		dsn = "file::memory:?_pragma=foreign_keys(on)"
+		dsn = "file::memory:?_pragma=foreign_keys(on)&_pragma=temp_store(memory)"
 	}
 
 	db, err := sql.Open("sqlite", dsn)
