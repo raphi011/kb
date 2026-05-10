@@ -6,3 +6,6 @@ internal/server/static/*.gz
 # Build artifacts: regenerated each build by `just bundle` / Dockerfile.
 internal/server/static/chroma.css
 internal/server/static/dist/
+# Agentic planning scratch — keep local; existing tracked files unaffected.
+docs/superpowers/specs/
+docs/superpowers/plans/
