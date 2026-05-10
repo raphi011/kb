@@ -14,23 +14,28 @@ import (
 	"github.com/raphi011/kb/internal/markdown"
 )
 
+// KB is a knowledge-base instance. It holds a path to the git repo rather
+// than a live handle: each operation opens a short-lived *gitrepo.Repo so
+// that pack-file rescans happen on every request (avoids stale-cache 500s).
 type KB struct {
-	repo     *gitrepo.Repo
+	repoPath string
 	idx      *index.DB
 	fsrs     *fsrs.FSRS
 	renderer *markdown.Renderer
 }
 
 func Open(repoPath, dbPath string) (*KB, error) {
-	repo, err := gitrepo.Open(repoPath)
-	if err != nil {
+	// Probe-open the repo so a broken repo fails at startup, not at first
+	// request. The probe handle is discarded; subsequent operations open
+	// their own short-lived handles.
+	if _, err := gitrepo.Open(repoPath); err != nil {
 		return nil, fmt.Errorf("open repo: %w", err)
 	}
 	idx, err := index.Open(dbPath)
 	if err != nil {
 		return nil, fmt.Errorf("open index: %w", err)
 	}
-	return &KB{repo: repo, idx: idx, fsrs: fsrs.NewFSRS(fsrs.DefaultParam())}, nil
+	return &KB{repoPath: repoPath, idx: idx, fsrs: fsrs.NewFSRS(fsrs.DefaultParam())}, nil
 }
 
 // DB returns the underlying index database for direct read-only access.
@@ -45,12 +50,17 @@ func (kb *KB) Close() error {
 // Index runs full or incremental indexing.
 // If force is true, always does a full reindex.
 func (kb *KB) Index(force bool) error {
+	repo, err := gitrepo.Open(kb.repoPath)
+	if err != nil {
+		return fmt.Errorf("open repo: %w", err)
+	}
+
 	lastSHA, err := kb.idx.GetMeta("head_commit")
 	if err != nil {
 		return fmt.Errorf("get last indexed commit: %w", err)
 	}
 
-	headSHA := kb.repo.HeadCommitHash()
+	headSHA := repo.HeadCommitHash()
 
 	if lastSHA == headSHA && !force {
 		slog.Debug("index up to date", "sha", headSHA)
@@ -64,9 +74,9 @@ func (kb *KB) Index(force bool) error {
 	var err2 error
 
 	if lastSHA == "" || force {
-		err2 = kb.fullIndex(headSHA)
+		err2 = kb.fullIndex(repo, headSHA)
 	} else {
-		err2 = kb.incrementalIndex(lastSHA, headSHA)
+		err2 = kb.incrementalIndex(repo, lastSHA, headSHA)
 	}
 
 	if err2 == nil {
@@ -135,15 +145,15 @@ func writeNote(tx *index.Tx, n indexedNote) error {
 	return nil
 }
 
-func (kb *KB) fullIndex(headSHA string) error {
+func (kb *KB) fullIndex(repo *gitrepo.Repo, headSHA string) error {
 	slog.Info("running full index", "head", shortSHA(headSHA))
 
-	timestamps, err := kb.repo.GitLog()
+	timestamps, err := repo.GitLog()
 	if err != nil {
 		return fmt.Errorf("git log: %w", err)
 	}
 
-	blobs, err := kb.repo.ReadAllBlobs()
+	blobs, err := repo.ReadAllBlobs()
 	if err != nil {
 		return fmt.Errorf("read blobs: %w", err)
 	}
@@ -211,26 +221,26 @@ func (kb *KB) fullIndex(headSHA string) error {
 	return nil
 }
 
-func (kb *KB) incrementalIndex(oldSHA, newSHA string) error {
+func (kb *KB) incrementalIndex(repo *gitrepo.Repo, oldSHA, newSHA string) error {
 	slog.Info("running incremental index", "from", shortSHA(oldSHA), "to", shortSHA(newSHA))
 
-	diff, err := kb.repo.Diff(oldSHA)
+	diff, err := repo.Diff(oldSHA)
 	if err != nil {
 		slog.Warn("diff failed, falling back to full index", "error", err)
-		return kb.fullIndex(newSHA)
+		return kb.fullIndex(repo, newSHA)
 	}
 
 	// Read all changed file contents in one tree traversal.
 	changedPaths := make([]string, 0, len(diff.Added)+len(diff.Modified))
 	changedPaths = append(changedPaths, diff.Added...)
 	changedPaths = append(changedPaths, diff.Modified...)
-	blobs, err := kb.repo.ReadBlobs(changedPaths)
+	blobs, err := repo.ReadBlobs(changedPaths)
 	if err != nil {
 		return fmt.Errorf("read blobs: %w", err)
 	}
 
 	// Get HEAD commit time for timestamp derivation (avoids full GitLog).
-	commitTime, err := kb.repo.HeadCommitTime()
+	commitTime, err := repo.HeadCommitTime()
 	if err != nil {
 		return fmt.Errorf("head commit time: %w", err)
 	}
@@ -305,9 +315,12 @@ func (kb *KB) incrementalIndex(oldSHA, newSHA string) error {
 	return nil
 }
 
-
 func (kb *KB) ReadFile(path string) ([]byte, error) {
-	data, err := kb.repo.ReadBlob(path)
+	repo, err := gitrepo.Open(kb.repoPath)
+	if err != nil {
+		return nil, fmt.Errorf("open repo: %w", err)
+	}
+	data, err := repo.ReadBlob(path)
 	if err != nil {
 		return nil, fmt.Errorf("read file %q: %w", path, err)
 	}
@@ -322,16 +335,10 @@ func shortSHA(s string) string {
 }
 
 func (kb *KB) ReIndex() error {
-	if err := kb.repo.RefreshHead(); err != nil {
-		return err
-	}
 	return kb.Index(false)
 }
 
 func (kb *KB) ForceReIndex() error {
-	if err := kb.repo.RefreshHead(); err != nil {
-		return err
-	}
 	return kb.Index(true)
 }
 
@@ -393,5 +400,3 @@ func (kb *KB) RenderPreview(src []byte) (markdown.RenderResult, error) {
 	lookup, titleLookup := kb.renderer.Lookup()
 	return markdown.RenderPreview(src, lookup, titleLookup)
 }
-
-
