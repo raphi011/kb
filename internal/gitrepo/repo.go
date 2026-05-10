@@ -338,13 +338,3 @@ func (r *Repo) HeadCommitTime() (time.Time, error) {
 	return commit.Author.When, nil
 }
 
-func (r *Repo) RefreshHead() error {
-	head, err := r.repo.Head()
-	if err != nil {
-		return fmt.Errorf("refresh HEAD: %w", err)
-	}
-	r.head = head
-	return nil
-}
-
-
