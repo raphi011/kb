@@ -1,17 +1,14 @@
 import { registry } from '../lib/registry.js';
 
-let observer = null;
 let scrollHandler = null;
+let ticking = false;
 
 export function destroyToc() {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-  }
   if (scrollHandler) {
     document.removeEventListener('scroll', scrollHandler);
     scrollHandler = null;
   }
+  ticking = false;
   const progressBar = document.getElementById('progress-bar');
   if (progressBar) progressBar.style.width = '0%';
 }
@@ -22,55 +19,84 @@ export function initToc() {
   const tocItems = document.querySelectorAll('#toc-inner .toc-item, .mob-toc-body .toc-item');
   const progressBar = document.getElementById('progress-bar');
 
-  const headingIds = [...new Set([...tocItems].map(a => {
-    const href = a.getAttribute('href');
-    return href ? href.replace('#', '') : null;
-  }).filter(Boolean))];
+  // Build id → tocItem[] map and an ordered list of ids (document order, dedup'd).
+  const tocMap = new Map();
+  const headingIds = [];
+  tocItems.forEach(item => {
+    const id = item.getAttribute('href')?.replace('#', '');
+    if (!id) return;
+    if (!tocMap.has(id)) {
+      tocMap.set(id, []);
+      headingIds.push(id);
+    }
+    tocMap.get(id).push(item);
+  });
 
-  const headingEls = headingIds.map(id => document.getElementById(id)).filter(Boolean);
+  const headings = headingIds
+    .map(id => ({ id, el: document.getElementById(id) }))
+    .filter(h => h.el);
 
-  if (headingEls.length > 0) {
-    // Build id → tocItem[] map for O(1) active toggling.
-    const tocMap = new Map();
-    tocItems.forEach(item => {
-      const href = item.getAttribute('href');
-      const id = href ? href.replace('#', '') : null;
-      if (id) {
-        if (!tocMap.has(id)) tocMap.set(id, []);
-        tocMap.get(id).push(item);
-      }
-    });
+  // Sticky element whose bottom defines the "activation line" — breadcrumb when present,
+  // topbar otherwise. Measured per-tick so it auto-handles safe-area, dynamic banners, etc.
+  const stickyEl = document.getElementById('breadcrumb') || document.getElementById('topbar');
 
-    let activeId = headingIds[0];
-    // Mark initial active.
-    (tocMap.get(activeId) || []).forEach(el => el.classList.add('active'));
+  let lastActiveId = null;
 
-    observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            activeId = entry.target.id;
-          }
-        }
-        // Remove old active, set new.
-        tocItems.forEach(el => el.classList.remove('active'));
-        (tocMap.get(activeId) || []).forEach(el => el.classList.add('active'));
-      },
-      { rootMargin: '-10% 0px -80% 0px', threshold: 0 }
-    );
+  const computeActive = () => {
+    if (headings.length === 0) return null;
+    const scrollEl = document.scrollingElement;
+    const headerOffset = (stickyEl ? stickyEl.getBoundingClientRect().bottom : 0) + 4;
 
-    headingEls.forEach(el => observer.observe(el));
-  }
+    // Topmost-above-line: last heading (in document order) whose top is at/above the line.
+    let active = headings[0].id;
+    for (const { id, el } of headings) {
+      if (el.getBoundingClientRect().top <= headerOffset) active = id;
+      else break;
+    }
 
-  if (progressBar) {
-    scrollHandler = () => {
-      const el = document.scrollingElement;
-      const max = el.scrollHeight - el.clientHeight;
-      const pct = max > 0 ? Math.round((el.scrollTop / max) * 100) : 0;
-      progressBar.style.width = pct + '%';
-    };
-    document.addEventListener('scroll', scrollHandler, { passive: true });
-  }
+    // Last-heading override: when scrolled to the bottom or when the last heading has
+    // entered the upper half of the viewport, activate it. Handles short final sections
+    // that can never reach the activation line because the page runs out of scroll.
+    const last = headings[headings.length - 1];
+    const atBottom = scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 2;
+    if (atBottom || last.el.getBoundingClientRect().top < scrollEl.clientHeight / 2) {
+      active = last.id;
+    }
+
+    return active;
+  };
+
+  const applyActive = (id) => {
+    if (id === lastActiveId) return;
+    lastActiveId = id;
+    tocItems.forEach(el => el.classList.remove('active'));
+    (tocMap.get(id) || []).forEach(el => el.classList.add('active'));
+  };
+
+  const updateProgress = () => {
+    if (!progressBar) return;
+    const el = document.scrollingElement;
+    const max = el.scrollHeight - el.clientHeight;
+    const pct = max > 0 ? Math.round((el.scrollTop / max) * 100) : 0;
+    progressBar.style.width = pct + '%';
+  };
+
+  const tick = () => {
+    ticking = false;
+    const id = computeActive();
+    if (id) applyActive(id);
+    updateProgress();
+  };
+
+  scrollHandler = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(tick);
+  };
+
+  document.addEventListener('scroll', scrollHandler, { passive: true });
+
+  tick();
 
   const mobDetails = document.getElementById('mob-toc-details');
   if (mobDetails) {

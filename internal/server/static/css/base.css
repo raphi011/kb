@@ -5,7 +5,7 @@ html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
   background: var(--bg);
-  scroll-padding-top: calc(var(--topbar-height) + env(safe-area-inset-top) + 8px);
+  scroll-padding-top: calc(var(--topbar-height) + var(--breadcrumb-height) + env(safe-area-inset-top) + 8px);
 }
 
 body {
